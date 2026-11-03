@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Navigate, useParams, useSearchParams } from 'react-router'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PageLoading } from '@/components/layout/PageLoading'
 import { BackgroundLibrary } from '@/components/story/BackgroundLibrary'
 import { CastPicker } from '@/components/story/CastPicker'
 import { MoodPicker } from '@/components/story/MoodPicker'
@@ -11,12 +12,15 @@ import { SafetyNote, StoryBuddy } from '@/components/story/StoryBuddy'
 import { SynopsisForm } from '@/components/story/SynopsisForm'
 import { Button } from '@/components/ui/Button'
 import { EmptySlot } from '@/components/ui/EmptySlot'
+import { SaveStatus } from '@/components/ui/SaveStatus'
 import { byRecent } from '@/lib/comic'
-import { mockPlanPanels } from '@/mocks/planner'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore, useStartComic } from '@/store/comics'
+import { useDataStatus } from '@/store/load'
 import { usePlacesStore } from '@/store/places'
 import type { Comic, Scene, StudioStep } from '@/types'
+
+const SUBTITLE = 'Three steps: tell the story, pick the places, then make the panels.'
 
 function parseStep(raw: string | null, fallback: StudioStep): StudioStep {
   return raw === '1' || raw === '2' || raw === '3' ? (Number(raw) as StudioStep) : fallback
@@ -26,14 +30,17 @@ function parseStep(raw: string | null, fallback: StudioStep): StudioStep {
 export function StoryStudioPage() {
   const { comicId } = useParams()
   const [params] = useSearchParams()
+  const status = useDataStatus()
   const comics = useComicsStore((s) => s.comics)
   const comic = useComic(comicId)
   const startComic = useStartComic()
 
+  if (status !== 'ready') return <PageLoading status={status} layout="split" />
+
   if (!comicId) {
     const latest = comics.filter((c) => c.status === 'draft').sort(byRecent)[0]
     if (latest) {
-      const step = params.get('step') ?? String(latest.studioStep)
+      const step = params.get('step') ?? String(latest.studio_step)
       return <Navigate to={`/studio/${latest.id}?step=${step}`} replace />
     }
   }
@@ -41,12 +48,12 @@ export function StoryStudioPage() {
   if (!comic) {
     return (
       <>
-        <PageHeader title="Story Studio" subtitle="Three steps: tell the story, pick the places, then make the panels." />
+        <PageHeader title="Story Studio" subtitle={SUBTITLE} />
         <div className="flex flex-col items-start gap-4 rounded-hero border-3 border-ink bg-surface p-7 shadow-hero">
           <p className="m-0 text-lg font-semibold">
             {comicId ? "We couldn't find that comic." : 'No drafts yet. Ready to start a new one?'}
           </p>
-          <Button variant="accent" onClick={() => startComic()}>
+          <Button variant="accent" onClick={() => void startComic()}>
             Start a new comic
           </Button>
         </div>
@@ -59,45 +66,44 @@ export function StoryStudioPage() {
 
 function Studio({ comic }: { comic: Comic }) {
   const [params, setParams] = useSearchParams()
-  const navigate = useNavigate()
   const characters = useCastStore((s) => s.characters)
   const places = usePlacesStore((s) => s.places)
-  const { updateComic, setScenes, setPanels } = useComicsStore.getState()
+  const update = useComicsStore((s) => s.update)
+  const setScenes = useComicsStore((s) => s.setScenes)
   const [editingScene, setEditingScene] = useState<string | null>(null)
 
-  const step = parseStep(params.get('step'), comic.studioStep)
-  const cast = characters.filter((c) => comic.castIds.includes(c.id))
-  const castLocked = cast.length > 0 && cast.every((c) => c.status === 'locked')
+  const step = parseStep(params.get('step'), comic.studio_step)
+  const cast = characters.filter((c) => comic.cast_ids.includes(c.id))
 
   const goTo = (next: StudioStep) => {
     setParams({ step: String(next) })
-    if (next > comic.studioStep) updateComic(comic.id, { studioStep: next })
+    if (next > comic.studio_step) update(comic.id, { studio_step: next })
   }
 
-  const updateScene = (scene: Scene) => setScenes(comic.id, comic.scenes.map((s) => (s.id === scene.id ? scene : s)))
+  const updateScene = (scene: Scene) =>
+    setScenes(comic.id, comic.scenes.map((s) => (s.id === scene.id ? scene : s)))
 
   const addScene = (backgroundId: string) => {
-    const scene: Scene = { id: `${comic.id}-s${Date.now()}`, backgroundId, characterIds: [...comic.castIds], summary: '' }
+    const scene: Scene = {
+      id: crypto.randomUUID(),
+      idx: comic.scenes.length,
+      background_id: backgroundId,
+      character_ids: [...comic.cast_ids],
+      summary: '',
+    }
     setScenes(comic.id, [...comic.scenes, scene])
     setEditingScene(scene.id)
   }
 
   const pickPlace = (placeId: string) => {
     const editing = comic.scenes.find((s) => s.id === editingScene)
-    if (editing) updateScene({ ...editing, backgroundId: placeId })
+    if (editing) updateScene({ ...editing, background_id: placeId })
     else addScene(placeId)
-  }
-
-  // Phase 1: pretend generation finished. Phase 5 starts the generate job and shows SSE progress.
-  const makeComic = () => {
-    setPanels(comic.id, comic.panels.map((p) => ({ ...p, status: 'ready' })))
-    updateComic(comic.id, { status: 'finished' })
-    navigate(`/comics/${comic.id}`)
   }
 
   return (
     <>
-      <PageHeader title="Story Studio" subtitle="Three steps: tell the story, pick the places, then make the panels." />
+      <PageHeader title="Story Studio" subtitle={SUBTITLE} />
       <Stepper step={step} onStep={goTo} />
 
       <div className="flex flex-wrap items-start gap-6">
@@ -107,22 +113,26 @@ function Studio({ comic }: { comic: Comic }) {
               <SynopsisForm
                 title={comic.title}
                 synopsis={comic.synopsis}
-                onTitle={(title) => updateComic(comic.id, { title })}
-                onSynopsis={(synopsis) => updateComic(comic.id, { synopsis })}
+                onTitle={(title) => update(comic.id, { title })}
+                onSynopsis={(synopsis) => update(comic.id, { synopsis })}
               />
-              <CastPicker characters={characters} selectedIds={comic.castIds} onChange={(castIds) => updateComic(comic.id, { castIds })} />
+              <CastPicker
+                characters={characters}
+                selectedIds={comic.cast_ids}
+                onChange={(cast_ids) => update(comic.id, { cast_ids })}
+              />
               <MoodPicker
                 mood={comic.mood}
-                panelCount={comic.panelCount}
-                onMood={(mood) => updateComic(comic.id, { mood })}
-                onPanelCount={(panelCount) => updateComic(comic.id, { panelCount })}
+                panelCount={comic.panel_count}
+                onMood={(mood) => update(comic.id, { mood })}
+                onPanelCount={(panel_count) => update(comic.id, { panel_count })}
               />
             </div>
           )}
 
           {step === 2 && (
             <div className="flex flex-col gap-5.5">
-              <BackgroundLibrary usedIds={comic.scenes.map((s) => s.backgroundId)} onPick={pickPlace} />
+              <BackgroundLibrary usedIds={comic.scenes.map((s) => s.background_id)} onPick={pickPlace} />
               <div className="flex flex-col gap-3">
                 <h2 className="m-0 font-display text-[30px] tracking-[1px]">Scenes</h2>
                 {comic.scenes.map((scene, i) => (
@@ -140,7 +150,7 @@ function Studio({ comic }: { comic: Comic }) {
                 ))}
                 <EmptySlot
                   onClick={() => addScene(places[0]?.id ?? '')}
-                  disabled={!places.length}
+                  disabled={!places.length || comic.scenes.length >= 8}
                   className="min-h-12 self-start rounded-button px-4 py-2.5"
                 >
                   + Add scene
@@ -162,24 +172,18 @@ function Studio({ comic }: { comic: Comic }) {
                       key={panel.id}
                       number={i + 1}
                       panel={panel}
-                      place={places.find((p) => p.id === panel.backgroundId)}
+                      place={places.find((p) => p.id === panel.background_id)}
                       cast={characters}
                     />
                   ))}
                 </div>
               ) : (
-                <EmptySlot
-                  onClick={() => setPanels(comic.id, mockPlanPanels(comic))}
-                  disabled={!comic.scenes.length}
-                  className="min-h-[120px]"
-                >
-                  {comic.scenes.length ? '+ Plan my panels' : 'Add a scene in step 2 first'}
+                <EmptySlot disabled className="min-h-[120px]">
+                  Story buddy will plan your panels here soon.
                 </EmptySlot>
               )}
-              {!castLocked && (
-                <p className="m-0 font-bold text-muted">Lock every character in this story before making the comic.</p>
-              )}
-              <Button variant="make" className="self-start" disabled={!comic.panels.length || !castLocked} onClick={makeComic}>
+              {/* Phase 4 adds the planner and Phase 5 draws the panels; until then the button waits. */}
+              <Button variant="make" className="self-start" disabled title="Drawing panels arrives in Phase 5">
                 Make my comic!
               </Button>
             </div>
@@ -189,7 +193,7 @@ function Studio({ comic }: { comic: Comic }) {
             <Button disabled={step === 1} onClick={() => goTo((step - 1) as StudioStep)}>
               ← Back
             </Button>
-            <span className="self-center font-bold text-muted">Saved automatically</span>
+            <SaveStatus className="self-center" />
             {step < 3 ? (
               <Button variant="primary" onClick={() => goTo((step + 1) as StudioStep)}>
                 Next step →

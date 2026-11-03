@@ -14,7 +14,7 @@ export function StorySpark() {
         "{spark}"
       </p>
       <div className="mt-auto flex flex-wrap gap-2.5">
-        <Button size="sm" onClick={() => startComic(spark)}>
+        <Button size="sm" onClick={() => void startComic(spark)}>
           Use this idea
         </Button>
         <Button size="sm" variant="outline-light" onClick={shuffle}>

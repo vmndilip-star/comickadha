@@ -7,11 +7,11 @@ import { MAX_CAST } from '@/types'
 
 export function CastSlotList({ selectedId }: { selectedId: string }) {
   const characters = useCastStore((s) => s.characters)
-  const addCharacter = useCastStore((s) => s.addCharacter)
+  const addCharacter = useCastStore((s) => s.add)
   const navigate = useNavigate()
 
-  const add = () => {
-    const id = addCharacter()
+  const add = async () => {
+    const id = await addCharacter()
     if (id) navigate(`/characters/${id}`)
   }
 
@@ -44,7 +44,7 @@ export function CastSlotList({ selectedId }: { selectedId: string }) {
         )
       })}
       {characters.length < MAX_CAST && (
-        <EmptySlot onClick={add} className="min-h-20 rounded-2xl">
+        <EmptySlot onClick={() => void add()} className="min-h-20 rounded-2xl">
           + New character
         </EmptySlot>
       )}

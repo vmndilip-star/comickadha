@@ -11,7 +11,7 @@ interface PanelPlanCardProps {
 
 export function PanelPlanCard({ number, panel, place, cast }: PanelPlanCardProps) {
   const names = panel.characters
-    .map((pc) => cast.find((c) => c.id === pc.characterId)?.name)
+    .map((pc) => cast.find((c) => c.id === pc.id)?.name)
     .filter((n): n is string => Boolean(n))
 
   return (

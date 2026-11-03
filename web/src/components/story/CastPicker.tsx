@@ -33,7 +33,7 @@ export function CastPicker({ characters, selectedIds, onChange }: CastPickerProp
               )}
             >
               <span
-                className={cn('size-[34px] border-2 border-ink', c.spec.kind === 'robot' ? 'rounded-lg' : 'rounded-full')}
+                className={cn('size-[34px] border-2 border-ink', c.kind === 'robot' ? 'rounded-lg' : 'rounded-full')}
                 style={{ backgroundColor: c.spec.skin }}
               />
               {c.name}

@@ -3,19 +3,31 @@ import { ComicPage } from '@/components/comic/ComicPage'
 import { EditorTopBar } from '@/components/comic/EditorTopBar'
 import type { ReaderMode } from '@/components/comic/ModeToggle'
 import { PanelInspector } from '@/components/comic/PanelInspector'
+import { PageLoading } from '@/components/layout/PageLoading'
+import { SaveStatus } from '@/components/ui/SaveStatus'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore } from '@/store/comics'
+import { useDataStatus } from '@/store/load'
 import { usePlacesStore } from '@/store/places'
 import { useReaderStore } from '@/store/reader'
 
 export function ReaderPage() {
   const { id } = useParams()
   const [params, setParams] = useSearchParams()
+  const status = useDataStatus()
   const comic = useComic(id)
   const cast = useCastStore((s) => s.characters)
   const places = usePlacesStore((s) => s.places)
   const updatePanel = useComicsStore((s) => s.updatePanel)
   const reader = useReaderStore()
+
+  if (status !== 'ready') {
+    return (
+      <main className="mx-auto max-w-content px-6 pt-7 pb-16">
+        <PageLoading status={status} />
+      </main>
+    )
+  }
 
   if (!comic) {
     return (
@@ -52,34 +64,37 @@ export function ReaderPage() {
         />
 
         {mode === 'edit' && panel && (
-          <PanelInspector
-            number={index + 1}
-            panelTotal={comic.panels.length}
-            panel={panel}
-            place={places.find((p) => p.id === panel.backgroundId)}
-            cast={cast}
-            bubbleId={reader.selectedBubbleId}
-            characterId={reader.selectedCharacterId}
-            canUndo={undoForComic.length > 0}
-            onSelectBubble={reader.selectBubble}
-            onSelectCharacter={reader.selectCharacter}
-            onBeginEdit={() => reader.pushUndo(comic.id, panel)}
-            onBubble={(bubbleId, patch) =>
-              updatePanel(comic.id, panel.id, (p) => ({
-                ...p,
-                bubbles: p.bubbles.map((b) => (b.id === bubbleId ? { ...b, ...patch } : b)),
-              }))
-            }
-            onExpression={(characterId, expression) =>
-              updatePanel(comic.id, panel.id, (p) => ({
-                ...p,
-                characters: p.characters.map((c) => (c.characterId === characterId ? { ...c, expression } : c)),
-              }))
-            }
-            onUndo={undo}
-            onPrev={() => reader.selectPanel(comic.panels[index - 1]?.id ?? panel.id)}
-            onNext={() => reader.selectPanel(comic.panels[index + 1]?.id ?? panel.id)}
-          />
+          <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-3">
+            <PanelInspector
+              number={index + 1}
+              panelTotal={comic.panels.length}
+              panel={panel}
+              place={places.find((p) => p.id === panel.background_id)}
+              cast={cast}
+              bubbleId={reader.selectedBubbleId}
+              characterId={reader.selectedCharacterId}
+              canUndo={undoForComic.length > 0}
+              onSelectBubble={reader.selectBubble}
+              onSelectCharacter={reader.selectCharacter}
+              onBeginEdit={() => reader.pushUndo(comic.id, panel)}
+              onBubble={(bubbleId, patch) =>
+                updatePanel(comic.id, panel.id, (p) => ({
+                  ...p,
+                  bubbles: p.bubbles.map((b) => (b.id === bubbleId ? { ...b, ...patch } : b)),
+                }))
+              }
+              onExpression={(characterId, expression) =>
+                updatePanel(comic.id, panel.id, (p) => ({
+                  ...p,
+                  characters: p.characters.map((c) => (c.id === characterId ? { ...c, expression } : c)),
+                }))
+              }
+              onUndo={undo}
+              onPrev={() => reader.selectPanel(comic.panels[index - 1]?.id ?? panel.id)}
+              onNext={() => reader.selectPanel(comic.panels[index + 1]?.id ?? panel.id)}
+            />
+            <SaveStatus className="text-center" />
+          </div>
         )}
       </main>
     </div>

@@ -3,15 +3,18 @@ import { ComicCard } from '@/components/comic/ComicCard'
 import { FilterPills, type ComicFilter } from '@/components/comic/FilterPills'
 import { SearchBar } from '@/components/comic/SearchBar'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { PageLoading } from '@/components/layout/PageLoading'
 import { Button } from '@/components/ui/Button'
 import { byRecent } from '@/lib/comic'
 import { useComicsStore, useStartComic } from '@/store/comics'
+import { useDataStatus } from '@/store/load'
 
 export function MyComicsPage() {
   const comics = useComicsStore((s) => s.comics)
   const startComic = useStartComic()
   const [filter, setFilter] = useState<ComicFilter>('all')
   const [query, setQuery] = useState('')
+  const status = useDataStatus()
 
   const q = query.trim().toLowerCase()
   const shown = comics
@@ -19,10 +22,12 @@ export function MyComicsPage() {
     .filter((c) => !q || c.title.toLowerCase().includes(q) || c.synopsis.toLowerCase().includes(q))
     .sort(byRecent)
 
+  if (status !== 'ready') return <PageLoading status={status} />
+
   return (
     <>
       <PageHeader title="My Comics" subtitle="Every comic you've made, finished or not.">
-        <Button variant="primary" size="lg" className="rounded-tile shadow-[4px_4px_0_var(--ck-ink)]" onClick={() => startComic()}>
+        <Button variant="primary" size="lg" className="rounded-tile shadow-[4px_4px_0_var(--ck-ink)]" onClick={() => void startComic()}>
           + New Comic
         </Button>
       </PageHeader>

@@ -23,19 +23,19 @@ export function Panel({ number, panel, place, cast, selected = false, onSelect }
   const nameOf = (id: string) => cast.find((c) => c.id === id)?.name
   const content = (
     <>
-      {panel.artUrl ? (
-        <img src={panel.artUrl} alt="" className="absolute inset-0 size-full object-cover" />
+      {panel.art_url ? (
+        <img src={panel.art_url} alt="" className="absolute inset-0 size-full object-cover" />
       ) : (
         panel.characters.map((pc) => {
-          const character = cast.find((c) => c.id === pc.characterId)
+          const character = cast.find((c) => c.id === pc.id)
           if (!character) return null
           return (
             <span
-              key={pc.characterId}
+              key={pc.id}
               className={cn('absolute bottom-2', POSITION_CLASS[pc.position])}
               style={{ width: `${28 * pc.scale}%` }}
             >
-              <CharacterFace spec={character.spec} expression={pc.expression} size={100} />
+              <CharacterFace character={character} expression={pc.expression} size={100} />
             </span>
           )
         })

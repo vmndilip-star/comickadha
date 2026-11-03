@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router'
+import { AppRoot } from '@/components/layout/AppRoot'
 import { PageShell } from '@/components/layout/PageShell'
 import { CharacterLabPage } from '@/pages/CharacterLabPage'
 import { HomePage } from '@/pages/HomePage'
@@ -9,15 +10,20 @@ import { StoryStudioPage } from '@/pages/StoryStudioPage'
 
 export const router = createBrowserRouter([
   {
-    element: <PageShell />,
+    element: <AppRoot />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: 'characters/:id?', element: <CharacterLabPage /> },
-      { path: 'studio/:comicId?', element: <StoryStudioPage /> },
-      { path: 'comics', element: <MyComicsPage /> },
-      { path: '*', element: <NotFoundPage /> },
+      {
+        element: <PageShell />,
+        children: [
+          { index: true, element: <HomePage /> },
+          { path: 'characters/:id?', element: <CharacterLabPage /> },
+          { path: 'studio/:comicId?', element: <StoryStudioPage /> },
+          { path: 'comics', element: <MyComicsPage /> },
+          { path: '*', element: <NotFoundPage /> },
+        ],
+      },
+      // The reader has its own top bar (EditorTopBar) instead of the NavBar.
+      { path: 'comics/:id', element: <ReaderPage /> },
     ],
   },
-  // The reader has its own top bar (EditorTopBar) instead of the NavBar.
-  { path: 'comics/:id', element: <ReaderPage /> },
 ])

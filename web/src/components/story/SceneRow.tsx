@@ -16,16 +16,16 @@ interface SceneRowProps {
 }
 
 export function SceneRow({ index, scene, places, cast, editing, onEdit, onChange, onRemove }: SceneRowProps) {
-  const place = places.find((p) => p.id === scene.backgroundId)
-  const inScene = cast.filter((c) => scene.characterIds.includes(c.id))
+  const place = places.find((p) => p.id === scene.background_id)
+  const inScene = cast.filter((c) => scene.character_ids.includes(c.id))
   const who = inScene.length === cast.length && cast.length > 2 ? `All ${cast.length}` : joinWithAnd(inScene.map((c) => c.name))
 
   const toggleCharacter = (id: string) =>
     onChange({
       ...scene,
-      characterIds: scene.characterIds.includes(id)
-        ? scene.characterIds.filter((x) => x !== id)
-        : [...scene.characterIds, id],
+      character_ids: scene.character_ids.includes(id)
+        ? scene.character_ids.filter((x) => x !== id)
+        : [...scene.character_ids, id],
     })
 
   return (
@@ -51,7 +51,7 @@ export function SceneRow({ index, scene, places, cast, editing, onEdit, onChange
             <span className="text-label font-extrabold">Place (or tap one in the library above)</span>
             <div className="flex flex-wrap gap-2">
               {places.map((p) => (
-                <Pill key={p.id} shape="button" selected={p.id === scene.backgroundId} onClick={() => onChange({ ...scene, backgroundId: p.id })}>
+                <Pill key={p.id} shape="button" selected={p.id === scene.background_id} onClick={() => onChange({ ...scene, background_id: p.id })}>
                   {p.name}
                 </Pill>
               ))}
@@ -61,7 +61,7 @@ export function SceneRow({ index, scene, places, cast, editing, onEdit, onChange
             <span className="text-label font-extrabold">Who's in this scene?</span>
             <div className="flex flex-wrap gap-2">
               {cast.map((c) => (
-                <Pill key={c.id} tone="mint" weight="chip" selected={scene.characterIds.includes(c.id)} onClick={() => toggleCharacter(c.id)}>
+                <Pill key={c.id} tone="mint" weight="chip" selected={scene.character_ids.includes(c.id)} onClick={() => toggleCharacter(c.id)}>
                   {c.name}
                 </Pill>
               ))}

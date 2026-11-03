@@ -12,7 +12,7 @@ interface EditorTopBarProps {
 }
 
 export function EditorTopBar({ comic, cast, mode, onMode }: EditorTopBarProps) {
-  const names = comic.castIds.map((id) => cast.find((c) => c.id === id)?.name).filter((n): n is string => Boolean(n))
+  const names = comic.cast_ids.map((id) => cast.find((c) => c.id === id)?.name).filter((n): n is string => Boolean(n))
   return (
     <header className="border-b-3 border-ink bg-surface">
       <div className="mx-auto flex max-w-content flex-wrap items-center gap-x-5 gap-y-3 px-6 py-3">

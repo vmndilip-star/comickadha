@@ -5,12 +5,14 @@ import { ContinueCard } from '@/components/home/ContinueCard'
 import { HeroBanner } from '@/components/home/HeroBanner'
 import { PlaceTile } from '@/components/home/PlaceTile'
 import { StorySpark } from '@/components/home/StorySpark'
+import { PageLoading } from '@/components/layout/PageLoading'
 import { SectionHeader } from '@/components/layout/SectionHeader'
 import { PlaceDialog } from '@/components/story/PlaceDialog'
 import { EmptySlot } from '@/components/ui/EmptySlot'
 import { byRecent } from '@/lib/comic'
 import { useCastStore } from '@/store/cast'
 import { useComicsStore } from '@/store/comics'
+import { useDataStatus } from '@/store/load'
 import { usePlacesStore } from '@/store/places'
 import { MAX_CAST } from '@/types'
 
@@ -19,7 +21,10 @@ export function HomePage() {
   const places = usePlacesStore((s) => s.places)
   const comics = useComicsStore((s) => s.comics)
   const [creatingPlace, setCreatingPlace] = useState(false)
+  const status = useDataStatus()
   const recent = [...comics].sort(byRecent).slice(0, 3)
+
+  if (status !== 'ready') return <PageLoading status={status} />
 
   return (
     <div className="flex flex-col gap-10 pt-1">

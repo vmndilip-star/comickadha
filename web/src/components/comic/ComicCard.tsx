@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import { Badge } from '@/components/ui/Badge'
 import { ButtonLink } from '@/components/ui/Button'
-import { comicHref, coverTints, episodeNumber, readyPanelCount } from '@/lib/comic'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { comicHref, coverTints, episodeNumber, readyPanelCount, textOn } from '@/lib/comic'
 import { MOOD_LABEL } from '@/lib/labels'
 import { useComicsStore } from '@/store/comics'
 import { usePlacesStore } from '@/store/places'
@@ -16,6 +18,8 @@ interface ComicCardProps {
 export function ComicCard({ comic, variant = 'full' }: ComicCardProps) {
   const places = usePlacesStore((s) => s.places)
   const all = useComicsStore((s) => s.comics)
+  const remove = useComicsStore((s) => s.remove)
+  const [confirming, setConfirming] = useState(false)
   const tints = coverTints(comic, places)
   const finished = comic.status === 'finished'
   const ready = readyPanelCount(comic)
@@ -24,18 +28,19 @@ export function ComicCard({ comic, variant = 'full' }: ComicCardProps) {
 
   if (variant === 'compact') {
     const episode = episodeNumber(comic, all)
+    const cover = finished ? (tints[0] ?? '#FFD23F') : '#FFD23F'
     return (
       <Link to={href} className="flex flex-col overflow-hidden rounded-card border-3 border-ink bg-surface no-underline shadow-card">
         <span
-          className="flex h-[150px] items-center justify-center border-b-3 border-ink font-display text-[30px] text-ink"
-          style={{ backgroundColor: finished ? tints[0] : '#FFD23F' }}
+          className="flex h-[150px] items-center justify-center border-b-3 border-ink font-display text-[30px]"
+          style={{ backgroundColor: cover, color: textOn(cover) }}
         >
           {episode ? `EPISODE ${episode}` : 'DRAFT'}
         </span>
         <span className="flex flex-col gap-1 px-4 py-3.5">
           <span className="text-lg font-extrabold text-ink">{title}</span>
           <span className="font-semibold text-muted">
-            {finished ? `${comic.panels.length} panels · Finished` : `${ready} of ${comic.panelCount} panels`}
+            {finished ? `${comic.panels.length} panels · Finished` : `${ready} of ${comic.panel_count} panels`}
           </span>
         </span>
       </Link>
@@ -55,7 +60,7 @@ export function ComicCard({ comic, variant = 'full' }: ComicCardProps) {
       <div className="flex flex-1 flex-col gap-2 px-4 py-3.5">
         <h2 className="m-0 text-[19px] font-extrabold">{title}</h2>
         <span className="font-semibold text-muted">
-          {finished ? `${comic.panels.length} panels` : `${ready} of ${comic.panelCount} panels`} · {MOOD_LABEL[comic.mood]}
+          {finished ? `${comic.panels.length} panels` : `${ready} of ${comic.panel_count} panels`} · {MOOD_LABEL[comic.mood]}
         </span>
         <div className="mt-auto flex flex-wrap gap-2">
           <ButtonLink to={href} variant="accent" size="sm" className="flex-auto shadow-none">
@@ -63,15 +68,23 @@ export function ComicCard({ comic, variant = 'full' }: ComicCardProps) {
           </ButtonLink>
           <button
             type="button"
-            aria-label="More options"
-            title="More options arrive in Phase 2"
-            disabled
-            className="min-h-touch w-11 rounded-button border-3 border-ink bg-surface font-extrabold disabled:opacity-60"
+            aria-label={`Delete ${title}`}
+            title="Delete comic"
+            onClick={() => setConfirming(true)}
+            className="min-h-touch w-11 rounded-button border-3 border-ink bg-surface font-extrabold"
           >
             ···
           </button>
         </div>
       </div>
+      <ConfirmDialog
+        open={confirming}
+        title="Delete this comic?"
+        message={`“${title}” will be removed from My Comics.`}
+        confirmLabel="Delete comic"
+        onConfirm={() => remove(comic.id)}
+        onClose={() => setConfirming(false)}
+      />
     </article>
   )
 }

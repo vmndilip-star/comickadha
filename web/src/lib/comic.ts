@@ -8,13 +8,13 @@ export function readyPanelCount(comic: Comic): number {
 export function comicHref(comic: Comic): string {
   if (comic.status === 'finished') return `/comics/${comic.id}`
   if (readyPanelCount(comic) > 0) return `/comics/${comic.id}?mode=edit`
-  return `/studio/${comic.id}?step=${comic.studioStep}`
+  return `/studio/${comic.id}?step=${comic.studio_step}`
 }
 
 /** Placeholder colours for the first four panels, used on covers until panels have images. */
 export function coverTints(comic: Comic, places: Background[], fallback = '#FFD23F'): string[] {
   const tintOf = (id: string) => places.find((p) => p.id === id)?.tint ?? fallback
-  const tints = comic.panels.slice(0, 4).map((p) => tintOf(p.backgroundId))
+  const tints = comic.panels.slice(0, 4).map((p) => tintOf(p.background_id))
   // Mirror two colours diagonally (a, b, b, a) like the design board covers.
   while (tints.length < 4) tints.push(tints[3 - tints.length] ?? tints[0] ?? fallback)
   return tints
@@ -25,10 +25,17 @@ export function episodeNumber(comic: Comic, all: Comic[]): number | null {
   if (comic.status !== 'finished') return null
   const finished = all
     .filter((c) => c.status === 'finished')
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
   return finished.findIndex((c) => c.id === comic.id) + 1
 }
 
 export function byRecent(a: Comic, b: Comic): number {
-  return b.updatedAt.localeCompare(a.updatedAt)
+  return b.updated_at.localeCompare(a.updated_at)
+}
+
+/** Ink or white text, whichever reads better on a #RRGGBB background (e.g. a dark "Outer space" cover). */
+export function textOn(hex: string): string {
+  const n = Number.parseInt(hex.replace('#', ''), 16)
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+  return 0.299 * r + 0.587 * g + 0.114 * b > 140 ? '#1A1A1A' : '#FFFFFF'
 }

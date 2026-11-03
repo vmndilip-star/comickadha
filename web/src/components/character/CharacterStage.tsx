@@ -8,12 +8,13 @@ import { LockToggle } from './LockToggle'
 interface CharacterStageProps {
   character: Character
   expression: Expression
+  locking: boolean
   onExpression: (expression: Expression) => void
   onRename: (name: string) => void
   onToggleLock: () => void
 }
 
-export function CharacterStage({ character, expression, onExpression, onRename, onToggleLock }: CharacterStageProps) {
+export function CharacterStage({ character, expression, locking, onExpression, onRename, onToggleLock }: CharacterStageProps) {
   const locked = character.status === 'locked'
   return (
     <section
@@ -30,8 +31,11 @@ export function CharacterStage({ character, expression, onExpression, onRename, 
           onChange={(e) => onRename(e.target.value)}
           labelClassName="flex-[1_1_200px] gap-1"
         />
-        <LockToggle locked={locked} onToggle={onToggleLock} />
+        <LockToggle locked={locked} busy={locking} disabled={!character.name.trim()} onToggle={onToggleLock} />
       </div>
+      {!character.name.trim() && (
+        <p className="-mt-2 mb-0 text-label font-bold text-muted">Your character needs a name before you can lock them.</p>
+      )}
 
       <div
         className="halftone relative flex h-[340px] items-center justify-center rounded-2xl border-3 border-ink"
@@ -41,14 +45,14 @@ export function CharacterStage({ character, expression, onExpression, onRename, 
           Expression: {EXPRESSION_LABEL[expression]}
         </span>
         <CharacterFace
-          spec={character.spec}
+          character={character}
           expression={expression}
           size={240}
           label={`${character.name}, ${EXPRESSION_LABEL[expression].toLowerCase()}`}
         />
       </div>
 
-      <ExpressionGrid spec={character.spec} selected={expression} onSelect={onExpression} />
+      <ExpressionGrid character={character} selected={expression} onSelect={onExpression} />
     </section>
   )
 }

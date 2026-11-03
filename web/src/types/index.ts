@@ -1,152 +1,57 @@
 /**
- * Domain types shared by the web app.
- * These mirror the API schemas; Phase 2 adds types generated from the API's OpenAPI spec.
+ * Domain types: friendly names for the API types generated from FastAPI's OpenAPI schema.
+ * src/types/api.ts is generated; regenerate it with `npm run gen:types` after changing API schemas.
  */
+import type { components } from './api'
+
+type Schemas = components['schemas']
+
+export type Profile = Schemas['ProfileRead']
+export type Character = Schemas['CharacterRead']
+export type CharacterSpec = Schemas['CharacterSpec']
+export type CharacterCreate = Schemas['CharacterCreate']
+export type CharacterUpdate = Schemas['CharacterUpdate']
+export type CharacterManifest = Schemas['CharacterManifest']
+export type Background = Schemas['BackgroundRead']
+export type BackgroundCreate = Schemas['BackgroundCreate']
+export type Comic = Schemas['ComicRead']
+export type ComicCreate = Schemas['ComicCreate']
+export type ComicUpdate = Schemas['ComicUpdate']
+export type Scene = Schemas['SceneRead']
+export type SceneWrite = Schemas['SceneWrite']
+export type Panel = Schemas['PanelRead']
+export type PanelUpdate = Schemas['PanelUpdate']
+export type PanelCharacter = Schemas['PanelCharacter']
+export type Bubble = Schemas['Bubble']
+export type ErrorBody = Schemas['ErrorBody']
+
+export type Role = Character['role']
+export type CharacterKind = Character['kind']
+export type HairStyle = CharacterSpec['hair_style']
+export type Trait = CharacterSpec['traits'][number]
+export type LockStatus = Character['status']
+export type Mood = Comic['mood']
+export type PanelCount = Comic['panel_count']
+export type StudioStep = Comic['studio_step']
+export type ComicStatus = Comic['status']
+export type Expression = PanelCharacter['expression']
+export type Pose = PanelCharacter['pose']
+export type Position = PanelCharacter['position']
+export type BubbleType = Bubble['type']
+export type PanelStatus = Panel['status']
 
 export const MAX_CAST = 3
-
-export const EXPRESSIONS = ['happy', 'sad', 'angry', 'surprised', 'scared', 'laughing'] as const
-export type Expression = (typeof EXPRESSIONS)[number]
-
-/** Body sheet cells, in 4x4 grid order. */
-export const POSES = [
-  'front',
-  'three_quarter_left',
-  'side_left',
-  'back',
-  'three_quarter_right',
-  'side_right',
-  'walk',
-  'run',
-  'point',
-  'sit',
-  'jump',
-  'wave',
-  'hands_on_hips',
-  'thinking',
-  'scared_pose',
-  'celebrate',
-] as const
-export type Pose = (typeof POSES)[number]
-
-export const CHARACTER_KINDS = ['kid', 'grown_up', 'animal', 'robot'] as const
-export type CharacterKind = (typeof CHARACTER_KINDS)[number]
-
-export const HAIR_STYLES = ['bob', 'spiky', 'braids', 'curly'] as const
-export type HairStyle = (typeof HAIR_STYLES)[number]
-
-export const ROLES = ['hero', 'sidekick', 'friend'] as const
-export type Role = (typeof ROLES)[number]
-
-export const TRAITS = ['brave', 'curious', 'shy', 'funny', 'grumpy', 'loud', 'clever', 'kind'] as const
-export type Trait = (typeof TRAITS)[number]
-
-export const MOODS = ['mystery', 'funny', 'adventure', 'spooky'] as const
-export type Mood = (typeof MOODS)[number]
-
-export const PANEL_COUNTS = [4, 6, 8] as const
-export type PanelCount = (typeof PANEL_COUNTS)[number]
-
-export const BUBBLE_TYPES = ['talk', 'think', 'shout', 'narrator'] as const
-export type BubbleType = (typeof BUBBLE_TYPES)[number]
-
-export const POSITIONS = ['left', 'center', 'right'] as const
-export type Position = (typeof POSITIONS)[number]
-
-/** Lifecycle shared by characters and places: draft → generating → locked (or failed). */
-export type LockStatus = 'draft' | 'generating' | 'locked' | 'failed'
-
-export interface Profile {
-  id: string
-  displayName: string
-  avatarColor: string
-}
-
-export interface CharacterSpec {
-  kind: CharacterKind
-  skin: string
-  hairStyle: HairStyle
-  hairColor: string
-  outfit: string
-  traits: Trait[]
-  catchphrase: string
-  /** Card and stage background colour. */
-  tint: string
-}
-
-export interface Character {
-  id: string
-  name: string
-  role: Role
-  status: LockStatus
-  spec: CharacterSpec
-  sheetVersion: number
-}
-
-export interface Background {
-  id: string
-  name: string
-  description: string
-  status: LockStatus
-  /** Placeholder colour, shown until (or instead of) the locked reference image. */
-  tint: string
-  imageUrl?: string
-}
-
-export interface Scene {
-  id: string
-  backgroundId: string
-  characterIds: string[]
-  summary: string
-}
-
-export interface PanelCharacter {
-  characterId: string
-  pose: Pose
-  expression: Expression
-  position: Position
-  scale: number
-}
 
 /** Narrator bubbles use this speaker id. Other speakers are character ids. */
 export const NARRATOR = 'narrator'
 
-export interface Bubble {
-  id: string
-  speaker: string
-  type: BubbleType
-  text: string
-}
-
-export type PanelStatus = 'planned' | 'rendering' | 'ready' | 'blocked' | 'failed'
-
-export interface Panel {
-  id: string
-  sceneId: string
-  backgroundId: string
-  /** One-line description of what happens, shown on the panel plan. */
-  beat: string
-  characters: PanelCharacter[]
-  bubbles: Bubble[]
-  status: PanelStatus
-  /** Background + characters, without bubbles (Phase 5). */
-  artUrl?: string
-}
-
-export type ComicStatus = 'draft' | 'finished'
-export type StudioStep = 1 | 2 | 3
-
-export interface Comic {
-  id: string
-  title: string
-  synopsis: string
-  mood: Mood
-  panelCount: PanelCount
-  castIds: string[]
-  status: ComicStatus
-  studioStep: StudioStep
-  scenes: Scene[]
-  panels: Panel[]
-  createdAt: string
-  updatedAt: string
-}
+// Option lists in display order. `satisfies` keeps them in step with the API's allowed values.
+export const EXPRESSIONS = ['happy', 'sad', 'angry', 'surprised', 'scared', 'laughing'] as const satisfies readonly Expression[]
+export const CHARACTER_KINDS = ['kid', 'grown_up', 'animal', 'robot'] as const satisfies readonly CharacterKind[]
+export const HAIR_STYLES = ['bob', 'spiky', 'braids', 'curly'] as const satisfies readonly HairStyle[]
+export const ROLES = ['hero', 'sidekick', 'friend'] as const satisfies readonly Role[]
+export const TRAITS = ['brave', 'curious', 'shy', 'funny', 'grumpy', 'loud', 'clever', 'kind'] as const satisfies readonly Trait[]
+export const MOODS = ['mystery', 'funny', 'adventure', 'spooky'] as const satisfies readonly Mood[]
+export const PANEL_COUNTS = [4, 6, 8] as const satisfies readonly PanelCount[]
+export const BUBBLE_TYPES = ['talk', 'think', 'shout', 'narrator'] as const satisfies readonly BubbleType[]
+export const POSITIONS = ['left', 'center', 'right'] as const satisfies readonly Position[]

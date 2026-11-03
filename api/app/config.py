@@ -20,14 +20,22 @@ class Settings(BaseSettings):
     llm_provider: Literal["mock"] = "mock"
     image_provider: Literal["mock"] = "mock"
 
+    # Holds the SQLite file and the media/ folder.
     storage_dir: Path = API_DIR / "storage"
     # Empty means a SQLite file inside storage_dir.
     database_url: str = ""
     cors_origins: list[str] = ["http://localhost:5173"]
+    # Insert the demo data on startup when the database is empty.
+    seed_on_startup: bool = True
 
     @property
     def resolved_database_url(self) -> str:
         return self.database_url or f"sqlite:///{(self.storage_dir / 'comickatha.db').as_posix()}"
+
+    @property
+    def media_dir(self) -> Path:
+        # A subfolder, so /media can never serve the database file.
+        return self.storage_dir / "media"
 
 
 @lru_cache

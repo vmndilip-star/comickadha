@@ -1,4 +1,4 @@
-import type { CharacterSpec, Expression, HairStyle } from '@/types'
+import type { Character, CharacterSpec, Expression, HairStyle } from '@/types'
 
 /**
  * Placeholder character drawing from the design boards (SVG head + expression).
@@ -59,8 +59,11 @@ function Hair({ style, color, sw }: { style: HairStyle; color: string; sw: numbe
   }
 }
 
+/** Just what the drawing needs, so drafts and panel cast entries can use it too. */
+export type FaceLook = Pick<Character, 'kind'> & { spec: Pick<CharacterSpec, 'skin' | 'hair_style' | 'hair_color'> }
+
 interface CharacterFaceProps {
-  spec: Pick<CharacterSpec, 'kind' | 'skin' | 'hairStyle' | 'hairColor'>
+  character: FaceLook
   expression?: Expression
   size?: number
   /** Crop to the face only (used in small expression tiles). */
@@ -68,7 +71,8 @@ interface CharacterFaceProps {
   label?: string
 }
 
-export function CharacterFace({ spec, expression = 'happy', size = 240, cropped = false, label }: CharacterFaceProps) {
+export function CharacterFace({ character, expression = 'happy', size = 240, cropped = false, label }: CharacterFaceProps) {
+  const { kind, spec } = character
   const face = FACES[expression]
   const sw = size < 120 ? 4.5 : 3
   const viewBox = cropped ? '10 6 80 94' : '0 0 100 115'
@@ -77,7 +81,7 @@ export function CharacterFace({ spec, expression = 'happy', size = 240, cropped 
 
   return (
     <svg width={size} height={(size * vh) / vw} viewBox={viewBox} {...a11y}>
-      {spec.kind === 'robot' ? (
+      {kind === 'robot' ? (
         <>
           <line x1="50" y1="22" x2="50" y2="6" stroke={INK} strokeWidth={sw} />
           <circle cx="50" cy="6" r="5" fill="#FF6B4A" stroke={INK} strokeWidth={sw - 0.5} />
@@ -89,16 +93,16 @@ export function CharacterFace({ spec, expression = 'happy', size = 240, cropped 
         </>
       ) : (
         <>
-          {spec.kind === 'animal' && (
+          {kind === 'animal' && (
             <g fill={spec.skin} stroke={INK} strokeWidth={sw}>
               <circle cx="24" cy="26" r="12" />
               <circle cx="76" cy="26" r="12" />
             </g>
           )}
-          {spec.hairStyle === 'braids' && spec.kind !== 'animal' && <Hair style="braids" color={spec.hairColor} sw={sw} />}
+          {spec.hair_style === 'braids' && kind !== 'animal' && <Hair style="braids" color={spec.hair_color} sw={sw} />}
           <circle cx="50" cy="55" r="36" fill={spec.skin} stroke={INK} strokeWidth={sw} />
-          {spec.kind !== 'animal' && spec.hairStyle !== 'braids' && (
-            <Hair style={spec.hairStyle} color={spec.hairColor} sw={sw} />
+          {kind !== 'animal' && spec.hair_style !== 'braids' && (
+            <Hair style={spec.hair_style} color={spec.hair_color} sw={sw} />
           )}
           <circle cx="38" cy="58" r="4" fill={INK} />
           <circle cx="62" cy="58" r="4" fill={INK} />

@@ -21,7 +21,7 @@ export function ComicPage({ comic, places, cast, selectedPanelId, onSelectPanel 
           key={panel.id}
           number={i + 1}
           panel={panel}
-          place={places.find((p) => p.id === panel.backgroundId)}
+          place={places.find((p) => p.id === panel.background_id)}
           cast={cast}
           selected={onSelectPanel !== undefined && panel.id === selectedPanelId}
           onSelect={onSelectPanel && (() => onSelectPanel(panel.id))}

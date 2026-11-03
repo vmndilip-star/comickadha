@@ -33,7 +33,7 @@ export function ContinueCard({ className }: { className?: string }) {
       <Card as="article" shadow="card" className={cn('flex flex-col gap-4 p-6', className)}>
         <h2 className="m-0 font-display text-[30px] tracking-[1px]">Your next comic starts here</h2>
         <p className="m-0 font-semibold">No drafts yet. Tell Comickatha your idea and it will draw the panels.</p>
-        <Button variant="accent" className="self-start" onClick={() => startComic()}>
+        <Button variant="accent" className="self-start" onClick={() => void startComic()}>
           Start a new comic
         </Button>
       </Card>
@@ -41,14 +41,14 @@ export function ContinueCard({ className }: { className?: string }) {
   }
 
   const ready = readyPanelCount(draft)
-  const step = draft.studioStep
+  const step = draft.studio_step
   const stepState = (n: number) => (step > n ? 'done' : step === n ? 'current' : 'todo')
 
   return (
     <Card as="article" shadow="card" className={cn('flex min-w-0 flex-col gap-4 p-6', className)}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="m-0 font-display text-[30px] tracking-[1px]">Continue where you left off</h2>
-        <span className="font-bold text-muted">Edited {timeAgo(draft.updatedAt)}</span>
+        <span className="font-bold text-muted">Edited {timeAgo(draft.updated_at)}</span>
       </div>
       <div className="flex flex-wrap items-center gap-5">
         <div className="grid h-[100px] w-[140px] flex-none grid-cols-2 gap-1 overflow-hidden rounded-lg border-3 border-ink bg-ink">
@@ -61,9 +61,9 @@ export function ContinueCard({ className }: { className?: string }) {
           <ol aria-label="Progress" className="m-0 flex list-none flex-wrap gap-2 p-0">
             <StepChip label={`1 · Story${step > 1 ? ' ✓' : ''}`} state={stepState(1)} />
             <StepChip label={`2 · Scenes${step > 2 ? ' ✓' : ''}`} state={stepState(2)} />
-            <StepChip label={`3 · Panels ${ready}/${draft.panelCount}`} state={stepState(3)} />
+            <StepChip label={`3 · Panels ${ready}/${draft.panel_count}`} state={stepState(3)} />
           </ol>
-          <ProgressBar value={ready / draft.panelCount} label="Panels made" />
+          <ProgressBar value={ready / draft.panel_count} label="Panels made" />
         </div>
         <ButtonLink to={`/studio/${draft.id}?step=${step}`} variant="accent">
           Keep going →

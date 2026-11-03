@@ -4,12 +4,13 @@ import { Pill } from '@/components/ui/Pill'
 import { Swatch } from '@/components/ui/Swatch'
 import { TextField } from '@/components/ui/TextField'
 import { HAIR_LABEL, HAIR_SWATCHES, KIND_LABEL, SKIN_SWATCHES } from '@/lib/labels'
-import { CHARACTER_KINDS, HAIR_STYLES, type CharacterSpec } from '@/types'
+import type { CharacterPatch } from '@/store/cast'
+import { CHARACTER_KINDS, HAIR_STYLES, type Character } from '@/types'
 
 interface LookPanelProps {
-  spec: CharacterSpec
+  character: Character
   disabled: boolean
-  onChange: (patch: Partial<CharacterSpec>) => void
+  onChange: (patch: CharacterPatch) => void
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -21,16 +22,17 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-export function LookPanel({ spec, disabled, onChange }: LookPanelProps) {
-  const hasHair = spec.kind === 'kid' || spec.kind === 'grown_up'
+export function LookPanel({ character, disabled, onChange }: LookPanelProps) {
+  const { kind, spec } = character
+  const hasHair = kind === 'kid' || kind === 'grown_up'
   return (
     <Card className="flex flex-col gap-3.5 p-4.5">
       <h2 className="m-0 font-display text-[26px] tracking-[1px]">Look</h2>
 
       <Field label="Character type">
-        {CHARACTER_KINDS.map((kind) => (
-          <Pill key={kind} selected={spec.kind === kind} disabled={disabled} onClick={() => onChange({ kind })}>
-            {KIND_LABEL[kind]}
+        {CHARACTER_KINDS.map((k) => (
+          <Pill key={k} selected={kind === k} disabled={disabled} onClick={() => onChange({ kind: k })}>
+            {KIND_LABEL[k]}
           </Pill>
         ))}
       </Field>
@@ -43,7 +45,7 @@ export function LookPanel({ spec, disabled, onChange }: LookPanelProps) {
             label={s.label}
             selected={spec.skin === s.value}
             disabled={disabled}
-            onSelect={() => onChange({ skin: s.value })}
+            onSelect={() => onChange({ spec: { skin: s.value } })}
           />
         ))}
       </Field>
@@ -55,9 +57,9 @@ export function LookPanel({ spec, disabled, onChange }: LookPanelProps) {
               <Pill
                 key={style}
                 shape="button"
-                selected={spec.hairStyle === style}
+                selected={spec.hair_style === style}
                 disabled={disabled}
-                onClick={() => onChange({ hairStyle: style })}
+                onClick={() => onChange({ spec: { hair_style: style } })}
               >
                 {HAIR_LABEL[style]}
               </Pill>
@@ -69,9 +71,9 @@ export function LookPanel({ spec, disabled, onChange }: LookPanelProps) {
                 key={s.value}
                 color={s.value}
                 label={s.label}
-                selected={spec.hairColor === s.value}
+                selected={spec.hair_color === s.value}
                 disabled={disabled}
-                onSelect={() => onChange({ hairColor: s.value })}
+                onSelect={() => onChange({ spec: { hair_color: s.value } })}
               />
             ))}
           </Field>
@@ -84,7 +86,7 @@ export function LookPanel({ spec, disabled, onChange }: LookPanelProps) {
         value={spec.outfit}
         disabled={disabled}
         placeholder="Yellow raincoat with big pockets"
-        onChange={(e) => onChange({ outfit: e.target.value })}
+        onChange={(e) => onChange({ spec: { outfit: e.target.value } })}
       />
     </Card>
   )

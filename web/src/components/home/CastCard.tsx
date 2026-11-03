@@ -19,7 +19,7 @@ export function CastCard({ character }: { character: Character }) {
         className="flex size-[88px] flex-none items-center justify-center rounded-2xl border-3 border-ink"
         style={{ backgroundColor: character.spec.tint }}
       >
-        <CharacterFace spec={character.spec} size={70} />
+        <CharacterFace character={character} size={70} />
       </span>
       <span className="flex flex-col gap-1.5">
         <span className="text-title font-extrabold">{character.name}</span>

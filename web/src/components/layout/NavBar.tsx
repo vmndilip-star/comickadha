@@ -94,7 +94,7 @@ export function NavBar() {
 
         <div className="flex items-center gap-3">
           {pathname === '/' && (
-            <Button variant="primary" size="sm" onClick={() => startComic()}>
+            <Button variant="primary" size="sm" onClick={() => void startComic()}>
               + New Comic
             </Button>
           )}

@@ -11,7 +11,8 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:types": "uv run --directory ../api python -m app.openapi_export ../web/node_modules/.tmp/openapi.json && openapi-typescript node_modules/.tmp/openapi.json -o src/types/api.ts"
   },
   "dependencies": {
     "@fontsource/bangers": "^5.3.0",
@@ -32,8 +33,9 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.14.0",
+    "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4.3.4",
-    "typescript": "~6.0",
+    "typescript": "~5.9",
     "typescript-eslint": "^8.72.1",
     "vite": "^6.4.5"
   }

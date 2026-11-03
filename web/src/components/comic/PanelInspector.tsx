@@ -29,12 +29,12 @@ export function PanelInspector(props: PanelInspectorProps) {
   const { number, panelTotal, panel, place, cast, canUndo } = props
   const bubble = panel.bubbles.find((b) => b.id === props.bubbleId) ?? panel.bubbles[0]
   const panelCast = panel.characters
-    .map((pc) => ({ pc, character: cast.find((c) => c.id === pc.characterId) }))
+    .map((pc) => ({ pc, character: cast.find((c) => c.id === pc.id) }))
     .filter((x): x is { pc: (typeof panel.characters)[number]; character: Character } => Boolean(x.character))
-  const current = panelCast.find((x) => x.pc.characterId === props.characterId) ?? panelCast[0]
+  const current = panelCast.find((x) => x.pc.id === props.characterId) ?? panelCast[0]
 
   return (
-    <aside aria-label="Panel editor" className="flex min-w-0 flex-[1_1_300px] flex-col gap-4">
+    <aside aria-label="Panel editor" className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-col gap-3.5 rounded-card border-3 border-ink bg-surface p-4.5 shadow-card">
         <h2 className="m-0 font-display text-h3">Panel {number}</h2>
 

@@ -13,9 +13,10 @@ interface PlaceDialogProps {
 
 /** "Describe a new place" — used from Home and Story Studio step 2. */
 export function PlaceDialog({ open, onClose, onCreated }: PlaceDialogProps) {
-  const addPlace = usePlacesStore((s) => s.addPlace)
+  const addPlace = usePlacesStore((s) => s.add)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const close = () => {
     setName('')
@@ -23,8 +24,11 @@ export function PlaceDialog({ open, onClose, onCreated }: PlaceDialogProps) {
     onClose()
   }
 
-  const lock = () => {
-    const id = addPlace(name.trim(), description.trim())
+  const lock = async () => {
+    setBusy(true)
+    const id = await addPlace(name.trim(), description.trim())
+    setBusy(false)
+    if (!id) return
     onCreated?.(id)
     close()
   }
@@ -50,8 +54,8 @@ export function PlaceDialog({ open, onClose, onCreated }: PlaceDialogProps) {
       />
       <div className="flex flex-wrap justify-end gap-2.5">
         <Button onClick={close}>Cancel</Button>
-        <Button variant="primary" disabled={!name.trim()} onClick={lock}>
-          Lock this place
+        <Button variant="primary" disabled={!name.trim() || busy} onClick={() => void lock()}>
+          {busy ? 'Locking…' : 'Lock this place'}
         </Button>
       </div>
     </Dialog>

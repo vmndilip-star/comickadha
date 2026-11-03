@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { storySparks } from '@/mocks/fixtures'
+import { STORY_SPARKS } from '@/lib/sparks'
 
 export type BuddyAction = 'idea' | 'spelling'
 
@@ -22,7 +22,7 @@ export const useStudioStore = create<StudioState>()((set, get) => ({
   sparkIndex: 0,
   buddyMessage: 'Great story so far! Want an idea for what happens next?',
 
-  shuffleSpark: () => set({ sparkIndex: (get().sparkIndex + 1) % storySparks.length }),
+  shuffleSpark: () => set({ sparkIndex: (get().sparkIndex + 1) % STORY_SPARKS.length }),
 
   askBuddy: (action) =>
     set((s) => {
@@ -35,5 +35,5 @@ export const useStudioStore = create<StudioState>()((set, get) => ({
 }))
 
 export function currentSpark(index: number): string {
-  return storySparks[index % storySparks.length] ?? ''
+  return STORY_SPARKS[index % STORY_SPARKS.length] ?? ''
 }

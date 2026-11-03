@@ -1,15 +1,15 @@
 import { cn } from '@/lib/cn'
 import { EXPRESSION_LABEL } from '@/lib/labels'
-import { EXPRESSIONS, type CharacterSpec, type Expression } from '@/types'
-import { CharacterFace } from './CharacterFace'
+import { EXPRESSIONS, type Expression } from '@/types'
+import { CharacterFace, type FaceLook } from './CharacterFace'
 
 interface ExpressionGridProps {
-  spec: CharacterSpec
+  character: FaceLook
   selected: Expression
   onSelect: (expression: Expression) => void
 }
 
-export function ExpressionGrid({ spec, selected, onSelect }: ExpressionGridProps) {
+export function ExpressionGrid({ character, selected, onSelect }: ExpressionGridProps) {
   return (
     <div className="flex flex-col gap-2.5">
       <h2 className="m-0 font-display text-h3">Expressions</h2>
@@ -25,7 +25,7 @@ export function ExpressionGrid({ spec, selected, onSelect }: ExpressionGridProps
               selected === e ? 'bg-sun shadow-sm' : 'bg-surface',
             )}
           >
-            <CharacterFace spec={spec} expression={e} size={54} cropped />
+            <CharacterFace character={character} expression={e} size={54} cropped />
             <span className="text-label font-extrabold">{EXPRESSION_LABEL[e]}</span>
           </button>
         ))}

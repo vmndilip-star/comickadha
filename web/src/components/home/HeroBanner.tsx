@@ -12,7 +12,7 @@ const HERO_FACES: Array<{ expression: Expression; size: number }> = [
 ]
 
 export function HeroBanner() {
-  const name = useProfileStore((s) => s.profile.displayName)
+  const name = useProfileStore((s) => s.profile?.display_name)
   const cast = useCastStore((s) => s.characters)
   const startComic = useStartComic()
 
@@ -20,7 +20,7 @@ export function HeroBanner() {
     <section className="halftone-sun flex flex-wrap items-center gap-8 rounded-hero border-3 border-ink bg-sun p-6 shadow-hero sm:p-10">
       <div className="flex flex-[1_1_420px] flex-col gap-4">
         <span className="self-start rounded-pill border-3 border-ink bg-surface px-3.5 py-1.5 text-label font-extrabold">
-          Hi {name}! Ready for a new episode?
+          Hi{name ? ` ${name}` : ''}! Ready for a new episode?
         </span>
         <h1 className="m-0 font-display text-[48px] leading-none tracking-[1px] sm:text-display-xl">
           What's your story today?
@@ -29,7 +29,7 @@ export function HeroBanner() {
           Pick your 3 heroes, choose where it happens, and Comickatha turns your idea into comic panels.
         </p>
         <div className="mt-2 flex flex-wrap gap-3">
-          <Button variant="dark" size="lg" className="text-lg" onClick={() => startComic()}>
+          <Button variant="dark" size="lg" className="text-lg" onClick={() => void startComic()}>
             Start a new comic
           </Button>
           <ButtonLink to="/characters" variant="secondary" size="lg" className="rounded-tile text-lg shadow-[4px_4px_0_var(--ck-ink)]">
@@ -45,7 +45,7 @@ export function HeroBanner() {
         {cast.slice(0, 3).map((c, i) => (
           <CharacterFace
             key={c.id}
-            spec={c.spec}
+            character={c}
             expression={HERO_FACES[i]?.expression}
             size={HERO_FACES[i]?.size ?? 130}
             label={c.name}

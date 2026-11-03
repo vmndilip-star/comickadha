@@ -1,22 +1,43 @@
 import { create } from 'zustand'
-import { PLACE_TINTS } from '@/lib/labels'
-import { backgrounds as seed } from '@/mocks/fixtures'
+import * as api from '@/api/backgrounds'
 import type { Background } from '@/types'
+import type { LoadStatus } from './load'
+import { toast } from './toast'
 
 interface PlacesState {
   places: Background[]
-  /** Phase 1: the place is locked straight away. Phase 3 runs the background lock job. */
-  addPlace: (name: string, description: string) => string
+  status: LoadStatus
+  load: (force?: boolean) => Promise<void>
+  /** Creates and locks a place. Returns its id, or null if it failed. */
+  add: (name: string, description: string) => Promise<string | null>
 }
 
 export const usePlacesStore = create<PlacesState>()((set, get) => ({
-  places: seed,
+  places: [],
+  status: 'idle',
 
-  addPlace: (name, description) => {
-    const { places } = get()
-    const id = `bg-${crypto.randomUUID().slice(0, 8)}`
-    const tint = PLACE_TINTS[places.length % PLACE_TINTS.length] ?? '#B7E4A7'
-    set({ places: [...places, { id, name, description, status: 'locked', tint }] })
-    return id
+  load: async (force = false) => {
+    const { status } = get()
+    if (status === 'loading' || (status === 'ready' && !force)) return
+    set({ status: 'loading' })
+    try {
+      set({ places: await api.listBackgrounds(), status: 'ready' })
+    } catch (error) {
+      set({ status: 'error' })
+      toast.error(error)
+    }
+  },
+
+  // Phase 2: locking only flips the status. Phase 3 draws the reference image as a job.
+  add: async (name, description) => {
+    try {
+      const created = await api.createBackground({ name, description })
+      const locked = await api.lockBackground(created.id)
+      set((s) => ({ places: [...s.places, locked] }))
+      return locked.id
+    } catch (error) {
+      toast.error(error)
+      return null
+    }
   },
 }))

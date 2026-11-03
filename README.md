@@ -2,14 +2,14 @@
 
 Comickatha lets kids under 16 make their own comics. They design up to three characters and a few places, lock them so they look the same everywhere, write a short story, and Comickatha turns it into comic panels they can edit and export as a PDF.
 
-**Status:** Phase 1 of 6. All five screens work on mock data in the browser; the API currently has a health check only.
+**Status:** Phase 2 of 6. All five screens read and save real data through the API (SQLite). Drawing panels arrives in later phases.
 
 ## Quick start
 
-You need [uv](https://docs.astral.sh/uv/) and Node 20.15 or newer. No API keys are needed: everything runs on mock providers.
+You need [uv](https://docs.astral.sh/uv/) and Node 20.15 or newer. No API keys are needed: everything runs on mock providers. The commands work in Windows PowerShell; run them one line at a time.
 
-```bash
-# 1. API (http://localhost:8010)
+```powershell
+# 1. API (http://localhost:8010). Creates and seeds the database on first start.
 cd api
 uv sync
 uv run uvicorn app.main:app --reload --port 8010
@@ -19,6 +19,8 @@ cd web
 npm install
 npm run dev
 ```
+
+Reset to the demo data (one kid, 3 characters, 3 places, 3 comics): `uv run python -m app.seed` from `api/`.
 
 Or with Docker Desktop running: `docker compose up --build`.
 
@@ -36,7 +38,14 @@ To change settings, copy `.env.example` to `.env`.
 
 ## Checks
 
-```bash
-cd api && uv run pytest && uv run ruff check . && uv run mypy app tests
-cd web && npm run lint && npm run build
+```powershell
+# from api/
+uv run pytest
+uv run ruff check .
+uv run mypy app tests
+
+# from web/
+npm run lint
+npm run build
+npm run gen:types   # regenerate src/types/api.ts after API schema changes
 ```
