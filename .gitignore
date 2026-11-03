@@ -1,0 +1,24 @@
+# Dependencies and builds
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+*.tsbuildinfo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local data (SQLite DB, generated sheets and panels)
+api/storage/
+*.db
+*.db-journal
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db

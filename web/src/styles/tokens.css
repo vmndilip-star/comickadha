@@ -1,0 +1,48 @@
+/*
+ * Comickatha "Sunday Funnies" design tokens.
+ * Source of truth: the Style Guide board in the design canvas. Tailwind names map to these
+ * variables in tailwind.config.ts.
+ */
+:root {
+  /* Core palette */
+  --ck-ink: #1a1a1a; /* text, borders */
+  --ck-paper: #fff8ec; /* page background */
+  --ck-surface: #ffffff; /* cards */
+  --ck-sun: #ffd23f; /* active, CTA */
+  --ck-pow-blue: #1f5bd1; /* primary actions, white text */
+  --ck-zap-coral: #ff6b4a; /* big "make" action */
+  --ck-mint: #b7e4a7; /* done, selected */
+  --ck-sky: #9ad0f5; /* tints */
+  --ck-muted: #555555; /* captions */
+
+  /* Tints used on the design boards */
+  --ck-sun-tint: #ffe9a8; /* narrator box, character tint */
+  --ck-coral-tint: #ffd0c2; /* character tint */
+  --ck-sky-tint: #ddf0fc; /* story buddy, character tint */
+  --ck-coral-light: #ff8a6b; /* profile avatar, covers */
+  --ck-rule: #efe6d3; /* dividers, progress track */
+  --ck-sun-dot: #e8b800; /* hero halftone dots */
+
+  /* Shape */
+  --ck-border: 3px;
+  --ck-border-panel: 4px;
+  --ck-radius-button: 12px;
+  --ck-radius-tile: 14px;
+  --ck-radius-card: 18px;
+  --ck-radius-hero: 20px;
+  --ck-radius-pill: 999px;
+
+  /* Hard offset shadows, no blur */
+  --ck-shadow-sm: 3px 3px 0 var(--ck-ink);
+  --ck-shadow-card: 5px 5px 0 var(--ck-ink);
+  --ck-shadow-hero: 6px 6px 0 var(--ck-ink);
+  --ck-shadow-hero-lg: 8px 8px 0 var(--ck-ink);
+
+  /* Type */
+  --ck-font-display: 'Bangers', cursive;
+  --ck-font-body: 'Nunito', system-ui, sans-serif;
+
+  /* Layout */
+  --ck-max-width: 1200px;
+  --ck-touch: 44px;
+}

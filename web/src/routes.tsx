@@ -1,0 +1,23 @@
+import { createBrowserRouter } from 'react-router'
+import { PageShell } from '@/components/layout/PageShell'
+import { CharacterLabPage } from '@/pages/CharacterLabPage'
+import { HomePage } from '@/pages/HomePage'
+import { MyComicsPage } from '@/pages/MyComicsPage'
+import { NotFoundPage } from '@/pages/NotFoundPage'
+import { ReaderPage } from '@/pages/ReaderPage'
+import { StoryStudioPage } from '@/pages/StoryStudioPage'
+
+export const router = createBrowserRouter([
+  {
+    element: <PageShell />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: 'characters/:id?', element: <CharacterLabPage /> },
+      { path: 'studio/:comicId?', element: <StoryStudioPage /> },
+      { path: 'comics', element: <MyComicsPage /> },
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
+  // The reader has its own top bar (EditorTopBar) instead of the NavBar.
+  { path: 'comics/:id', element: <ReaderPage /> },
+])
