@@ -64,5 +64,7 @@ class CharacterRead(BaseModel):
     style: str
     sheet_version: int
     manifest: CharacterManifest | None
+    # Deleted characters still resolve by id for comics that use them.
+    deleted: bool = False
     created_at: UtcDatetime
     updated_at: UtcDatetime

@@ -9,15 +9,18 @@ interface SceneRowProps {
   scene: Scene
   places: Background[]
   cast: Character[]
+  /** Lookups for display, including deleted places and characters the scene already uses. */
+  allPlaces?: Background[]
+  allCast?: Character[]
   editing: boolean
   onEdit: () => void
   onChange: (scene: Scene) => void
   onRemove: () => void
 }
 
-export function SceneRow({ index, scene, places, cast, editing, onEdit, onChange, onRemove }: SceneRowProps) {
-  const place = places.find((p) => p.id === scene.background_id)
-  const inScene = cast.filter((c) => scene.character_ids.includes(c.id))
+export function SceneRow({ index, scene, places, cast, allPlaces, allCast, editing, onEdit, onChange, onRemove }: SceneRowProps) {
+  const place = (allPlaces ?? places).find((p) => p.id === scene.background_id)
+  const inScene = (allCast ?? cast).filter((c) => scene.character_ids.includes(c.id))
   const who = inScene.length === cast.length && cast.length > 2 ? `All ${cast.length}` : joinWithAnd(inScene.map((c) => c.name))
 
   const toggleCharacter = (id: string) =>

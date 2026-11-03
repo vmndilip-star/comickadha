@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 
+from app.schemas.background import BackgroundRead
+from app.schemas.character import CharacterRead
 from app.schemas.common import (
     BubbleType,
     ComicStatus,
@@ -99,5 +101,8 @@ class ComicRead(BaseModel):
     cover_url: str | None
     scenes: list[SceneRead]
     panels: list[PanelRead]
+    # Every character and place the comic uses, including deleted ones, so it never changes.
+    characters: list[CharacterRead]
+    backgrounds: list[BackgroundRead]
     created_at: UtcDatetime
     updated_at: UtcDatetime

@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { Badge } from '@/components/ui/Badge'
 import { ButtonLink } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { comicHref, coverTints, episodeNumber, readyPanelCount, textOn } from '@/lib/comic'
+import { comicHref, coverTints, episodeNumber, placesFor, readyPanelCount, textOn } from '@/lib/comic'
 import { MOOD_LABEL } from '@/lib/labels'
 import { useComicsStore } from '@/store/comics'
 import { usePlacesStore } from '@/store/places'
@@ -20,7 +20,7 @@ export function ComicCard({ comic, variant = 'full' }: ComicCardProps) {
   const all = useComicsStore((s) => s.comics)
   const remove = useComicsStore((s) => s.remove)
   const [confirming, setConfirming] = useState(false)
-  const tints = coverTints(comic, places)
+  const tints = coverTints(comic, placesFor(comic, places))
   const finished = comic.status === 'finished'
   const ready = readyPanelCount(comic)
   const title = comic.title || 'Untitled comic'

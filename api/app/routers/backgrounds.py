@@ -22,9 +22,13 @@ def active_backgrounds(session: Session, user: User) -> list[Background]:
     return list(session.exec(stmt))
 
 
-def get_background(session: Session, user: User, background_id: str) -> Background:
+def get_background(
+    session: Session, user: User, background_id: str, *, include_deleted: bool = False
+) -> Background:
     bg = session.get(Background, background_id)
-    if bg is None or bg.user_id != user.id or bg.deleted_at is not None:
+    if bg is None or bg.user_id != user.id:
+        raise not_found("place")
+    if bg.deleted_at is not None and not include_deleted:
         raise not_found("place")
     return bg
 
@@ -35,6 +39,7 @@ def to_read(bg: Background, storage: Storage) -> BackgroundRead:
             **bg.model_dump(),
             "image_url": storage.url(bg.image_key) if bg.image_key else None,
             "thumb_url": storage.url(bg.thumb_key) if bg.thumb_key else None,
+            "deleted": bg.deleted_at is not None,
         }
     )
 
@@ -72,7 +77,7 @@ def create_background(
 def read_background(
     background_id: str, session: SessionDep, user: UserDep, storage: StorageDep
 ) -> BackgroundRead:
-    return to_read(get_background(session, user, background_id), storage)
+    return to_read(get_background(session, user, background_id, include_deleted=True), storage)
 
 
 @router.patch("/{background_id}")

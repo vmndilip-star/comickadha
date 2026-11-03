@@ -8,6 +8,8 @@ from app.deps import SessionDep, StorageDep, UserDep
 from app.errors import ERROR_RESPONSES, invalid, not_found
 from app.models import Background, Character, Comic, Panel, Scene, User
 from app.models.base import new_id, utcnow
+from app.routers import backgrounds as background_routes
+from app.routers import characters as character_routes
 from app.schemas.comic import (
     ComicCreate,
     ComicRead,
@@ -60,6 +62,32 @@ def comic_reads(session: Session, comics: list[Comic], storage: Storage) -> list
             select(Panel).where(col(Panel.comic_id).in_(ids)).order_by(col(Panel.idx))
         ):
             panels[panel.comic_id].append(panel)
+
+    # Characters and places each comic uses, deleted or not, in first-use order.
+    used_chars: dict[str, list[str]] = {}
+    used_bgs: dict[str, list[str]] = {}
+    for c in comics:
+        char_ids = [*c.cast_ids]
+        bg_ids: list[str] = []
+        for s in scenes[c.id]:
+            char_ids += s.character_ids
+            bg_ids.append(s.background_id)
+        for p in panels[c.id]:
+            char_ids += [pc["id"] for pc in p.characters]
+            bg_ids.append(p.background_id)
+        used_chars[c.id] = list(dict.fromkeys(char_ids))
+        used_bgs[c.id] = list(dict.fromkeys(bg_ids))
+    all_chars = {cid for ids in used_chars.values() for cid in ids}
+    all_bgs = {bid for ids in used_bgs.values() for bid in ids}
+    chars = {
+        ch.id: character_routes.to_read(ch)
+        for ch in session.exec(select(Character).where(col(Character.id).in_(all_chars)))
+    }
+    bgs = {
+        bg.id: background_routes.to_read(bg, storage)
+        for bg in session.exec(select(Background).where(col(Background.id).in_(all_bgs)))
+    }
+
     return [
         ComicRead.model_validate(
             {
@@ -67,6 +95,8 @@ def comic_reads(session: Session, comics: list[Comic], storage: Storage) -> list
                 "cover_url": storage.url(c.cover_key) if c.cover_key else None,
                 "scenes": [scene_read(s) for s in scenes[c.id]],
                 "panels": [panel_read(p, storage) for p in panels[c.id]],
+                "characters": [chars[i] for i in used_chars[c.id] if i in chars],
+                "backgrounds": [bgs[i] for i in used_bgs[c.id] if i in bgs],
             }
         )
         for c in comics
@@ -146,7 +176,11 @@ def update_comic(
         cast_ids: list[str] = list(
             dict.fromkeys(changes["cast_ids"])
         )  # drop duplicates, keep order
-        if _active_character_ids(session, user, cast_ids) != set(cast_ids):
+        # Characters already in the comic may stay even if deleted; new ones must be active.
+        added = [i for i in cast_ids if i not in comic.cast_ids]
+        if _owned_ids(session, user, Character, cast_ids) != set(cast_ids) or (
+            _active_character_ids(session, user, added) != set(added)
+        ):
             raise invalid("Pick characters from your cast.")
         changes["cast_ids"] = cast_ids
     for field, value in changes.items():

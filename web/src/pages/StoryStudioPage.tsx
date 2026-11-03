@@ -13,7 +13,7 @@ import { SynopsisForm } from '@/components/story/SynopsisForm'
 import { Button } from '@/components/ui/Button'
 import { EmptySlot } from '@/components/ui/EmptySlot'
 import { SaveStatus } from '@/components/ui/SaveStatus'
-import { byRecent } from '@/lib/comic'
+import { byRecent, castFor, placesFor } from '@/lib/comic'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore, useStartComic } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
@@ -74,6 +74,9 @@ function Studio({ comic }: { comic: Comic }) {
 
   const step = parseStep(params.get('step'), comic.studio_step)
   const cast = characters.filter((c) => comic.cast_ids.includes(c.id))
+  // For showing what the comic already uses, including deleted characters and places.
+  const allCast = castFor(comic, characters)
+  const allPlaces = placesFor(comic, places)
 
   const goTo = (next: StudioStep) => {
     setParams({ step: String(next) })
@@ -142,6 +145,8 @@ function Studio({ comic }: { comic: Comic }) {
                     scene={scene}
                     places={places}
                     cast={cast}
+                    allPlaces={allPlaces}
+                    allCast={allCast}
                     editing={editingScene === scene.id}
                     onEdit={() => setEditingScene(editingScene === scene.id ? null : scene.id)}
                     onChange={updateScene}
@@ -172,8 +177,8 @@ function Studio({ comic }: { comic: Comic }) {
                       key={panel.id}
                       number={i + 1}
                       panel={panel}
-                      place={places.find((p) => p.id === panel.background_id)}
-                      cast={characters}
+                      place={allPlaces.find((p) => p.id === panel.background_id)}
+                      cast={allCast}
                     />
                   ))}
                 </div>

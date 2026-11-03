@@ -5,6 +5,7 @@ import type { ReaderMode } from '@/components/comic/ModeToggle'
 import { PanelInspector } from '@/components/comic/PanelInspector'
 import { PageLoading } from '@/components/layout/PageLoading'
 import { SaveStatus } from '@/components/ui/SaveStatus'
+import { castFor, placesFor } from '@/lib/comic'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
@@ -16,8 +17,8 @@ export function ReaderPage() {
   const [params, setParams] = useSearchParams()
   const status = useDataStatus()
   const comic = useComic(id)
-  const cast = useCastStore((s) => s.characters)
-  const places = usePlacesStore((s) => s.places)
+  const liveCast = useCastStore((s) => s.characters)
+  const livePlaces = usePlacesStore((s) => s.places)
   const updatePanel = useComicsStore((s) => s.updatePanel)
   const reader = useReaderStore()
 
@@ -40,6 +41,9 @@ export function ReaderPage() {
     )
   }
 
+  // Includes deleted characters and places this comic uses, so old comics never change.
+  const cast = castFor(comic, liveCast)
+  const places = placesFor(comic, livePlaces)
   const mode: ReaderMode = params.get('mode') === 'edit' ? 'edit' : 'read'
   const index = Math.max(0, comic.panels.findIndex((p) => p.id === reader.selectedPanelId))
   const panel = comic.panels[index]

@@ -2,7 +2,7 @@ import { Button, ButtonLink } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { cn } from '@/lib/cn'
-import { byRecent, coverTints, readyPanelCount } from '@/lib/comic'
+import { byRecent, coverTints, placesFor, readyPanelCount } from '@/lib/comic'
 import { timeAgo } from '@/lib/format'
 import { useComicsStore, useStartComic } from '@/store/comics'
 import { usePlacesStore } from '@/store/places'
@@ -52,7 +52,7 @@ export function ContinueCard({ className }: { className?: string }) {
       </div>
       <div className="flex flex-wrap items-center gap-5">
         <div className="grid h-[100px] w-[140px] flex-none grid-cols-2 gap-1 overflow-hidden rounded-lg border-3 border-ink bg-ink">
-          {coverTints(draft, places).map((tint, i) => (
+          {coverTints(draft, placesFor(draft, places)).map((tint, i) => (
             <div key={i} style={{ backgroundColor: tint }} />
           ))}
         </div>

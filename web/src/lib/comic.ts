@@ -1,4 +1,19 @@
-import type { Background, Comic } from '@/types'
+import type { Background, Character, Comic } from '@/types'
+
+/**
+ * Everyone a comic can show: live characters first, then the comic's own copies of deleted ones.
+ * Deleting a character never changes an old comic; it only leaves the pickers and the cast list.
+ */
+export function castFor(comic: Comic, live: Character[]): Character[] {
+  const ids = new Set(live.map((c) => c.id))
+  return [...live, ...comic.characters.filter((c) => !ids.has(c.id))]
+}
+
+/** Same as castFor, for places. */
+export function placesFor(comic: Comic, live: Background[]): Background[] {
+  const ids = new Set(live.map((p) => p.id))
+  return [...live, ...comic.backgrounds.filter((p) => !ids.has(p.id))]
+}
 
 export function readyPanelCount(comic: Comic): number {
   return comic.panels.filter((p) => p.status === 'ready').length

@@ -24,15 +24,21 @@ def active_characters(session: Session, user: User) -> list[Character]:
     return list(session.exec(stmt))
 
 
-def get_character(session: Session, user: User, character_id: str) -> Character:
+def get_character(
+    session: Session, user: User, character_id: str, *, include_deleted: bool = False
+) -> Character:
     character = session.get(Character, character_id)
-    if character is None or character.user_id != user.id or character.deleted_at is not None:
+    if character is None or character.user_id != user.id:
+        raise not_found("character")
+    if character.deleted_at is not None and not include_deleted:
         raise not_found("character")
     return character
 
 
 def to_read(character: Character) -> CharacterRead:
-    return CharacterRead.model_validate(character, from_attributes=True)
+    return CharacterRead.model_validate(
+        {**character.model_dump(), "deleted": character.deleted_at is not None}
+    )
 
 
 def _save(session: Session, character: Character) -> CharacterRead:
@@ -67,7 +73,8 @@ def create_character(body: CharacterCreate, session: SessionDep, user: UserDep) 
 
 @router.get("/{character_id}")
 def read_character(character_id: str, session: SessionDep, user: UserDep) -> CharacterRead:
-    return to_read(get_character(session, user, character_id))
+    """Also returns deleted characters (deleted: true), so old comics can still show them."""
+    return to_read(get_character(session, user, character_id, include_deleted=True))
 
 
 @router.patch("/{character_id}")

@@ -63,7 +63,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Character */
+        /**
+         * Read Character
+         * @description Also returns deleted characters (deleted: true), so old comics can still show them.
+         */
         get: operations["read_character_api_characters__character_id__get"];
         put?: never;
         post?: never;
@@ -322,6 +325,11 @@ export interface components {
             /** Thumb Url */
             thumb_url: string | null;
             /**
+             * Deleted
+             * @default false
+             */
+            deleted: boolean;
+            /**
              * Created At
              * Format: date-time
              */
@@ -442,6 +450,11 @@ export interface components {
             /** Sheet Version */
             sheet_version: number;
             manifest: components["schemas"]["CharacterManifest"] | null;
+            /**
+             * Deleted
+             * @default false
+             */
+            deleted: boolean;
             /**
              * Created At
              * Format: date-time
@@ -571,6 +584,10 @@ export interface components {
             scenes: components["schemas"]["SceneRead"][];
             /** Panels */
             panels: components["schemas"]["PanelRead"][];
+            /** Characters */
+            characters: components["schemas"]["CharacterRead"][];
+            /** Backgrounds */
+            backgrounds: components["schemas"]["BackgroundRead"][];
             /**
              * Created At
              * Format: date-time

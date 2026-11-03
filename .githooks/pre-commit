@@ -1,0 +1,11 @@
+#!/bin/sh
+# Blocks commits that stage a .env file or anything that looks like an API key.
+# Enable once per clone:  git config core.hooksPath .githooks
+if command -v uv >/dev/null 2>&1; then
+  exec uv run --no-project --quiet python scripts/check_secrets.py --staged
+fi
+if command -v python >/dev/null 2>&1; then
+  exec python scripts/check_secrets.py --staged
+fi
+echo "pre-commit: install uv (or Python) to run scripts/check_secrets.py" >&2
+exit 1

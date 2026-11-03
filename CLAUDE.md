@@ -7,7 +7,8 @@ Hackathon build: optimise for a working end-to-end demo and clean, easy-to-exten
 
 - Build in the phases below. After each phase: run it, run the checks, summarise, then STOP for review.
 - This folder is its own git repo. Never commit to or touch the parent `Assigment` repo.
-- Commit only when asked. No secrets in code: `.env` is gitignored; `.env.example` is committed and holds placeholders only.
+- Commit only when asked. No secrets in code: `.env` is gitignored; `.env.example` is committed and holds placeholders only (`your-key-here`).
+- Secret check: `.githooks/pre-commit` runs `scripts/check_secrets.py --staged` and blocks a commit that stages `.env` or anything shaped like an API key. Enable it once per clone with `git config core.hooksPath .githooks`. Scan everything tracked with `python scripts/check_secrets.py`.
 - Keep this file current when decisions change.
 
 ## Run it (Windows PowerShell)
@@ -36,7 +37,7 @@ docker compose up --build
 - The API creates its tables and seeds the demo data on first start (SQLite at `api/storage/comickatha.db`, files in `api/storage/media/`).
 - Reset to the demo data at any time: `uv run python -m app.seed` (from `api/`). It wipes the database and generated files.
 - Settings: `Copy-Item .env.example .env`, then edit `.env`. Defaults need no API keys.
-- Point the web dev server at a different API: `$env:API_PROXY_TARGET = "http://localhost:8000"; npm run dev`
+- Ports: API 8010, web 5173. The web dev server proxies to `API_PROXY_TARGET` (default `http://localhost:8010`), read from the shell or the repo-root `.env`; for a one-off: `$env:API_PROXY_TARGET = "http://localhost:8020"; npm run dev`. In Docker the API listens on 8000 inside the container, published as 8010.
 - If the terminal shows conda's `(base)` and Python looks wrong, run `conda deactivate`. uv is set to `python-preference = "only-managed"`, so it should never pick up conda's Python.
 - If PowerShell says `npm.ps1 cannot be loaded`, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once.
 
@@ -88,6 +89,7 @@ Run it after any change to `api/app/schemas/` or a router signature, then fix ty
   - `app/providers/`: `ImageProvider` protocol and `MockImageProvider` (labelled cells on magenta `#FF00FF`).
   - `app/seed.py`: demo data with fixed `uuid5` ids, so URLs survive a reset. `seed()` is idempotent; `python -m app.seed` resets.
   - Rules: at most 3 active characters (409 `cast_full`); PATCH on a locked character or place is 409 `locked`; deletes are soft and lists hide deleted rows.
+  - Deleted characters and places never disappear from comics: `GET /characters/{id}` and `GET /backgrounds/{id}` still return them (`deleted: true`), and every comic carries `characters` and `backgrounds` it uses. The web app merges those with the live lists (`castFor`, `placesFor` in `src/lib/comic.ts`) for the Reader, covers and Studio; pickers and libraries show live items only.
 - Design source: the claude.ai design canvas "Comickatha – App Design", with boards for Home, Characters, Story Studio, My Comics, Reader and Style Guide. The Style Guide board is the source of truth for tokens.
 
 ## Decisions (approved 2026-11-02)
@@ -114,6 +116,12 @@ Phase 2 (2026-11-03):
 17. Lock/unlock only flip `status` in Phase 2 and return the item. Phase 3 turns them into `202 {job_id}` jobs that bump `sheet_version`. Seeded locked characters get placeholder sheets + manifest (v1) from `MockImageProvider`; seeded places get a placeholder reference image.
 18. Studio step 3 shows the stored panel plan; "Make my comic!" stays disabled until Phases 4 and 5 add the planner and drawing.
 19. New scenes and bubbles get client-made ids, so ids do not change after saving.
+
+Before Phase 3 (2026-11-03):
+
+20. Secrets: `META_API_KEY` moved to `.env`; `.env.example` has placeholders; a pre-commit hook runs `scripts/check_secrets.py`.
+21. Deleted characters and places stay resolvable for comics (`deleted: true`), see Architecture.
+22. Phase 1 and Phase 2 are separate commits. Phase 1 was rebuilt from the session record and verified with the same 40 browser checks before committing.
 
 ## Environment notes
 

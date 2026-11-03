@@ -19,7 +19,8 @@ def test_deleting_a_character_frees_a_slot(client: TestClient) -> None:
 
     listed = client.get("/api/characters").json()
     assert [c["name"] for c in listed] == ["Mira", "Raju"]
-    assert client.get(f"/api/characters/{IDS['robo']}").status_code == 404
+    # Still resolves by id (for comics that use it), flagged as deleted.
+    assert client.get(f"/api/characters/{IDS['robo']}").json()["deleted"] is True
 
     res = client.post("/api/characters", json={"name": "Zara"})
     assert res.status_code == 201
