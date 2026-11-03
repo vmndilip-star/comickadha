@@ -11,6 +11,7 @@ __pycache__/
 
 # Local data (SQLite DB, generated sheets and panels)
 api/storage/
+shared/avatar/preview/
 *.db
 *.db-journal
 

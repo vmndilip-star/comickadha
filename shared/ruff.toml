@@ -1,0 +1,9 @@
+# Lint/format settings for the shared generators (run from api/: uv run ruff check ../shared).
+line-length = 120
+target-version = "py311"
+
+[format]
+line-ending = "lf"
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
