@@ -4,6 +4,7 @@ import type {
   Expression,
   HairStyle,
   Mood,
+  Pose,
   Role,
   Trait,
 } from '@/types'
@@ -15,6 +16,25 @@ export const EXPRESSION_LABEL: Record<Expression, string> = {
   surprised: 'Surprised',
   scared: 'Scared',
   laughing: 'Laughing',
+}
+
+export const POSE_LABEL: Record<Pose, string> = {
+  front: 'Front',
+  three_quarter_left: '¾ left',
+  side_left: 'Side left',
+  back: 'Back',
+  three_quarter_right: '¾ right',
+  side_right: 'Side right',
+  walk: 'Walk',
+  run: 'Run',
+  point: 'Point',
+  sit: 'Sit',
+  jump: 'Jump',
+  wave: 'Wave',
+  hands_on_hips: 'Hands on hips',
+  thinking: 'Thinking',
+  scared_pose: 'Scared',
+  celebrate: 'Celebrate',
 }
 
 export const KIND_LABEL: Record<CharacterKind, string> = {

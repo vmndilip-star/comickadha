@@ -13,7 +13,7 @@ import { characterSaveKey, useCastStore } from '@/store/cast'
 import { useStartComic } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
 import { useSaveStore } from '@/store/save'
-import { MAX_CAST, type Expression } from '@/types'
+import { MAX_CAST, type Expression, type Pose } from '@/types'
 
 export function CharacterLabPage() {
   const { id } = useParams()
@@ -27,6 +27,8 @@ export function CharacterLabPage() {
   const startComic = useStartComic()
   const navigate = useNavigate()
   const [expression, setExpression] = useState<Expression>('happy')
+  const [pose, setPose] = useState<Pose>('front')
+  const [editingHead, setEditingHead] = useState(false)
   const [locking, setLocking] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
@@ -56,6 +58,8 @@ export function CharacterLabPage() {
   }
 
   const locked = character.status === 'locked'
+  // Being drawn counts as locked too: the sheet is made from the look as it was when Lock was tapped.
+  const readOnly = locked || character.status === 'generating'
   const lockedCount = characters.filter((c) => c.status === 'locked').length
 
   const toggleLock = async () => {
@@ -87,8 +91,12 @@ export function CharacterLabPage() {
         <CharacterStage
           character={character}
           expression={expression}
+          pose={pose}
+          editingHead={editingHead}
           locking={locking}
           onExpression={setExpression}
+          onPose={setPose}
+          onToggleHeadEditor={() => setEditingHead(!editingHead)}
           onRename={(name) => update(character.id, { name })}
           onToggleLock={() => void toggleLock()}
         />
@@ -99,10 +107,10 @@ export function CharacterLabPage() {
               {character.name} is locked. Tap “Locked · tap to edit” to change the look.
             </p>
           )}
-          <LookPanel character={character} disabled={locked} onChange={(patch) => update(character.id, patch)} />
+          <LookPanel character={character} disabled={readOnly} onChange={(patch) => update(character.id, patch)} />
           <PersonalityPanel
             character={character}
-            disabled={locked}
+            disabled={readOnly}
             onRole={(role) => update(character.id, { role })}
             onTraits={(traits) => update(character.id, { spec: { traits } })}
             onCatchphrase={(catchphrase) => update(character.id, { spec: { catchphrase } })}
@@ -112,7 +120,7 @@ export function CharacterLabPage() {
               variant="primary"
               size="lg"
               className="flex-auto rounded-tile shadow-[4px_4px_0_var(--ck-ink)]"
-              disabled={locked}
+              disabled={readOnly}
               onClick={() => void flush(characterSaveKey(character.id))}
             >
               Save character

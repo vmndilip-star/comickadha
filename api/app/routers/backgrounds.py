@@ -1,16 +1,21 @@
+from functools import partial
+
 from fastapi import APIRouter
 from sqlmodel import Session, col, select
 
-from app.deps import SessionDep, StorageDep, UserDep
+from app.deps import EngineDep, JobsDep, ProviderDep, SessionDep, StorageDep, UserDep
 from app.errors import ERROR_RESPONSES, ApiError, not_found
 from app.models import Background, User
 from app.models.base import utcnow
 from app.schemas.background import BackgroundCreate, BackgroundRead, BackgroundUpdate
+from app.schemas.job import JobStarted
+from app.services import image_gen, safety
 from app.services.storage import Storage
 
 router = APIRouter(prefix="/api/backgrounds", tags=["backgrounds"], responses=ERROR_RESPONSES)
 
 PLACE_TINTS = ("#B7E4A7", "#FFD0C2", "#9AD0F5", "#FFE9A8", "#2E2A6B", "#FF8A6B")
+SAFETY_LABELS = {"name": "place name", "description": "description"}
 
 
 def active_backgrounds(session: Session, user: User) -> list[Background]:
@@ -89,7 +94,9 @@ def update_background(
     storage: StorageDep,
 ) -> BackgroundRead:
     bg = get_background(session, user, background_id)
-    if bg.status in ("locked", "generating"):
+    if bg.status == "generating":
+        raise _busy(bg)
+    if bg.status == "locked":
         raise ApiError(
             409,
             "locked",
@@ -105,18 +112,54 @@ def delete_background(
     background_id: str, session: SessionDep, user: UserDep, storage: StorageDep
 ) -> None:
     bg = get_background(session, user, background_id)
+    if bg.status == "generating":
+        raise _busy(bg)
     bg.deleted_at = utcnow()
     _save(session, bg, storage)
 
 
-@router.post("/{background_id}/lock")
+def _busy(bg: Background) -> ApiError:
+    return ApiError(
+        409, "busy", f"{bg.name} is being painted right now. Wait a moment and try again!"
+    )
+
+
+@router.post("/{background_id}/lock", status_code=202)
 def lock_background(
-    background_id: str, session: SessionDep, user: UserDep, storage: StorageDep
-) -> BackgroundRead:
-    """Phase 2 only flips the status. Phase 3 returns 202 {job_id} and draws the reference image."""
+    background_id: str,
+    session: SessionDep,
+    user: UserDep,
+    engine: EngineDep,
+    jobs: JobsDep,
+    provider: ProviderDep,
+    storage: StorageDep,
+) -> JobStarted:
+    """Checks the description is kid-safe, then paints the reference image as an SSE-tracked job."""
     bg = get_background(session, user, background_id)
-    bg.status = "locked"
-    return _save(session, bg, storage)
+    if bg.status == "generating" and bg.last_job_id:
+        return JobStarted(job_id=bg.last_job_id, kind="background_image", target_id=bg.id)
+    if bg.status == "locked":
+        raise ApiError(409, "already_locked", f"{bg.name} is already locked!")
+
+    verdict = safety.check_and_log(
+        session, user.id, f"background:{bg.id}", {"name": bg.name, "description": bg.description}
+    )
+    if not verdict.allowed:
+        raise ApiError(422, "unsafe", verdict.message(SAFETY_LABELS))
+
+    job = jobs.create("background_image", bg.id)
+    spec = image_gen.PlaceSpec.of(bg, version=bg.version + 1)
+    bg.status = "generating"
+    bg.last_job_id = job.id
+    _save(session, bg, storage)
+    jobs.start(
+        job.id,
+        partial(
+            image_gen.run_place_job, spec=spec, engine=engine, provider=provider, storage=storage
+        ),
+        on_error=lambda _message: image_gen.mark_failed(engine, spec.id),
+    )
+    return JobStarted(job_id=job.id, kind="background_image", target_id=bg.id)
 
 
 @router.post("/{background_id}/unlock")
@@ -124,5 +167,7 @@ def unlock_background(
     background_id: str, session: SessionDep, user: UserDep, storage: StorageDep
 ) -> BackgroundRead:
     bg = get_background(session, user, background_id)
+    if bg.status == "generating":
+        raise _busy(bg)
     bg.status = "draft"
     return _save(session, bg, storage)

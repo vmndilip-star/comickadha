@@ -26,6 +26,8 @@ class Character(SQLModel, table=True):
     sheet_version: int = 0
     # Manifest of the current sheet version (see schemas/manifest.py).
     manifest: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
+    # The latest lock job, so the Lab can reconnect to it after a refresh.
+    last_job_id: str | None = None
     deleted_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

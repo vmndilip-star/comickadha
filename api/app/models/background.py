@@ -21,6 +21,7 @@ class Background(SQLModel, table=True):
     tint: str = Field(default="#B7E4A7", max_length=7)
     image_key: str | None = None
     thumb_key: str | None = None
+    last_job_id: str | None = None
     deleted_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

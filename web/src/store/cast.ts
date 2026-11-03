@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { ApiError } from '@/api/client'
 import * as api from '@/api/characters'
-import type { Character, CharacterSpec, CharacterUpdate } from '@/types'
+import type { Character, CharacterSpec, CharacterUpdate, HeadOffset, Pose } from '@/types'
+import { useJobsStore } from './jobs'
 import type { LoadStatus } from './load'
 import { editCounter, useSaveStore } from './save'
 import { toast } from './toast'
@@ -18,7 +19,12 @@ interface CastState {
   add: () => Promise<string | null>
   /** Updates the character on screen now and autosaves it after a 600ms pause. */
   update: (id: string, patch: CharacterPatch) => void
+  /** Locking starts the sheet-drawing job; unlocking goes back to editing. */
   setLocked: (id: string, locked: boolean) => Promise<void>
+  /** Nudges where the face goes on one pose (autosaved). */
+  setHeadOffset: (id: string, pose: Pose, offset: HeadOffset) => void
+  /** Reconnects to sheets still being drawn (after a refresh or coming back to the page). */
+  resumeJobs: () => void
   remove: (id: string) => Promise<boolean>
 }
 
@@ -28,11 +34,12 @@ export const characterSaveKey = (id: string) => `character:${id}`
 export const useCastStore = create<CastState>()((set, get) => {
   const replace = (saved: Character) =>
     set((s) => ({ characters: s.characters.map((c) => (c.id === saved.id ? saved : c)) }))
+  const find = (id: string) => get().characters.find((c) => c.id === id)
 
   // Sends the character's editable fields as they are right now.
   const save = async (id: string) => {
-    const character = get().characters.find((c) => c.id === id)
-    if (!character || character.status === 'locked') return
+    const character = find(id)
+    if (!character || character.status === 'locked' || character.status === 'generating') return
     const seen = edits.current(id)
     const body: CharacterUpdate = { role: character.role, kind: character.kind, spec: character.spec }
     // A blank name stays on screen (with a hint) but is not saved.
@@ -40,6 +47,17 @@ export const useCastStore = create<CastState>()((set, get) => {
     const saved = await api.updateCharacter(id, body)
     if (edits.isLatest(id, seen)) replace(saved)
   }
+
+  const watchSheet = (id: string, jobId: string) =>
+    useJobsStore.getState().watch(jobId, (ok, message) => {
+      void api
+        .getCharacter(id)
+        .then(replace)
+        .catch(() => undefined)
+      const name = find(id)?.name ?? 'Your character'
+      if (ok) toast.success(`${name} is locked! They'll look the same in every panel.`)
+      else toast.error(message ?? 'Oops, the drawing didn\'t work. Tap Lock to try again!')
+    })
 
   return {
     characters: [],
@@ -80,11 +98,45 @@ export const useCastStore = create<CastState>()((set, get) => {
 
     setLocked: async (id, locked) => {
       try {
-        // Save any typing first, so the lock applies to what the kid sees.
+        if (!locked) {
+          replace(await api.unlockCharacter(id))
+          return
+        }
+        // Save any typing first, so the sheet is drawn from what the kid sees.
         await useSaveStore.getState().flush(characterSaveKey(id))
-        replace(locked ? await api.lockCharacter(id) : await api.unlockCharacter(id))
+        const started = await api.lockCharacter(id)
+        set((s) => ({
+          characters: s.characters.map((c) =>
+            c.id === id ? { ...c, status: 'generating', last_job_id: started.job_id } : c,
+          ),
+        }))
+        watchSheet(id, started.job_id)
       } catch (error) {
         toast.error(error)
+      }
+    },
+
+    setHeadOffset: (id, pose, offset) => {
+      const key = `head:${id}:${pose}`
+      set((s) => ({
+        characters: s.characters.map((c) => {
+          const head = c.manifest?.body_sheet.heads[pose]
+          if (c.id !== id || !c.manifest || !head) return c
+          const heads = { ...c.manifest.body_sheet.heads, [pose]: { ...head, offset } }
+          return { ...c, manifest: { ...c.manifest, body_sheet: { ...c.manifest.body_sheet, heads } } }
+        }),
+      }))
+      edits.mark(key)
+      useSaveStore.getState().schedule(key, async () => {
+        const seen = edits.current(key)
+        const saved = await api.updateHeadOffset(id, pose, offset)
+        if (edits.isLatest(key, seen)) replace(saved)
+      })
+    },
+
+    resumeJobs: () => {
+      for (const c of get().characters) {
+        if (c.status === 'generating' && c.last_job_id) watchSheet(c.id, c.last_job_id)
       }
     },
 

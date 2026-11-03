@@ -35,7 +35,9 @@ docker compose up --build
 ```
 
 - The API creates its tables and seeds the demo data on first start (SQLite at `api/storage/comickatha.db`, files in `api/storage/media/`).
-- Reset to the demo data at any time: `uv run python -m app.seed` (from `api/`). It wipes the database and generated files.
+- Reset to the demo data at any time: `uv run python -m app.seed` (from `api/`). It wipes the database and generated files, then draws the demo sheets again (about 8 seconds).
+- The mock image provider waits `MOCK_DELAY_SECONDS` (default 1.2) per image so the live sheet build is visible; set 0 for instant locks.
+- On Windows, `uvicorn --reload` sometimes stops picking up changes after a reload. If the API serves old code, stop it and start it again.
 - Settings: `Copy-Item .env.example .env`, then edit `.env`. Defaults need no API keys.
 - Ports: API 8010, web 5173. The web dev server proxies to `API_PROXY_TARGET` (default `http://localhost:8010`), read from the shell or the repo-root `.env`; for a one-off: `$env:API_PROXY_TARGET = "http://localhost:8020"; npm run dev`. In Docker the API listens on 8000 inside the container, published as 8010.
 - If the terminal shows conda's `(base)` and Python looks wrong, run `conda deactivate`. uv is set to `python-preference = "only-managed"`, so it should never pick up conda's Python.
@@ -85,9 +87,14 @@ Run it after any change to `api/app/schemas/` or a router signature, then fix ty
   - `app/routers/`: `profile`, `characters`, `backgrounds`, `comics` (comics, `PUT /comics/{id}/scenes`, `PATCH /panels/{id}`), `media` (`/media/{key}` from storage).
   - `app/errors.py`: every error is `{code, message}` with a message written for kids (`cast_full`, `locked`, `not_found`, `invalid`, `no_manifest`, `server_error`).
   - `app/deps.py`: DB session, storage and the current kid (the one seeded profile; no auth).
-  - `app/services/storage.py`: `Storage` protocol + `LocalStorage` (validated keys, files under `storage/media/`). `services/character_sheet.py` builds placeholder sheets + manifest; Phase 3 adds the real pipeline.
-  - `app/providers/`: `ImageProvider` protocol and `MockImageProvider` (labelled cells on magenta `#FF00FF`).
-  - `app/seed.py`: demo data with fixed `uuid5` ids, so URLs survive a reset. `seed()` is idempotent; `python -m app.seed` resets.
+  - `app/services/storage.py`: `Storage` protocol + `LocalStorage` (validated keys, files under `storage/media/`).
+  - `app/providers/`: `ImageProvider.generate(prompt, size, seed, reference_images) -> PNG bytes` (chosen by `IMAGE_PROVIDER`), optional `KnowsHeadBoxes`, and the `LLMProvider` interface for Phase 4. `MockImageProvider` draws the character in its colours on magenta `#FF00FF`, deterministic per seed, reading the same `Layout:` / `Cells:` / `Palette:` / `Place:` prompt lines a real model gets (`app/prompts/*.md`).
+  - `app/services/jobs.py`: `JobRunner` runs job work on the server's asyncio loop (blocking steps in threads). Every event (`progress`, `cell_ready`, `done`, `error`) is stored on the job row; `GET /api/jobs/{id}/events` (SSE) replays after `?after=` or `Last-Event-ID`, then streams live. On startup, jobs left running are failed with "Oops, the drawing got interrupted. Tap Lock to try again!"
+  - `app/services/character_sheet.py`: `POST /characters/{id}/lock` → safety check → job: front view, then the other 15 poses in 1x4 strips with the front view as reference, then the 2x3 faces. Each batch is validated (shape, 3–92% coverage per cell after keying) and retried once. Cells are keyed (`services/imaging.py`: magenta tolerance + 1px erosion), sliced, saved under `characters/{id}/v{n}/`, and announced as `cell_ready`. The manifest adds `cell_urls`, `heads` (box + source + editable offset), `face_visible`, `face_sheet.head_box` and `thumb_url`. Re-locking writes a new version; old versions stay (`GET .../manifest?version=n`).
+  - `app/services/image_gen.py`: place lock job, one 1024x768 (4:3, panel-shaped) reference image + 320px thumb.
+  - `app/services/safety.py`: word blocklist on names, outfits, catchphrases and place descriptions; blocked → 422 `unsafe`; every verdict in `moderation_log`.
+  - `app/db.py`: `add_missing_columns` adds new nullable columns to an older SQLite file on startup (no Alembic yet).
+  - `app/seed.py`: demo data with fixed `uuid5` ids, so URLs survive a reset. Seeded sheets and places come from the real pipelines (mock provider). `seed()` is idempotent; `python -m app.seed` resets. Tests seed once per session and copy the result per test.
   - Rules: at most 3 active characters (409 `cast_full`); PATCH on a locked character or place is 409 `locked`; deletes are soft and lists hide deleted rows.
   - Deleted characters and places never disappear from comics: `GET /characters/{id}` and `GET /backgrounds/{id}` still return them (`deleted: true`), and every comic carries `characters` and `backgrounds` it uses. The web app merges those with the live lists (`castFor`, `placesFor` in `src/lib/comic.ts`) for the Reader, covers and Studio; pickers and libraries show live items only.
 - Design source: the claude.ai design canvas "Comickatha – App Design", with boards for Home, Characters, Story Studio, My Comics, Reader and Style Guide. The Style Guide board is the source of truth for tokens.
@@ -123,6 +130,13 @@ Before Phase 3 (2026-11-03):
 21. Deleted characters and places stay resolvable for comics (`deleted: true`), see Architecture.
 22. Phase 1 and Phase 2 are separate commits. Phase 1 was rebuilt from the session record and verified with the same 40 browser checks before committing.
 
+Phase 3 (2026-11-03), superseding 17:
+
+23. Lock is a job: `POST .../lock` returns `202 {job_id, kind, target_id}`; `last_job_id` is stored so the web app reconnects after a refresh. Locking while drawing returns the same job; a locked item → 409 `already_locked`; unlock, edit or delete while drawing → 409 `busy`; a failed job sets status `failed` and Lock can be tapped again.
+24. `ImageProvider` keeps the exact `generate(prompt, size, seed, reference_images)` signature; the mock gets everything from the prompt text.
+25. Head offsets are edited with `PATCH /characters/{id}/heads/{pose}` (allowed while locked: it changes placement, not the look). The Lab previews compositing: the chosen face is pasted onto the chosen pose's head box (`src/lib/sheet.ts`, same maths as the Phase 5 compositor).
+26. Places that fail to paint show "Couldn't paint"; there is no retry button on the tile yet (describe the place again).
+
 ## Environment notes
 
 - The dev machine has Node 20.15, which is below what Vite 8, React Router 8 and ESLint 10 need. The web app pins Vite 6, React Router 7 and ESLint 9. TypeScript is 5.9 because openapi-typescript supports TypeScript 5 only. Bump them after upgrading Node to 22+.
@@ -133,8 +147,8 @@ Before Phase 3 (2026-11-03):
 ## Phases
 
 - [x] 1. Scaffolding, compose, tokens, NavBar and the 5 pages as static UIs on mock data
-- [x] 2. API models, CRUD routers, seed data; wire web to API (awaiting review)
-- [ ] 3. Provider interfaces + MockImageProvider; character_sheet service (generate, slice, manifest); Lock flow
+- [x] 2. API models, CRUD routers, seed data; wire web to API
+- [x] 3. Provider interfaces + MockImageProvider; jobs + SSE; character_sheet service (generate, slice, manifest); place images; Lock flow (awaiting review)
 - [ ] 4. story_planner, Story Studio steps 1–3, safety service
 - [ ] 5. Compositor, generate SSE, Reader Read/Edit, PDF export
 - [ ] 6. Real LLM and image providers, Redraw panel, polish

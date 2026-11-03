@@ -72,7 +72,7 @@ export interface paths {
         post?: never;
         /**
          * Delete Character
-         * @description Soft delete: frees the cast slot; comics that already use the character keep their data.
+         * @description Soft delete: frees the cast slot; comics that already use the character keep it.
          */
         delete: operations["delete_character_api_characters__character_id__delete"];
         options?: never;
@@ -92,7 +92,7 @@ export interface paths {
         put?: never;
         /**
          * Lock Character
-         * @description Phase 2 only flips the status. Phase 3 returns 202 {job_id} and generates the sheets.
+         * @description Checks the look is kid-safe, then draws the character sheet as a job (follow it over SSE).
          */
         post: operations["lock_character_api_characters__character_id__lock_post"];
         delete?: never;
@@ -110,7 +110,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Unlock Character */
+        /**
+         * Unlock Character
+         * @description Back to editing. The sheet files stay; locking again draws a new version.
+         */
         post: operations["unlock_character_api_characters__character_id__unlock_post"];
         delete?: never;
         options?: never;
@@ -125,7 +128,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Manifest */
+        /**
+         * Read Manifest
+         * @description The current manifest, or an older version's (old comics keep the one they used).
+         */
         get: operations["read_manifest_api_characters__character_id__manifest_get"];
         put?: never;
         post?: never;
@@ -133,6 +139,26 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/characters/{character_id}/heads/{pose}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Head Offset
+         * @description Nudges where the face goes on one pose. Allowed while locked: placement, not looks.
+         */
+        patch: operations["update_head_offset_api_characters__character_id__heads__pose__patch"];
         trace?: never;
     };
     "/api/backgrounds": {
@@ -183,7 +209,7 @@ export interface paths {
         put?: never;
         /**
          * Lock Background
-         * @description Phase 2 only flips the status. Phase 3 returns 202 {job_id} and draws the reference image.
+         * @description Checks the description is kid-safe, then paints the reference image as an SSE-tracked job.
          */
         post: operations["lock_background_api_backgrounds__background_id__lock_post"];
         delete?: never;
@@ -283,6 +309,46 @@ export interface paths {
         patch: operations["update_panel_api_panels__panel_id__patch"];
         trace?: never;
     };
+    "/api/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Job */
+        get: operations["read_job_api_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/{job_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Job Events
+         * @description Server-sent events: progress | cell_ready | done | error.
+         *
+         *     Replays every event after `after` (or the browser's Last-Event-ID on reconnect), then streams
+         *     live ones until the job ends.
+         */
+        get: operations["job_events_api_jobs__job_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -324,6 +390,8 @@ export interface components {
             image_url: string | null;
             /** Thumb Url */
             thumb_url: string | null;
+            /** Last Job Id */
+            last_job_id: string | null;
             /**
              * Deleted
              * @default false
@@ -348,6 +416,47 @@ export interface components {
             description?: string | null;
             /** Tint */
             tint?: string | null;
+        };
+        /** BodySheet */
+        BodySheet: {
+            /** Url */
+            url: string;
+            /** Grid */
+            grid: [
+                number,
+                number
+            ];
+            /** Cell */
+            cell: [
+                number,
+                number
+            ];
+            /** Cells */
+            cells: {
+                [key: string]: [
+                    number,
+                    number
+                ];
+            };
+            /**
+             * Cell Urls
+             * @default {}
+             */
+            cell_urls: {
+                [key: string]: string;
+            };
+            /**
+             * Heads
+             * @default {}
+             */
+            heads: {
+                [key: string]: components["schemas"]["HeadBox"];
+            };
+            /**
+             * Face Visible
+             * @default []
+             */
+            face_visible: string[];
         };
         /** Bubble */
         Bubble: {
@@ -399,7 +508,7 @@ export interface components {
         };
         /**
          * CharacterManifest
-         * @description Describes a locked character's sheets. Stored on the character and beside the sheets.
+         * @description One version of a locked character's sheets. Stored on the character and as manifest.json.
          */
         CharacterManifest: {
             /** Id */
@@ -418,8 +527,10 @@ export interface components {
             spec: {
                 [key: string]: unknown;
             };
-            body_sheet: components["schemas"]["SheetInfo"];
-            face_sheet: components["schemas"]["SheetInfo"];
+            body_sheet: components["schemas"]["BodySheet"];
+            face_sheet: components["schemas"]["FaceSheet"];
+            /** Thumb Url */
+            thumb_url?: string | null;
         };
         /** CharacterRead */
         CharacterRead: {
@@ -450,6 +561,8 @@ export interface components {
             /** Sheet Version */
             sheet_version: number;
             manifest: components["schemas"]["CharacterManifest"] | null;
+            /** Last Job Id */
+            last_job_id: string | null;
             /**
              * Deleted
              * @default false
@@ -626,6 +739,86 @@ export interface components {
             /** Message */
             message: string;
         };
+        /** FaceSheet */
+        FaceSheet: {
+            /** Url */
+            url: string;
+            /** Grid */
+            grid: [
+                number,
+                number
+            ];
+            /** Cell */
+            cell: [
+                number,
+                number
+            ];
+            /** Cells */
+            cells: {
+                [key: string]: [
+                    number,
+                    number
+                ];
+            };
+            /**
+             * Cell Urls
+             * @default {}
+             */
+            cell_urls: {
+                [key: string]: string;
+            };
+            /** Head Box */
+            head_box?: [
+                number,
+                number,
+                number,
+                number
+            ] | null;
+        };
+        /** HeadBox */
+        HeadBox: {
+            /** Box */
+            box: [
+                number,
+                number,
+                number,
+                number
+            ];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "exact" | "estimated";
+            /**
+             * @default {
+             *       "dx": 0,
+             *       "dy": 0,
+             *       "scale": 1
+             *     }
+             */
+            offset: components["schemas"]["HeadOffset"];
+        };
+        /**
+         * HeadOffset
+         * @description Kid-editable nudge for a head box: fractions of the cell; scale grows from the centre.
+         */
+        HeadOffset: {
+            /**
+             * Dx
+             * @default 0
+             */
+            dx: number;
+            /**
+             * Dy
+             * @default 0
+             */
+            dy: number;
+            /**
+             * Scale
+             * @default 1
+             */
+            scale: number;
+        };
         /** Health */
         Health: {
             /**
@@ -639,6 +832,51 @@ export interface components {
             llm_provider: string;
             /** Image Provider */
             image_provider: string;
+        };
+        /** JobRead */
+        JobRead: {
+            /** Id */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Target Id */
+            target_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "done" | "failed";
+            /** Progress */
+            progress: number;
+            /** Error */
+            error: string | null;
+            /** Event Count */
+            event_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * JobStarted
+         * @description Returned with 202 by lock endpoints. Follow it on GET /api/jobs/{job_id}/events.
+         */
+        JobStarted: {
+            /** Job Id */
+            job_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "character_sheet" | "background_image";
+            /** Target Id */
+            target_id: string;
         };
         /** PanelCharacter */
         PanelCharacter: {
@@ -757,28 +995,6 @@ export interface components {
              * @default
              */
             summary: string;
-        };
-        /** SheetInfo */
-        SheetInfo: {
-            /** Url */
-            url: string;
-            /** Grid */
-            grid: [
-                number,
-                number
-            ];
-            /** Cell */
-            cell: [
-                number,
-                number
-            ];
-            /** Cells */
-            cells: {
-                [key: string]: [
-                    number,
-                    number
-                ];
-            };
         };
     };
     responses: never;
@@ -1115,12 +1331,12 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CharacterRead"];
+                    "application/json": components["schemas"]["JobStarted"];
                 };
             };
             /** @description Not Found */
@@ -1203,7 +1419,9 @@ export interface operations {
     };
     read_manifest_api_characters__character_id__manifest_get: {
         parameters: {
-            query?: never;
+            query?: {
+                version?: number | null;
+            };
             header?: never;
             path: {
                 character_id: string;
@@ -1219,6 +1437,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CharacterManifest"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    update_head_offset_api_characters__character_id__heads__pose__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                character_id: string;
+                pose: "front" | "three_quarter_left" | "side_left" | "back" | "three_quarter_right" | "side_right" | "walk" | "run" | "point" | "sit" | "jump" | "wave" | "hands_on_hips" | "thinking" | "scared_pose" | "celebrate";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HeadOffset"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CharacterRead"];
                 };
             };
             /** @description Not Found */
@@ -1509,12 +1781,12 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Successful Response */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BackgroundRead"];
+                    "application/json": components["schemas"]["JobStarted"];
                 };
             };
             /** @description Not Found */
@@ -1922,6 +2194,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PanelRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    read_job_api_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    job_events_api_jobs__job_id__events_get: {
+        parameters: {
+            query?: {
+                after?: number | null;
+            };
+            header?: {
+                "Last-Event-ID"?: string | null;
+            };
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Server-sent events */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
                 };
             };
             /** @description Not Found */

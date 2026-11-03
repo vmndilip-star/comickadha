@@ -13,6 +13,9 @@ export async function loadAll(force = false): Promise<void> {
     usePlacesStore.getState().load(force),
     useComicsStore.getState().load(force),
   ])
+  // Sheets or places still being drawn (e.g. after a refresh): reconnect to their jobs.
+  useCastStore.getState().resumeJobs()
+  usePlacesStore.getState().resumeJobs()
 }
 
 /** Combined status of the four stores: error wins, then loading, then ready. */

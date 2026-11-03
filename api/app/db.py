@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from sqlalchemy import Engine, event
+from sqlalchemy import Engine, event, inspect, text
 from sqlmodel import SQLModel, create_engine
 
 import app.models  # noqa: F401  (registers tables)
@@ -24,3 +24,23 @@ def make_engine(url: str) -> Engine:
 
 def init_db(engine: Engine) -> None:
     SQLModel.metadata.create_all(engine)
+    add_missing_columns(engine)
+
+
+def add_missing_columns(engine: Engine) -> None:
+    """Adds nullable columns that newer models have but an older database lacks.
+
+    A tiny stand-in for migrations while the schema only grows (no Alembic in the hackathon build).
+    """
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        for table in SQLModel.metadata.sorted_tables:
+            if not inspector.has_table(table.name):
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name not in existing and column.nullable:
+                    ddl = column.type.compile(engine.dialect)
+                    conn.execute(
+                        text(f'ALTER TABLE "{table.name}" ADD COLUMN "{column.name}" {ddl}')
+                    )

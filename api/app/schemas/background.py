@@ -27,6 +27,7 @@ class BackgroundRead(BaseModel):
     tint: str
     image_url: str | None
     thumb_url: str | None
+    last_job_id: str | None
     # Deleted places still resolve by id for comics that use them.
     deleted: bool = False
     created_at: UtcDatetime

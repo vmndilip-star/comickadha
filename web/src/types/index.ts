@@ -12,6 +12,10 @@ export type CharacterSpec = Schemas['CharacterSpec']
 export type CharacterCreate = Schemas['CharacterCreate']
 export type CharacterUpdate = Schemas['CharacterUpdate']
 export type CharacterManifest = Schemas['CharacterManifest']
+export type HeadOffset = Schemas['HeadOffset']
+export type HeadBox = Schemas['HeadBox']
+export type JobStarted = Schemas['JobStarted']
+export type JobRead = Schemas['JobRead']
 export type Background = Schemas['BackgroundRead']
 export type BackgroundCreate = Schemas['BackgroundCreate']
 export type Comic = Schemas['ComicRead']
@@ -47,6 +51,13 @@ export const NARRATOR = 'narrator'
 
 // Option lists in display order. `satisfies` keeps them in step with the API's allowed values.
 export const EXPRESSIONS = ['happy', 'sad', 'angry', 'surprised', 'scared', 'laughing'] as const satisfies readonly Expression[]
+/** Body sheet cells in 4x4 grid order. */
+export const POSES = [
+  'front', 'three_quarter_left', 'side_left', 'back',
+  'three_quarter_right', 'side_right', 'walk', 'run',
+  'point', 'sit', 'jump', 'wave',
+  'hands_on_hips', 'thinking', 'scared_pose', 'celebrate',
+] as const satisfies readonly Pose[]
 export const CHARACTER_KINDS = ['kid', 'grown_up', 'animal', 'robot'] as const satisfies readonly CharacterKind[]
 export const HAIR_STYLES = ['bob', 'spiky', 'braids', 'curly'] as const satisfies readonly HairStyle[]
 export const ROLES = ['hero', 'sidekick', 'friend'] as const satisfies readonly Role[]

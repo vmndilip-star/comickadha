@@ -4,12 +4,10 @@
 `uv run python -m app.seed` resets the database and media files back to this data.
 """
 
-import io
 import uuid
 from datetime import timedelta
 from typing import Any
 
-from PIL import Image
 from sqlalchemy import delete
 from sqlmodel import Session
 
@@ -17,9 +15,10 @@ from app.config import get_settings
 from app.db import init_db, make_engine
 from app.models import Background, Character, Comic, Job, ModerationLog, Panel, Scene, User
 from app.models.base import utcnow
-from app.providers.image import ImageProvider, ImageRequest
+from app.providers.image import ImageProvider
 from app.providers.mock import MockImageProvider
-from app.services.character_sheet import build_placeholder_manifest
+from app.services.character_sheet import SheetSpec, build_sheet
+from app.services.image_gen import PlaceSpec, build_place
 from app.services.storage import LocalStorage, Storage
 
 # Fixed namespace so seeded ids (and URLs) stay the same after every reset.
@@ -341,23 +340,8 @@ def wipe(session: Session, storage: Storage) -> None:
         storage.delete_prefix(prefix)
 
 
-def _place_images(bg: Background, storage: Storage, provider: ImageProvider) -> None:
-    png = provider.generate(
-        ImageRequest(
-            prompt=bg.description,
-            width=1024,
-            height=768,
-            seed=bg.seed,
-            hints={"tint": bg.tint, "label": bg.name},
-        )
-    )
-    prefix = f"backgrounds/{bg.id}/v{bg.version}"
-    bg.image_key = storage.save(f"{prefix}/reference.png", png)
-    thumb = Image.open(io.BytesIO(png))
-    thumb.thumbnail((320, 240))
-    buf = io.BytesIO()
-    thumb.save(buf, format="PNG")
-    bg.thumb_key = storage.save(f"{prefix}/thumb.png", buf.getvalue())
+def _quiet(_type: str, _data: dict[str, Any], _progress: float | None) -> None:
+    """Seeding runs the real pipelines without a job, so there is nobody to send events to."""
 
 
 def seed(
@@ -386,7 +370,7 @@ def seed(
         )
         if character.status == "locked":
             character.sheet_version = 1
-            character.manifest = build_placeholder_manifest(character, storage, provider)
+            character.manifest = build_sheet(SheetSpec.of(character, 1), provider, storage, _quiet)
         sheet_versions[character.id] = character.sheet_version
         session.add(character)
 
@@ -399,7 +383,8 @@ def seed(
             updated_at=now,
             **data,
         )
-        _place_images(bg, storage, provider)
+        keys = build_place(PlaceSpec.of(bg, 1), provider, storage, _quiet)
+        bg.image_key, bg.thumb_key = keys["image_key"], keys["thumb_key"]
         session.add(bg)
     session.flush()
 

@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from tests.conftest import IDS
+from tests.conftest import IDS, wait_for_job
 
 
 def test_fourth_character_returns_cast_full(client: TestClient) -> None:
@@ -60,7 +60,10 @@ def test_unlock_then_edit_then_lock(client: TestClient) -> None:
     path = f"/api/characters/{IDS['raju']}"
     assert client.post(f"{path}/unlock").json()["status"] == "draft"
     assert client.patch(path, json={"role": "hero"}).status_code == 200
-    assert client.post(f"{path}/lock").json()["status"] == "locked"
+    job = client.post(f"{path}/lock")
+    assert job.status_code == 202
+    assert wait_for_job(client, job.json()["job_id"])["status"] == "done"
+    assert client.get(path).json()["status"] == "locked"
     assert client.patch(path, json={"role": "friend"}).status_code == 409
 
 

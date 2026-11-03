@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173"]
     # Insert the demo data on startup when the database is empty.
     seed_on_startup: bool = True
+    # Pause per mock image, so kids (and demos) can watch a sheet build live. Tests use 0.
+    mock_delay_seconds: float = 1.2
 
     @property
     def resolved_database_url(self) -> str:

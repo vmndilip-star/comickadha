@@ -2,7 +2,7 @@
 
 Comickatha lets kids under 16 make their own comics. They design up to three characters and a few places, lock them so they look the same everywhere, write a short story, and Comickatha turns it into comic panels they can edit and export as a PDF.
 
-**Status:** Phase 2 of 6. All five screens read and save real data through the API (SQLite). Drawing panels arrives in later phases.
+**Status:** Phase 3 of 6. Locking a character draws its full character sheet (16 poses, 6 faces) live in the Character Lab, and locking a place paints its picture. Everything runs on a built-in mock artist, so no API keys are needed. Story planning and comic drawing arrive in Phases 4 and 5.
 
 ## Quick start
 

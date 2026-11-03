@@ -3,10 +3,25 @@ import { CharacterFace } from '@/components/character/CharacterFace'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
 import { characterTagline } from '@/lib/format'
+import { lockedManifest } from '@/lib/sheet'
 import type { Character } from '@/types'
+
+function StatusBadge({ character }: { character: Character }) {
+  switch (character.status) {
+    case 'locked':
+      return <Badge tone="locked">Locked</Badge>
+    case 'generating':
+      return <Badge tone="designing">Being drawn…</Badge>
+    case 'failed':
+      return <Badge tone="draft">Lock again</Badge>
+    default:
+      return <Badge tone="designing">Still designing</Badge>
+  }
+}
 
 export function CastCard({ character }: { character: Character }) {
   const locked = character.status === 'locked'
+  const thumb = lockedManifest(character)?.thumb_url
   return (
     <Link
       to={`/characters/${character.id}`}
@@ -16,15 +31,19 @@ export function CastCard({ character }: { character: Character }) {
       )}
     >
       <span
-        className="flex size-[88px] flex-none items-center justify-center rounded-2xl border-3 border-ink"
+        className="flex size-[88px] flex-none items-center justify-center overflow-hidden rounded-2xl border-3 border-ink"
         style={{ backgroundColor: character.spec.tint }}
       >
-        <CharacterFace character={character} size={70} />
+        {thumb ? (
+          <img src={thumb} alt="" draggable={false} className="size-full object-contain" />
+        ) : (
+          <CharacterFace character={character} size={70} />
+        )}
       </span>
       <span className="flex flex-col gap-1.5">
         <span className="text-title font-extrabold">{character.name}</span>
         <span className="font-semibold text-muted">{characterTagline(character)}</span>
-        {locked ? <Badge tone="locked">Locked</Badge> : <Badge tone="designing">Still designing</Badge>}
+        <StatusBadge character={character} />
       </span>
     </Link>
   )

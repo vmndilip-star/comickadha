@@ -1,5 +1,7 @@
-"""FastAPI entry point: create_app() wires settings, database, storage, routers and errors."""
+"""FastAPI entry point: create_app() wires settings, database, storage, jobs, routers and errors."""
 
+import asyncio
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Literal
@@ -13,10 +15,14 @@ from app import __version__
 from app.config import Settings, get_settings
 from app.db import init_db, make_engine
 from app.errors import install_error_handlers
+from app.providers import get_image_provider
 from app.providers.mock import MockImageProvider
-from app.routers import backgrounds, characters, comics, media, profile
+from app.routers import backgrounds, characters, comics, jobs, media, profile
 from app.seed import seed
+from app.services.jobs import JobRunner, fail_interrupted_jobs
 from app.services.storage import LocalStorage
+
+log = logging.getLogger(__name__)
 
 
 class Health(BaseModel):
@@ -34,12 +40,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         settings.storage_dir.mkdir(parents=True, exist_ok=True)
         engine = make_engine(settings.resolved_database_url)
         init_db(engine)
+        if interrupted := fail_interrupted_jobs(engine):
+            log.warning("marked %d interrupted job(s) as failed", interrupted)
         app.state.engine = engine
         app.state.storage = LocalStorage(settings.media_dir)
+        app.state.image_provider = get_image_provider(settings)
+        app.state.jobs = JobRunner(engine, asyncio.get_running_loop())
         if settings.seed_on_startup:
             with Session(engine) as session:
                 seed(session, app.state.storage, MockImageProvider())
         yield
+        app.state.jobs.cancel_all()
         engine.dispose()
 
     # One schema per model (no -Input/-Output split) keeps the generated TypeScript names simple.
@@ -72,6 +83,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         characters.router,
         backgrounds.router,
         comics.router,
+        jobs.router,
         media.router,
     ):
         app.include_router(router)

@@ -1,27 +1,33 @@
-"""Image generation interface. Phase 3 adds reference-guided sheet generation on top of it."""
+"""Image generation interface: every provider turns a prompt into PNG bytes."""
 
-from typing import Protocol
-
-from pydantic import BaseModel, Field
-
-
-class ImageRequest(BaseModel):
-    prompt: str
-    width: int
-    height: int
-    seed: int = 0
-    # Reference images (PNG bytes) the result must stay consistent with.
-    references: list[bytes] = Field(default_factory=list)
-    # For sheets: rows x cols, and one label per cell in row-major order.
-    grid: tuple[int, int] | None = None
-    labels: list[str] = Field(default_factory=list)
-    # Rendering hints only the mock uses (colours), so placeholders look like the character.
-    hints: dict[str, str] = Field(default_factory=dict)
+from typing import Protocol, runtime_checkable
 
 
 class ImageProvider(Protocol):
     name: str
 
-    def generate(self, request: ImageRequest) -> bytes:
-        """Returns PNG bytes."""
+    def generate(
+        self,
+        prompt: str,
+        size: tuple[int, int],
+        seed: int,
+        reference_images: list[bytes] | None = None,
+    ) -> bytes:
+        """Returns a PNG of `size` (width, height), or at least its aspect ratio.
+
+        `reference_images` (PNG bytes) are what the result must stay consistent with,
+        e.g. the character's front view when drawing the other poses.
+        """
+        ...
+
+
+@runtime_checkable
+class KnowsHeadBoxes(Protocol):
+    """Optional: providers that know exactly where they drew each head (the mock does).
+
+    Others get head boxes estimated from the cell's alpha mask.
+    """
+
+    def head_box(self, cell: str) -> tuple[float, float, float, float] | None:
+        """(x, y, w, h) as fractions of the cell, for "body/<pose>" or "face/<expression>"."""
         ...

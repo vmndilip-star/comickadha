@@ -1,14 +1,15 @@
 import { cn } from '@/lib/cn'
 import { EXPRESSION_LABEL } from '@/lib/labels'
-import { EXPRESSIONS, type Expression } from '@/types'
-import { CharacterFace, type FaceLook } from './CharacterFace'
+import { EXPRESSIONS, type Character, type Expression } from '@/types'
+import { CharacterAvatar } from './CharacterAvatar'
 
 interface ExpressionGridProps {
-  character: FaceLook
+  character: Character
   selected: Expression
   onSelect: (expression: Expression) => void
 }
 
+/** The six faces: the real face-sheet cells once locked, the SVG placeholder before. */
 export function ExpressionGrid({ character, selected, onSelect }: ExpressionGridProps) {
   return (
     <div className="flex flex-col gap-2.5">
@@ -25,7 +26,7 @@ export function ExpressionGrid({ character, selected, onSelect }: ExpressionGrid
               selected === e ? 'bg-sun shadow-sm' : 'bg-surface',
             )}
           >
-            <CharacterFace character={character} expression={e} size={54} cropped />
+            <CharacterAvatar character={character} expression={e} size={54} cropped />
             <span className="text-label font-extrabold">{EXPRESSION_LABEL[e]}</span>
           </button>
         ))}

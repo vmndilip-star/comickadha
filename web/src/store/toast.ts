@@ -29,8 +29,12 @@ export const useToastStore = create<ToastState>()((set, get) => ({
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }))
 
-/** Call from anywhere (stores, handlers): toast.error(caughtError) shows the API's kid-friendly message. */
+/**
+ * Call from anywhere (stores, handlers): toast.error(caughtError) shows the API's kid-friendly
+ * message; a string is shown as-is.
+ */
 export const toast = {
-  error: (error: unknown) => useToastStore.getState().push('error', errorMessage(error)),
+  error: (error: unknown) =>
+    useToastStore.getState().push('error', typeof error === 'string' ? error : errorMessage(error)),
   success: (message: string) => useToastStore.getState().push('success', message),
 }

@@ -64,6 +64,8 @@ class CharacterRead(BaseModel):
     style: str
     sheet_version: int
     manifest: CharacterManifest | None
+    # The latest lock job: reconnect to its events after a refresh.
+    last_job_id: str | None
     # Deleted characters still resolve by id for comics that use them.
     deleted: bool = False
     created_at: UtcDatetime

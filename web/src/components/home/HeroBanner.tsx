@@ -1,4 +1,4 @@
-import { CharacterFace } from '@/components/character/CharacterFace'
+import { CharacterAvatar } from '@/components/character/CharacterAvatar'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { useCastStore } from '@/store/cast'
 import { useStartComic } from '@/store/comics'
@@ -43,7 +43,7 @@ export function HeroBanner() {
           LET'S GO!
         </div>
         {cast.slice(0, 3).map((c, i) => (
-          <CharacterFace
+          <CharacterAvatar
             key={c.id}
             character={c}
             expression={HERO_FACES[i]?.expression}

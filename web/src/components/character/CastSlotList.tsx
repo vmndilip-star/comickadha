@@ -3,7 +3,14 @@ import { EmptySlot } from '@/components/ui/EmptySlot'
 import { cn } from '@/lib/cn'
 import { characterTagline } from '@/lib/format'
 import { useCastStore } from '@/store/cast'
-import { MAX_CAST } from '@/types'
+import { MAX_CAST, type LockStatus } from '@/types'
+
+const STATUS_LABEL: Record<LockStatus, string> = {
+  draft: 'Still designing',
+  generating: 'Being drawn…',
+  failed: 'Lock again',
+  locked: 'Locked',
+}
 
 export function CastSlotList({ selectedId }: { selectedId: string }) {
   const characters = useCastStore((s) => s.characters)
@@ -38,7 +45,7 @@ export function CastSlotList({ selectedId }: { selectedId: string }) {
             <span className="flex flex-col items-start gap-0.5 text-left">
               <span className="text-lg font-extrabold">{c.name}</span>
               <span className="text-label font-semibold text-muted">{characterTagline(c)}</span>
-              <span className="text-[13px] font-extrabold">{c.status === 'locked' ? 'Locked' : 'Still designing'}</span>
+              <span className="text-[13px] font-extrabold">{STATUS_LABEL[c.status]}</span>
             </span>
           </Link>
         )
