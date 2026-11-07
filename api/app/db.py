@@ -1,5 +1,6 @@
 """Database engine and table creation. SQLite for the hackathon; Postgres-ready via the URL."""
 
+import json
 from typing import Any
 
 from sqlalchemy import Engine, event, inspect, text
@@ -25,6 +26,28 @@ def make_engine(url: str) -> Engine:
 def init_db(engine: Engine) -> None:
     SQLModel.metadata.create_all(engine)
     add_missing_columns(engine)
+
+
+def missing_columns(engine: Engine) -> list[str]:
+    """ "table.column" for every nullable column the models have but the database lacks."""
+    inspector = inspect(engine)
+    missing: list[str] = []
+    for table in SQLModel.metadata.sorted_tables:
+        if not inspector.has_table(table.name):
+            continue
+        existing = {c["name"] for c in inspector.get_columns(table.name)}
+        missing += [f"{table.name}.{c.name}" for c in table.columns if c.name not in existing]
+    return missing
+
+
+def has_old_character_specs(engine: Engine) -> bool:
+    """Characters saved before Phase 3.5b (no body_type in the spec) still need converting."""
+    if not inspect(engine).has_table("character"):
+        return False
+    with engine.connect() as conn:
+        specs = conn.execute(text("SELECT spec FROM character")).scalars()
+        loaded = (json.loads(s) if isinstance(s, str) else s or {} for s in specs)
+        return any("body_type" not in spec for spec in loaded)
 
 
 def add_missing_columns(engine: Engine) -> None:

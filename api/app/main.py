@@ -14,13 +14,15 @@ from sqlmodel import Session
 from app import __version__
 from app.avatar.migrate import migrate_characters
 from app.config import Settings, get_settings
-from app.db import init_db, make_engine
+from app.db import has_old_character_specs, init_db, make_engine, missing_columns
 from app.errors import install_error_handlers
+from app.prompts import load_all as load_prompts
 from app.providers import get_image_provider, get_llm_provider
 from app.providers.image import ImageProvider
 from app.providers.mock import MockImageProvider
-from app.routers import backgrounds, builder, characters, comics, jobs, media, profile
+from app.routers import backgrounds, builder, characters, comics, jobs, media, profile, studio
 from app.seed import seed
+from app.services.backup import backup_storage
 from app.services.builder_sheet import BuilderSheets
 from app.services.character_sheet import ImageSheets, SheetProvider
 from app.services.jobs import JobRunner, fail_interrupted_jobs
@@ -64,8 +66,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # First, so a bad Meta setting (missing key or model, a -contributor model) stops startup.
         app.state.llm = get_llm_provider(settings)
+        # Every prompt is read and checked now, so a missing or broken one stops startup.
+        load_prompts()
         settings.storage_dir.mkdir(parents=True, exist_ok=True)
         engine = make_engine(settings.resolved_database_url)
+        # Back up the storage folder before changing an existing database (the newest 5 are kept).
+        migrating = missing_columns(engine) or has_old_character_specs(engine)
+        if migrating and not settings.database_url:
+            backup_storage(settings.storage_dir, reason="before-migration")
         init_db(engine)
         if interrupted := fail_interrupted_jobs(engine):
             log.warning("marked %d interrupted job(s) as failed", interrupted)
@@ -117,6 +125,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         builder.router,
         backgrounds.router,
         comics.router,
+        studio.router,
         jobs.router,
         media.router,
     ):

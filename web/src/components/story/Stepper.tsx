@@ -10,9 +10,11 @@ const STEPS: Array<{ num: StudioStep; title: string; sub: string }> = [
 interface StepperProps {
   step: StudioStep
   onStep: (step: StudioStep) => void
+  /** Steps that can't be opened yet (no locked character or place). */
+  disabled?: StudioStep[]
 }
 
-export function Stepper({ step, onStep }: StepperProps) {
+export function Stepper({ step, onStep, disabled = [] }: StepperProps) {
   return (
     <ol aria-label="Steps" className="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3 p-0">
       {STEPS.map((s) => (
@@ -20,9 +22,10 @@ export function Stepper({ step, onStep }: StepperProps) {
           <button
             type="button"
             aria-current={s.num === step ? 'step' : undefined}
+            disabled={disabled.includes(s.num)}
             onClick={() => onStep(s.num)}
             className={cn(
-              'flex min-h-[68px] w-full items-center gap-3 rounded-2xl border-3 border-ink px-3.5 py-3 text-left text-ink',
+              'flex min-h-[68px] w-full items-center gap-3 rounded-2xl border-3 border-ink px-3.5 py-3 text-left text-ink disabled:cursor-not-allowed disabled:opacity-50',
               s.num === step && 'bg-sun shadow-[4px_4px_0_var(--ck-ink)]',
               s.num < step && 'bg-mint',
               s.num > step && 'bg-surface',

@@ -23,3 +23,6 @@ shared/avatar/preview/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Backups of api/storage made before migrations (the newest 5 are kept)
+api/storage-backups/

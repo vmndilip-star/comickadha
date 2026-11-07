@@ -425,8 +425,93 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update Panel */
+        /**
+         * Update Panel
+         * @description Kid edits to a planned panel. New bubble words are safety-checked (with the classifier
+         *     when Meta is on); a block names the bubble, so the message shows under it.
+         */
         patch: operations["update_panel_api_panels__panel_id__patch"];
+        trace?: never;
+    };
+    "/api/studio/{comic_id}/plan-scenes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan Scenes
+         * @description Step 1 -> 2: splits the story into 2-4 scenes with the kid's locked cast and places.
+         */
+        post: operations["plan_scenes_api_studio__comic_id__plan_scenes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/studio/{comic_id}/plan-panels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan Panels
+         * @description Step 2 -> 3: exactly panel_count panels from the kid's scenes. Panels the kid edited (or
+         *     that are drawn) are kept unless they confirm "Start panels over".
+         */
+        post: operations["plan_panels_api_studio__comic_id__plan_panels_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/studio/buddy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buddy
+         * @description Questions that help the kid think, a spelling check, or scene title ideas.
+         */
+        post: operations["buddy_api_studio_buddy_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/studio/spark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Spark
+         * @description A random story spark for the Home page.
+         */
+        get: operations["spark_api_studio_spark_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/jobs/{job_id}": {
@@ -646,6 +731,48 @@ export interface components {
                 number
             ] | null;
         };
+        /** BuddyReply */
+        BuddyReply: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "idea" | "spelling" | "name_scene";
+            /** Questions */
+            questions: string[];
+            /** Corrected */
+            corrected: string | null;
+            /** Changes */
+            changes: components["schemas"]["SpellingChange"][];
+            /** Titles */
+            titles: string[];
+            /** Reply */
+            reply: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "meta" | "mock";
+            /** Fallback */
+            fallback: boolean;
+            /** Label */
+            label: string;
+        };
+        /** BuddyRequest */
+        BuddyRequest: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "idea" | "spelling" | "name_scene";
+            /**
+             * Text
+             * @default
+             */
+            text: string;
+            /** Comic Id */
+            comic_id: string;
+        };
         /** CharacterCreate */
         CharacterCreate: {
             /**
@@ -793,6 +920,8 @@ export interface components {
             characters: components["schemas"]["CharacterRead"][];
             /** Backgrounds */
             backgrounds: components["schemas"]["BackgroundRead"][];
+            /** Safety Notes */
+            safety_notes: components["schemas"]["FieldNote"][];
             /**
              * Created At
              * Format: date-time
@@ -854,6 +983,8 @@ export interface components {
             code: string;
             /** Message */
             message: string;
+            /** Field */
+            field?: string | null;
         };
         /** FaceSheet */
         FaceSheet: {
@@ -890,6 +1021,16 @@ export interface components {
                 number,
                 number
             ] | null;
+        };
+        /**
+         * FieldNote
+         * @description A gentle note shown under one field (a draft that was saved but won't go further).
+         */
+        FieldNote: {
+            /** Field */
+            field: string;
+            /** Message */
+            message: string;
         };
         /** HeadBox */
         HeadBox: {
@@ -1119,6 +1260,22 @@ export interface components {
             /** Bubbles */
             bubbles?: components["schemas"]["Bubble"][] | null;
         };
+        /** PanelsPlanned */
+        PanelsPlanned: {
+            /** Panels */
+            panels: components["schemas"]["PanelRead"][];
+            /** Kept */
+            kept: number;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "meta" | "mock";
+            /** Fallback */
+            fallback: boolean;
+            /** Label */
+            label: string;
+        };
         /** Personality */
         Personality: {
             /**
@@ -1131,6 +1288,14 @@ export interface components {
              * @default
              */
             catchphrase: string;
+        };
+        /** PlanRequest */
+        PlanRequest: {
+            /**
+             * Start Over
+             * @default false
+             */
+            start_over: boolean;
         };
         /** ProfileRead */
         ProfileRead: {
@@ -1171,6 +1336,36 @@ export interface components {
              * @default
              */
             summary: string;
+        };
+        /** ScenesPlanned */
+        ScenesPlanned: {
+            /** Scenes */
+            scenes: components["schemas"]["SceneRead"][];
+            /** Skipped */
+            skipped: string[];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "meta" | "mock";
+            /** Fallback */
+            fallback: boolean;
+            /** Label */
+            label: string;
+        };
+        /** Spark */
+        Spark: {
+            /** Index */
+            index: number;
+            /** Text */
+            text: string;
+        };
+        /** SpellingChange */
+        SpellingChange: {
+            /** Before */
+            before: string;
+            /** After */
+            after: string;
         };
         /**
          * Suggestion
@@ -2839,6 +3034,213 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PanelRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    plan_scenes_api_studio__comic_id__plan_scenes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScenesPlanned"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    plan_panels_api_studio__comic_id__plan_panels_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PanelsPlanned"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    buddy_api_studio_buddy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BuddyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BuddyReply"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    spark_api_studio_spark_get: {
+        parameters: {
+            query?: {
+                /** @description Not this one again */
+                after?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Spark"];
                 };
             };
             /** @description Not Found */

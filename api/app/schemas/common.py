@@ -63,3 +63,13 @@ class ErrorBody(BaseModel):
 
     code: str
     message: str
+    # The input the message is about ("synopsis", "scenes.<id>.summary", "bubbles.<id>.text"),
+    # so the web app shows it under that field instead of as a toast.
+    field: str | None = None
+
+
+class FieldNote(BaseModel):
+    """A gentle note shown under one field (a draft that was saved but won't go further)."""
+
+    field: str
+    message: str

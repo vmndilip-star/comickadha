@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router'
 import { create } from 'zustand'
 import * as api from '@/api/comics'
 import type { Comic, ComicUpdate, Panel, Scene } from '@/types'
+import { showOnField, useFieldErrors } from './fieldErrors'
 import type { LoadStatus } from './load'
 import { editCounter, useSaveStore } from './save'
 import { toast } from './toast'
@@ -21,6 +22,11 @@ interface ComicsState {
   update: (id: string, patch: ComicPatch) => void
   setScenes: (id: string, scenes: Scene[]) => void
   updatePanel: (comicId: string, panelId: string, update: (panel: Panel) => Panel) => void
+  /** Sends any waiting edits for this comic now (before planning reads the saved comic). */
+  flushComic: (id: string) => Promise<void>
+  /** Shows a fresh plan from the API (already saved there, so no autosave). */
+  applyScenes: (id: string, scenes: Scene[]) => void
+  applyPanels: (id: string, panels: Panel[]) => void
 }
 
 const edits = editCounter()
@@ -51,7 +57,9 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     }
     const saved = await api.updateComic(id, body)
     // Only the comic's own fields: scenes and panels have their own saves.
-    if (edits.isLatest(key, seen)) change(id, () => ({ cast_ids: saved.cast_ids, updated_at: saved.updated_at }))
+    if (edits.isLatest(key, seen)) {
+      change(id, () => ({ cast_ids: saved.cast_ids, updated_at: saved.updated_at, safety_notes: saved.safety_notes }))
+    }
   }
 
   const saveScenes = async (id: string) => {
@@ -71,7 +79,17 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     const panel = find(comicId)?.panels.find((p) => p.id === panelId)
     if (!panel) return
     const seen = edits.current(key)
-    const saved = await api.updatePanel(panelId, { beat: panel.beat, characters: panel.characters, bubbles: panel.bubbles })
+    let saved: Panel
+    try {
+      saved = await api.updatePanel(panelId, { beat: panel.beat, characters: panel.characters, bubbles: panel.bubbles })
+    } catch (error) {
+      // A safety block on one bubble shows under that bubble; the kid's words stay on screen.
+      if (showOnField(error)) return
+      throw error
+    }
+    const fieldErrors = useFieldErrors.getState()
+    for (const b of saved.bubbles) fieldErrors.clear(`bubbles.${b.id}.text`)
+    fieldErrors.clear('characters')
     if (edits.isLatest(key, seen)) change(comicId, (c) => ({ panels: c.panels.map((p) => (p.id === panelId ? saved : p)) }))
   }
 
@@ -127,6 +145,17 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
       change(comicId, (c) => ({ panels: c.panels.map((p) => (p.id === panelId ? update(p) : p)) }))
       schedule(`panel:${panelId}`, () => savePanel(comicId, panelId))
     },
+
+    flushComic: async (id) => {
+      const save = useSaveStore.getState()
+      await save.flush(`comic:${id}`)
+      await save.flush(`scenes:${id}`)
+      await Promise.all((find(id)?.panels ?? []).map((p) => save.flush(`panel:${p.id}`)))
+    },
+
+    applyScenes: (id, scenes) => change(id, (c) => ({ scenes, studio_step: c.studio_step > 2 ? c.studio_step : 2 })),
+
+    applyPanels: (id, panels) => change(id, () => ({ panels, studio_step: 3 })),
   }
 })
 

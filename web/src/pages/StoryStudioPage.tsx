@@ -9,15 +9,21 @@ import { PanelPlanCard } from '@/components/story/PanelPlanCard'
 import { SceneRow } from '@/components/story/SceneRow'
 import { Stepper } from '@/components/story/Stepper'
 import { SafetyNote, StoryBuddy } from '@/components/story/StoryBuddy'
+import { LockedNudge, PlanningLoader, PlanNoteBox } from '@/components/story/StudioNotes'
 import { SynopsisForm } from '@/components/story/SynopsisForm'
 import { Button } from '@/components/ui/Button'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptySlot } from '@/components/ui/EmptySlot'
+import { FieldMessage } from '@/components/ui/FieldMessage'
 import { SaveStatus } from '@/components/ui/SaveStatus'
 import { byRecent, castFor, placesFor } from '@/lib/comic'
+import { MAX_SCENES, moveScene, readyToPlan } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore, useStartComic } from '@/store/comics'
+import { useFieldErrors } from '@/store/fieldErrors'
 import { useDataStatus } from '@/store/load'
 import { usePlacesStore } from '@/store/places'
+import { useStudioStore, type PlanKind } from '@/store/studio'
 import type { Comic, Scene, StudioStep } from '@/types'
 
 const SUBTITLE = 'Three steps: tell the story, pick the places, then make the panels.'
@@ -64,34 +70,77 @@ export function StoryStudioPage() {
   return <Studio key={comic.id} comic={comic} />
 }
 
+const LOADER_TEXT: Record<PlanKind, string> = {
+  scenes: 'Thinking up scenes…',
+  panels: 'Planning your panels…',
+}
+
+const START_OVER: Record<PlanKind, { title: string; message: string; confirm: string; keep: string }> = {
+  scenes: {
+    title: 'Start scenes over?',
+    message: 'You changed your scenes. New scenes from your story will replace them.',
+    confirm: 'Start scenes over',
+    keep: 'Keep my scenes',
+  },
+  panels: {
+    title: 'Start panels over?',
+    message: 'This replaces every panel, including the ones you changed.',
+    confirm: 'Start panels over',
+    keep: 'Keep my panels',
+  },
+}
+
 function Studio({ comic }: { comic: Comic }) {
   const [params, setParams] = useSearchParams()
   const characters = useCastStore((s) => s.characters)
   const places = usePlacesStore((s) => s.places)
   const update = useComicsStore((s) => s.update)
   const setScenes = useComicsStore((s) => s.setScenes)
+  const updatePanel = useComicsStore((s) => s.updatePanel)
+  const plan = useStudioStore((s) => s.plan)
+  const planning = useStudioStore((s) => s.planning)
+  const note = useStudioStore((s) => s.notes[comic.id])
+  const stepMessage = useStudioStore((s) => s.stepMessage[comic.id])
+  const errors = useFieldErrors((s) => s.errors)
+  const clearError = useFieldErrors((s) => s.clear)
   const [editingScene, setEditingScene] = useState<string | null>(null)
+  const [editingPanel, setEditingPanel] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState<PlanKind | null>(null)
 
-  const step = parseStep(params.get('step'), comic.studio_step)
-  const cast = characters.filter((c) => comic.cast_ids.includes(c.id))
+  const ready = readyToPlan(comic, characters, places)
+  const requested = parseStep(params.get('step'), comic.studio_step)
+  // Steps 2 and 3 wait for a locked character and a locked place.
+  const step: StudioStep = ready.ok ? requested : 1
   // For showing what the comic already uses, including deleted characters and places.
   const allCast = castFor(comic, characters)
   const allPlaces = placesFor(comic, places)
+  const editing = comic.scenes.find((s) => s.id === editingScene)
+  const notes = Object.fromEntries(comic.safety_notes.map((n) => [n.field, n.message]))
 
   const goTo = (next: StudioStep) => {
+    if (next > 1 && !ready.ok) return
     setParams({ step: String(next) })
     if (next > comic.studio_step) update(comic.id, { studio_step: next })
   }
 
-  const updateScene = (scene: Scene) =>
+  const runPlan = async (kind: PlanKind, startOver = false) => {
+    const result = await plan(comic.id, kind, startOver)
+    if (result === 'ok') goTo(kind === 'scenes' ? 2 : 3)
+    if (result === 'confirm') setConfirming(kind)
+  }
+
+  const updateScene = (scene: Scene) => {
+    clearError(`scenes.${scene.id}`)
+    clearError(`scenes.${scene.id}.summary`)
     setScenes(comic.id, comic.scenes.map((s) => (s.id === scene.id ? scene : s)))
+  }
 
   const addScene = (backgroundId: string) => {
     const scene: Scene = {
       id: crypto.randomUUID(),
       idx: comic.scenes.length,
       background_id: backgroundId,
-      character_ids: [...comic.cast_ids],
+      character_ids: ready.lockedCast.slice(0, 3).map((c) => c.id),
       summary: '',
     }
     setScenes(comic.id, [...comic.scenes, scene])
@@ -99,66 +148,93 @@ function Studio({ comic }: { comic: Comic }) {
   }
 
   const pickPlace = (placeId: string) => {
-    const editing = comic.scenes.find((s) => s.id === editingScene)
     if (editing) updateScene({ ...editing, background_id: placeId })
-    else addScene(placeId)
+    else if (comic.scenes.length < MAX_SCENES) addScene(placeId)
   }
 
   return (
     <>
       <PageHeader title="Story Studio" subtitle={SUBTITLE} />
-      <Stepper step={step} onStep={goTo} />
+      <Stepper step={step} onStep={goTo} disabled={ready.ok ? [] : [2, 3]} />
 
       <div className="flex flex-wrap items-start gap-6">
-        <section className="flex min-w-0 flex-[999_1_560px] flex-col gap-5.5 rounded-hero border-3 border-ink bg-surface p-5 shadow-hero sm:p-7">
+        <section className="relative flex min-w-0 flex-[999_1_560px] flex-col gap-5.5 rounded-hero border-3 border-ink bg-surface p-5 shadow-hero sm:p-7">
+          {planning && <PlanningLoader text={LOADER_TEXT[planning]} />}
+          {stepMessage && <FieldMessage message={stepMessage} />}
+
           {step === 1 && (
             <div className="flex flex-col gap-5.5">
               <SynopsisForm
                 title={comic.title}
                 synopsis={comic.synopsis}
-                onTitle={(title) => update(comic.id, { title })}
-                onSynopsis={(synopsis) => update(comic.id, { synopsis })}
+                titleMessage={errors.title ?? notes.title}
+                synopsisMessage={errors.synopsis ?? notes.synopsis}
+                onTitle={(title) => {
+                  clearError('title')
+                  update(comic.id, { title })
+                }}
+                onSynopsis={(synopsis) => {
+                  clearError('synopsis')
+                  update(comic.id, { synopsis })
+                }}
               />
               <CastPicker
                 characters={characters}
                 selectedIds={comic.cast_ids}
-                onChange={(cast_ids) => update(comic.id, { cast_ids })}
+                onChange={(cast_ids) => {
+                  clearError('cast')
+                  update(comic.id, { cast_ids })
+                }}
               />
+              <FieldMessage message={errors.cast} />
               <MoodPicker
                 mood={comic.mood}
                 panelCount={comic.panel_count}
                 onMood={(mood) => update(comic.id, { mood })}
                 onPanelCount={(panel_count) => update(comic.id, { panel_count })}
               />
+              {!ready.ok && (
+                <LockedNudge needCharacter={ready.lockedCast.length === 0} needPlace={ready.lockedPlaces.length === 0} />
+              )}
             </div>
           )}
 
           {step === 2 && (
             <div className="flex flex-col gap-5.5">
+              {note?.kind === 'scenes' && (
+                <PlanNoteBox note={note} busy={planning !== null} onTryAgain={() => void runPlan('scenes', true)} />
+              )}
               <BackgroundLibrary usedIds={comic.scenes.map((s) => s.background_id)} onPick={pickPlace} />
               <div className="flex flex-col gap-3">
                 <h2 className="m-0 font-display text-[30px] tracking-[1px]">Scenes</h2>
+                {comic.scenes.length === 0 && (
+                  <EmptySlot onClick={() => void runPlan('scenes')} className="min-h-[90px]">
+                    Plan scenes from my story
+                  </EmptySlot>
+                )}
                 {comic.scenes.map((scene, i) => (
                   <SceneRow
                     key={scene.id}
                     index={i}
+                    count={comic.scenes.length}
                     scene={scene}
-                    places={places}
-                    cast={cast}
+                    places={ready.lockedPlaces}
+                    cast={ready.lockedCast}
                     allPlaces={allPlaces}
                     allCast={allCast}
                     editing={editingScene === scene.id}
                     onEdit={() => setEditingScene(editingScene === scene.id ? null : scene.id)}
                     onChange={updateScene}
+                    onMove={(stepBy) => setScenes(comic.id, moveScene(comic.scenes, i, stepBy))}
                     onRemove={() => setScenes(comic.id, comic.scenes.filter((s) => s.id !== scene.id))}
                   />
                 ))}
                 <EmptySlot
-                  onClick={() => addScene(places[0]?.id ?? '')}
-                  disabled={!places.length || comic.scenes.length >= 8}
+                  onClick={() => addScene(ready.lockedPlaces[0]?.id ?? '')}
+                  disabled={!ready.lockedPlaces.length || comic.scenes.length >= MAX_SCENES}
                   className="min-h-12 self-start rounded-button px-4 py-2.5"
                 >
-                  + Add scene
+                  + Add scene {comic.scenes.length >= MAX_SCENES && `(${MAX_SCENES} is the most)`}
                 </EmptySlot>
               </div>
             </div>
@@ -167,11 +243,19 @@ function Studio({ comic }: { comic: Comic }) {
           {step === 3 && (
             <div className="flex flex-col gap-4.5">
               <h2 className="m-0 font-display text-[30px] tracking-[1px]">Panel plan</h2>
+              {note?.kind === 'panels' && (
+                <PlanNoteBox
+                  note={note}
+                  busy={planning !== null}
+                  onTryAgain={() => void runPlan('panels')}
+                  onStartOver={() => setConfirming('panels')}
+                />
+              )}
               <p className="m-0 font-semibold text-muted">
-                Check each panel, then make the comic. You can change words and faces afterwards.
+                Check each panel. Tap Edit panel to change the words, faces, poses and where everyone stands.
               </p>
               {comic.panels.length ? (
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3.5">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-3.5">
                   {comic.panels.map((panel, i) => (
                     <PanelPlanCard
                       key={panel.id}
@@ -179,18 +263,27 @@ function Studio({ comic }: { comic: Comic }) {
                       panel={panel}
                       place={allPlaces.find((p) => p.id === panel.background_id)}
                       cast={allCast}
+                      editing={editingPanel === panel.id}
+                      onEdit={() => setEditingPanel(editingPanel === panel.id ? null : panel.id)}
+                      onChange={(fn) => updatePanel(comic.id, panel.id, fn)}
                     />
                   ))}
                 </div>
               ) : (
-                <EmptySlot disabled className="min-h-[120px]">
-                  Story buddy will plan your panels here soon.
+                <EmptySlot onClick={() => void runPlan('panels')} disabled={!comic.scenes.length} className="min-h-[120px]">
+                  {comic.scenes.length ? 'Plan my panels' : 'Add scenes on step 2 first'}
                 </EmptySlot>
               )}
-              {/* Phase 4 adds the planner and Phase 5 draws the panels; until then the button waits. */}
-              <Button variant="make" className="self-start" disabled title="Drawing panels arrives in Phase 5">
-                Make my comic!
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <span title="Coming in the next update">
+                  <Button variant="make" disabled aria-describedby="make-soon">
+                    Make my comic!
+                  </Button>
+                </span>
+                <span id="make-soon" className="font-bold text-muted">
+                  Coming in the next update
+                </span>
+              </div>
             </div>
           )}
 
@@ -199,21 +292,53 @@ function Studio({ comic }: { comic: Comic }) {
               ← Back
             </Button>
             <SaveStatus className="self-center" />
-            {step < 3 ? (
-              <Button variant="primary" onClick={() => goTo((step + 1) as StudioStep)}>
-                Next step →
+            {step === 1 && (
+              <Button variant="primary" disabled={!ready.ok || planning !== null} onClick={() => void runPlan('scenes')}>
+                Next: plan scenes →
               </Button>
-            ) : (
-              <span />
             )}
+            {step === 2 && (
+              <Button
+                variant="primary"
+                disabled={!comic.scenes.length || planning !== null}
+                onClick={() => void runPlan('panels')}
+              >
+                Next: plan panels →
+              </Button>
+            )}
+            {step === 3 && <span />}
           </div>
         </section>
 
         <aside aria-label="Story helper" className="flex min-w-0 flex-[1_1_260px] flex-col gap-4">
-          <StoryBuddy />
+          <StoryBuddy
+            comic={comic}
+            scene={step === 2 ? (editing ?? comic.scenes[0]) : undefined}
+            onUseSpelling={(synopsis) => update(comic.id, { synopsis })}
+            onUseTitle={(title) => {
+              const scene = editing ?? comic.scenes[0]
+              if (scene) updateScene({ ...scene, summary: `${title}: ${scene.summary}`.slice(0, 200) })
+            }}
+          />
           <SafetyNote />
         </aside>
       </div>
+
+      <ConfirmDialog
+        open={confirming !== null}
+        title={confirming ? START_OVER[confirming].title : ''}
+        message={confirming ? START_OVER[confirming].message : ''}
+        confirmLabel={confirming ? START_OVER[confirming].confirm : ''}
+        cancelLabel={confirming ? START_OVER[confirming].keep : undefined}
+        onCancel={() => {
+          // Keeping their scenes still moves on to step 2.
+          if (confirming === 'scenes') goTo(2)
+        }}
+        onConfirm={async () => {
+          if (confirming) await runPlan(confirming, true)
+        }}
+        onClose={() => setConfirming(null)}
+      />
     </>
   )
 }

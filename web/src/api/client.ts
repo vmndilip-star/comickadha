@@ -4,12 +4,15 @@ import type { ErrorBody } from '@/types'
 export class ApiError extends Error {
   readonly status: number
   readonly code: string
+  /** The input the message is about (e.g. "synopsis"), to show it under that field. */
+  readonly field: string | null
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, field: string | null = null) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
+    this.field = field
   }
 }
 
@@ -39,7 +42,7 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
 
   const data: unknown = await res.json().catch(() => null)
   if (!res.ok) {
-    if (isErrorBody(data)) throw new ApiError(res.status, data.code, data.message)
+    if (isErrorBody(data)) throw new ApiError(res.status, data.code, data.message, data.field ?? null)
     throw new ApiError(res.status, 'server_error', FALLBACK_MESSAGE)
   }
   return data as T

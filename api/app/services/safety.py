@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from sqlmodel import Session
 
 from app.models import ModerationLog
+from app.prompts import render
 from app.providers.llm import LLMError, LLMProvider
 
 log = logging.getLogger(__name__)
@@ -58,12 +59,70 @@ class Verdict:
     allowed: bool
     field_name: str | None = None
     categories: list[str] = field(default_factory=list)
+    # A message about this kind of block (personal info, safety helper resting), if any.
+    kid_message: str | None = None
 
     def message(self, labels: dict[str, str]) -> str:
+        if self.kid_message:
+            return self.kid_message
         what = labels.get(self.field_name or "", "words")
         return (
             f"Let's keep Comickatha friendly for everyone! Please change the {what} and try again."
         )
+
+
+# ---- personal info a kid shouldn't share -------------------------------------------------------
+
+SECRET_ADDRESS = "Let's keep real addresses secret! Try a made-up place instead."
+SECRET_PHONE = "Let's keep phone numbers secret! Please take it out of your story."
+SECRET_EMAIL = "Let's keep email addresses secret! Please take it out of your story."
+SECRET_SCHOOL = 'Let\'s keep school names secret! Call it "the school" or "Class 3B" instead.'
+SECRET_NAME = "Let's keep real full names secret! First names or made-up names are great."
+SECRET_DETAILS = "Let's keep personal details secret! Please take them out and try again."
+CHECKER_RESTING = (
+    "Our safety helper is resting, so we can't check this right now. Please try again in a minute!"
+)
+
+_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+# Runs of digits with spaces, dots, dashes or brackets between them; 7+ digits is a phone number.
+_PHONE = re.compile(r"\+?\(?\d[\d\s().-]{5,}\d")
+_STREET = (
+    r"Street|St|Road|Rd|Avenue|Ave|Lane|Ln|Drive|Dr|Close|Way|Court|Ct|Crescent|Place|"
+    r"Boulevard|Blvd|Terrace|Nagar|Marg|Gali"
+)
+_ADDRESS = re.compile(
+    rf"\b\d{{1,5}}[a-z]?,?\s+(?:[A-Za-z][\w'-]*\s+){{1,3}}(?i:{_STREET})\b"
+    r"|(?i:\b(?:i|we|they|he|she)\s+lives?\s+(?:at|on)\s+\d)"
+)
+# A capitalised name followed by a school word: "Sunnyhill Primary", "St Mary's School".
+_SCHOOL = re.compile(
+    r"\b(?:[A-Z][\w'.-]*\s+){1,4}(?:School|Academy|Primary|Elementary|High School|College|"
+    r"Vidyalaya|Convent)\b"
+)
+# Self-identifying full names: "my name is Priya Sharma", "my teacher is Anna Bello".
+_FULL_NAME = re.compile(
+    r"(?i:\b(?:my\s+name\s+is|i\s+am|i'm|im|my\s+(?:mum|mom|dad|teacher|friend|brother|sister|"
+    r"grandma|grandpa)(?:'s\s+name)?\s+is))\s+[A-Z][a-z]+\s+[A-Z][a-z]+"
+)
+
+
+def _has_phone(text: str) -> bool:
+    return any(sum(ch.isdigit() for ch in m.group()) >= 7 for m in _PHONE.finditer(text))
+
+
+def check_personal(fields: dict[str, str]) -> Verdict:
+    """Phone numbers, emails, street addresses, school names and real full names."""
+    for name, text in fields.items():
+        for found, message in (
+            (_has_phone(text), SECRET_PHONE),
+            (bool(_EMAIL.search(text)), SECRET_EMAIL),
+            (bool(_ADDRESS.search(text)), SECRET_ADDRESS),
+            (bool(_SCHOOL.search(text)), SECRET_SCHOOL),
+            (bool(_FULL_NAME.search(text)), SECRET_NAME),
+        ):
+            if found:
+                return Verdict(False, name, ["personal_info"], message)
+    return Verdict(allowed=True)
 
 
 CLASSIFIER_CATEGORIES = [
@@ -78,14 +137,6 @@ CLASSIFIER_CATEGORIES = [
     "scary",
     "other",
 ]
-CLASSIFIER_SYSTEM = (
-    "You check text for Comickatha, a comic-making app for children under 16. "
-    "Mark a text unsafe if it has violence or gore, weapons, adult or romantic content, drugs, "
-    "alcohol or smoking, self-harm, hate or insults, bullying, personal information (real full "
-    "names, addresses, phone numbers, schools, emails), or content too scary for young children. "
-    "Silly, cartoon mischief, mild peril and everyday kid stuff are fine. "
-    "Reply with one verdict for each numbered text, in order."
-)
 
 
 class SafetyUnavailable(Exception):
@@ -132,24 +183,35 @@ def classify(llm: LLMProvider, fields: dict[str, str]) -> Verdict:
     prompt = "\n".join(f"{i}. {fields[name]!r}" for i, name in enumerate(names, start=1))
     try:
         reply = llm.complete_json(
-            CLASSIFIER_SYSTEM, prompt, schema, schema_name="safety_verdicts", max_tokens=300
+            render("safety_classifier"),
+            prompt,
+            schema,
+            schema_name="safety_verdicts",
+            max_tokens=300,
         )
         verdicts = reply["verdicts"]
         if not isinstance(verdicts, list) or len(verdicts) != len(names):
             raise LLMError("The safety reply didn't cover every text.")
         for name, verdict in zip(names, verdicts, strict=True):
             if verdict.get("safe") is not True:
-                categories = [str(c) for c in verdict.get("categories") or ["other"]]
-                return Verdict(allowed=False, field_name=name, categories=sorted(set(categories)))
+                categories = sorted({str(c) for c in verdict.get("categories") or ["other"]})
+                message = SECRET_DETAILS if "personal_info" in categories else None
+                return Verdict(False, name, categories, message)
     except (LLMError, KeyError, TypeError, AttributeError) as error:
         log.warning("safety classifier unavailable: %s", type(error).__name__)
         raise SafetyUnavailable() from error
     return Verdict(allowed=True)
 
 
+def check_local(fields: dict[str, str]) -> Verdict:
+    """The instant, free checks: personal info, then the word list. Nothing leaves the machine."""
+    verdict = check_personal(fields)
+    return check_words(fields) if verdict.allowed else verdict
+
+
 def check_text(fields: dict[str, str], llm: LLMProvider | None = None) -> Verdict:
-    """The word list, then the classifier when an LLM is set (may raise SafetyUnavailable)."""
-    verdict = check_words(fields)
+    """The local checks, then the classifier when an LLM is set (may raise SafetyUnavailable)."""
+    verdict = check_local(fields)
     if verdict.allowed and llm is not None:
         verdict = classify(llm, fields)
     return verdict
@@ -183,3 +245,19 @@ def check_and_log(
         raise
     log_verdict(session, user_id, target, verdict, "text")
     return verdict
+
+
+def check_story(
+    session: Session,
+    user_id: str,
+    target: str,
+    fields: dict[str, str],
+    llm: LLMProvider | None = None,
+) -> Verdict:
+    """For story text: check_and_log, but a classifier outage is a block too (fails closed), with
+    a "safety helper is resting" message on the first field that has words."""
+    try:
+        return check_and_log(session, user_id, target, fields, llm)
+    except SafetyUnavailable:
+        first = next((name for name, text in fields.items() if text.strip()), None)
+        return Verdict(False, first, ["unavailable"], CHECKER_RESTING)

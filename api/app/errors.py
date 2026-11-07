@@ -11,19 +11,20 @@ from app.schemas.common import ErrorBody
 
 
 class ApiError(Exception):
-    def __init__(self, status: int, code: str, message: str) -> None:
+    def __init__(self, status: int, code: str, message: str, field: str | None = None) -> None:
         super().__init__(message)
         self.status = status
         self.code = code
         self.message = message
+        self.field = field
 
 
 def not_found(thing: str) -> ApiError:
     return ApiError(404, "not_found", f"We couldn't find that {thing}. It may have been deleted.")
 
 
-def invalid(message: str) -> ApiError:
-    return ApiError(422, "invalid", message)
+def invalid(message: str, field: str | None = None) -> ApiError:
+    return ApiError(422, "invalid", message, field)
 
 
 # Documented on every router so the generated TypeScript knows the error shape.
@@ -72,16 +73,15 @@ def friendly_validation_message(error: dict[str, Any]) -> str:
     return f"Something about the {field} doesn't look right. Please check it and try again."
 
 
-def _error(status: int, code: str, message: str) -> JSONResponse:
-    return JSONResponse(
-        status_code=status, content=ErrorBody(code=code, message=message).model_dump()
-    )
+def _error(status: int, code: str, message: str, field: str | None = None) -> JSONResponse:
+    body = ErrorBody(code=code, message=message, field=field)
+    return JSONResponse(status_code=status, content=body.model_dump(exclude_none=True))
 
 
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ApiError)
     async def _api_error(_request: Request, exc: ApiError) -> JSONResponse:
-        return _error(exc.status, exc.code, exc.message)
+        return _error(exc.status, exc.code, exc.message, exc.field)
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error(_request: Request, exc: RequestValidationError) -> JSONResponse:

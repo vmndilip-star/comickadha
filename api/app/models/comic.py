@@ -30,6 +30,8 @@ class Scene(SQLModel, table=True):
     background_id: str = Field(foreign_key="background.id")
     character_ids: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
     summary: str = Field(default="", max_length=200)
+    # When the kid last changed it (None: as the planner made it). Re-planning asks first.
+    edited_at: datetime | None = None
 
 
 class Panel(SQLModel, table=True):
@@ -53,4 +55,6 @@ class Panel(SQLModel, table=True):
     art_key: str | None = None
     image_key: str | None = None
     error: str | None = None
+    # When the kid last changed it (None: as the planner made it). Re-planning keeps edited panels.
+    edited_at: datetime | None = None
     updated_at: datetime = Field(default_factory=utcnow)

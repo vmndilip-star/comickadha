@@ -1,39 +1,101 @@
 import { create } from 'zustand'
-import { STORY_SPARKS } from '@/lib/sparks'
+import { ApiError } from '@/api/client'
+import * as api from '@/api/studio'
+import type { BuddyAction, BuddyReply, Spark } from '@/types'
+import { useComicsStore } from './comics'
+import { showOnField, useFieldErrors } from './fieldErrors'
+import { toast } from './toast'
 
-export type BuddyAction = 'idea' | 'spelling'
+export type PlanKind = 'scenes' | 'panels'
+/** ok: planned; confirm: the kid has to say "Start over?"; error: shown inline or as a toast. */
+export type PlanResult = 'ok' | 'confirm' | 'error'
 
-// Phase 4 replaces these canned replies with the story_buddy service.
-const IDEAS = [
-  'What clue could your hero find first? Footprints, a wrapper, or a feather?',
-  'What if someone in the story has a secret they are scared to share?',
-  'Try a surprise in the middle: who shows up when nobody expects them?',
-  'How does the story end? A big laugh, a hug, or a brand new mystery?',
-]
+/** What the last plan was like, for the note above it (offline fallback, kept panels...). */
+export interface PlanNote {
+  kind: PlanKind
+  fallback: boolean
+  label: string
+  kept: number
+  skipped: string[]
+}
 
 interface StudioState {
-  sparkIndex: number
-  buddyMessage: string
-  shuffleSpark: () => void
-  askBuddy: (action: BuddyAction) => void
+  planning: PlanKind | null
+  notes: Record<string, PlanNote | undefined>
+  /** A message for the whole step (e.g. "your story needs a locked character"). */
+  stepMessage: Record<string, string | undefined>
+  buddy: BuddyReply | null
+  buddyBusy: BuddyAction | null
+  spark: Spark | null
+  plan: (comicId: string, kind: PlanKind, startOver?: boolean) => Promise<PlanResult>
+  askBuddy: (comicId: string, action: BuddyAction, text: string) => Promise<void>
+  clearBuddy: () => void
+  nextSpark: () => Promise<void>
 }
 
 export const useStudioStore = create<StudioState>()((set, get) => ({
-  sparkIndex: 0,
-  buddyMessage: 'Great story so far! Want an idea for what happens next?',
+  planning: null,
+  notes: {},
+  stepMessage: {},
+  buddy: null,
+  buddyBusy: null,
+  spark: null,
 
-  shuffleSpark: () => set({ sparkIndex: (get().sparkIndex + 1) % STORY_SPARKS.length }),
-
-  askBuddy: (action) =>
-    set((s) => {
-      if (action === 'spelling') {
-        return { buddyMessage: "I checked your story. Your spelling looks great! I'll fix it for real soon." }
+  plan: async (comicId, kind, startOver = false) => {
+    const comics = useComicsStore.getState()
+    set((s) => ({ planning: kind, stepMessage: { ...s.stepMessage, [comicId]: undefined } }))
+    try {
+      // The planner reads the saved comic, so send any typing first.
+      await comics.flushComic(comicId)
+      if (kind === 'scenes') {
+        const out = await api.planScenes(comicId, startOver)
+        comics.applyScenes(comicId, out.scenes)
+        useFieldErrors.getState().clearPrefix('scenes.')
+        const note = { kind, fallback: out.fallback, label: out.label, kept: 0, skipped: out.skipped }
+        set((s) => ({ notes: { ...s.notes, [comicId]: note } }))
+      } else {
+        const out = await api.planPanels(comicId, startOver)
+        comics.applyPanels(comicId, out.panels)
+        useFieldErrors.getState().clearPrefix('bubbles.')
+        const note = { kind, fallback: out.fallback, label: out.label, kept: out.kept, skipped: [] }
+        set((s) => ({ notes: { ...s.notes, [comicId]: note } }))
       }
-      const next = (IDEAS.indexOf(s.buddyMessage) + 1) % IDEAS.length
-      return { buddyMessage: IDEAS[next] ?? IDEAS[0]! }
-    }),
-}))
+      return 'ok'
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'confirm_start_over') return 'confirm'
+      if (error instanceof ApiError && (error.code === 'needs_locked' || error.code === 'needs_scenes')) {
+        // Scene-specific problems show on the scene; the rest above the step.
+        if (!(error.field?.startsWith('scenes.') && showOnField(error))) {
+          set((s) => ({ stepMessage: { ...s.stepMessage, [comicId]: error.message } }))
+        }
+        return 'error'
+      }
+      if (!showOnField(error)) toast.error(error)
+      return 'error'
+    } finally {
+      set({ planning: null })
+    }
+  },
 
-export function currentSpark(index: number): string {
-  return STORY_SPARKS[index % STORY_SPARKS.length] ?? ''
-}
+  askBuddy: async (comicId, action, text) => {
+    set({ buddyBusy: action })
+    useFieldErrors.getState().clear('buddy')
+    try {
+      set({ buddy: await api.askBuddy({ action, text, comic_id: comicId }) })
+    } catch (error) {
+      if (!showOnField(error)) toast.error(error)
+    } finally {
+      set({ buddyBusy: null })
+    }
+  },
+
+  clearBuddy: () => set({ buddy: null }),
+
+  nextSpark: async () => {
+    try {
+      set({ spark: await api.getSpark(get().spark?.index) })
+    } catch (error) {
+      toast.error(error)
+    }
+  },
+}))

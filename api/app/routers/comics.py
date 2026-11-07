@@ -4,8 +4,8 @@ from typing import Literal
 from fastapi import APIRouter, Query
 from sqlmodel import Session, col, select
 
-from app.deps import SessionDep, StorageDep, UserDep
-from app.errors import ERROR_RESPONSES, invalid, not_found
+from app.deps import LLMDep, SessionDep, StorageDep, UserDep
+from app.errors import ERROR_RESPONSES, ApiError, invalid, not_found
 from app.models import Background, Character, Comic, Panel, Scene, User
 from app.models.base import new_id, utcnow
 from app.routers import backgrounds as background_routes
@@ -19,7 +19,9 @@ from app.schemas.comic import (
     SceneRead,
     SceneWrite,
 )
-from app.schemas.common import ComicStatus
+from app.schemas.common import ComicStatus, FieldNote
+from app.services import safety
+from app.services.bubbles import layout
 from app.services.storage import Storage
 
 router = APIRouter(prefix="/api", tags=["comics"], responses=ERROR_RESPONSES)
@@ -46,6 +48,19 @@ def panel_read(panel: Panel, storage: Storage) -> PanelRead:
             "image_url": storage.url(panel.image_key) if panel.image_key else None,
         }
     )
+
+
+STORY_LABELS = {"title": "title", "synopsis": "story"}
+
+
+def safety_notes(comic: Comic) -> list[FieldNote]:
+    """The instant local checks (personal info, word list) on the title and synopsis."""
+    notes: list[FieldNote] = []
+    for name in ("title", "synopsis"):
+        verdict = safety.check_local({name: getattr(comic, name)})
+        if not verdict.allowed:
+            notes.append(FieldNote(field=name, message=verdict.message(STORY_LABELS)))
+    return notes
 
 
 def comic_reads(session: Session, comics: list[Comic], storage: Storage) -> list[ComicRead]:
@@ -97,6 +112,7 @@ def comic_reads(session: Session, comics: list[Comic], storage: Storage) -> list
                 "panels": [panel_read(p, storage) for p in panels[c.id]],
                 "characters": [chars[i] for i in used_chars[c.id] if i in chars],
                 "backgrounds": [bgs[i] for i in used_bgs[c.id] if i in bgs],
+                "safety_notes": safety_notes(c),
             }
         )
         for c in comics
@@ -188,6 +204,14 @@ def update_comic(
     comic.updated_at = utcnow()
     session.add(comic)
     session.commit()
+    # Autosave runs only the instant local checks. A blocked draft is still saved (it never
+    # leaves the machine) and logged; ComicRead.safety_notes shows the message under the field.
+    for name in ("title", "synopsis"):
+        if name in changes:
+            verdict = safety.check_local({name: changes[name]})
+            if not verdict.allowed:
+                target = f"comic:{comic.id}:{name}"
+                safety.log_verdict(session, user.id, target, verdict, "text")
     session.refresh(comic)
     return comic_read(session, comic, storage)
 
@@ -228,10 +252,20 @@ def replace_scenes(
             raise invalid("That scene belongs to another comic. Please refresh and try again.")
 
     kept: list[Scene] = []
+    now = utcnow()
     for idx, w in enumerate(body):
-        scene = existing.get(w.id or "") or Scene(
+        before = existing.get(w.id or "")
+        scene = before or Scene(
             id=w.id or new_id(), comic_id=comic.id, idx=idx, background_id=w.background_id
         )
+        # Any change by the kid (new, moved, re-placed, re-cast or re-written) marks the scene
+        # as edited, so re-planning asks before replacing it.
+        new_state = (idx, w.background_id, list(w.character_ids), w.summary)
+        if (
+            before is None
+            or (before.idx, before.background_id, before.character_ids, before.summary) != new_state
+        ):
+            scene.edited_at = now
         scene.idx = idx
         scene.background_id = w.background_id
         scene.character_ids = list(w.character_ids)
@@ -261,26 +295,49 @@ def replace_scenes(
 
 @router.patch("/panels/{panel_id}")
 def update_panel(
-    panel_id: str, body: PanelUpdate, session: SessionDep, user: UserDep, storage: StorageDep
+    panel_id: str,
+    body: PanelUpdate,
+    session: SessionDep,
+    user: UserDep,
+    storage: StorageDep,
+    llm: LLMDep,
 ) -> PanelRead:
+    """Kid edits to a planned panel. New bubble words are safety-checked (with the classifier
+    when Meta is on); a block names the bubble, so the message shows under it."""
     panel = session.get(Panel, panel_id)
     if panel is None:
         raise not_found("panel")
     comic = get_comic(session, user, panel.comic_id)
+    before = (panel.beat, panel.characters, panel.bubbles)
 
     if body.characters is not None:
         ids = {c.id for c in body.characters}
         if _owned_ids(session, user, Character, list(ids)) != ids:
             raise invalid("Pick characters from your cast for this panel.")
+        positions = [c.position for c in body.characters]
+        if len(set(positions)) != len(positions):
+            raise invalid("Two characters can't stand in the same spot.", "characters")
         panel.characters = [c.model_dump(mode="json") for c in body.characters]
     if body.bubbles is not None:
         speakers = {"narrator", *comic.cast_ids, *(c["id"] for c in panel.characters)}
         if any(b.speaker not in speakers for b in body.bubbles):
             raise invalid("Every bubble needs a speaker from this comic, or the narrator.")
+        old_text = {b.get("id"): b.get("text") for b in panel.bubbles}
+        changed = {
+            f"bubbles.{b.id}.text": b.text for b in body.bubbles if old_text.get(b.id) != b.text
+        }
+        if changed:
+            verdict = safety.check_story(session, user.id, f"panel:{panel.id}", changed, llm)
+            if not verdict.allowed:
+                raise ApiError(422, "unsafe", verdict.message({}), verdict.field_name)
         panel.bubbles = [b.model_dump(mode="json") for b in body.bubbles]
     if body.beat is not None:
         panel.beat = body.beat
+    # Bubbles sit over their speakers (kids can't move bubbles by hand until Phase 5).
+    panel.bubbles = layout(panel.bubbles, panel.characters)
 
+    if (panel.beat, panel.characters, panel.bubbles) != before:
+        panel.edited_at = utcnow()
     panel.updated_at = comic.updated_at = utcnow()
     session.add(panel)
     session.add(comic)

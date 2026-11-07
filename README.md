@@ -2,7 +2,7 @@
 
 Comickatha lets kids under 16 make their own comics. They design up to three characters and a few places, lock them so they look the same everywhere, write a short story, and Comickatha turns it into comic panels they can edit and export as a PDF.
 
-**Status:** Phase 3.5 of 6. Kids build characters Bitmoji-style in the Character Lab (body, face, hair, hats, outfits, extras and colours, with undo), or ask the buddy helper to make one from a description or a drawing. Locking a character draws its full sheet (16 poses, 6 faces) in seconds, and locking a place paints its picture. Everything runs offline by default, so no API keys are needed. Story planning and comic drawing arrive in Phases 4 and 5.
+**Status:** Phase 4 of 6. Kids build characters Bitmoji-style in the Character Lab, then write a story in the Story Studio: the planner turns it into scenes and a panel plan with their real characters in every pose, and they can tweak every word, face and pose. A Story Buddy asks questions to help them think, and story text is safety-checked (personal details stay secret). Everything runs offline by default, so no API keys are needed. Drawing the finished comic arrives in Phase 5.
 
 ## Quick start
 

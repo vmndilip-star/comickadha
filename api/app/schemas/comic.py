@@ -6,6 +6,7 @@ from app.schemas.common import (
     BubbleType,
     ComicStatus,
     Expression,
+    FieldNote,
     Mood,
     PanelCount,
     PanelMode,
@@ -104,5 +105,8 @@ class ComicRead(BaseModel):
     # Every character and place the comic uses, including deleted ones, so it never changes.
     characters: list[CharacterRead]
     backgrounds: list[BackgroundRead]
+    # Notes from the instant local safety checks on the title and synopsis (a draft is still
+    # saved; it just can't be planned until it's changed).
+    safety_notes: list[FieldNote]
     created_at: UtcDatetime
     updated_at: UtcDatetime

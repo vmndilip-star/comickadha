@@ -1,17 +1,14 @@
 """The builder helper: checks safety, asks Meta (or the offline helper), returns a valid spec.
 
-- The kid's words go through the word list, then (with Meta) the model classifier, before any model
-  sees them. Unsafe words are a 422 "unsafe".
-- Meta's answer is only used if it is well-formed (one retry if not) and its words pass the same
-  checks. If Meta can't be reached, or the classifier can't answer, the offline helper answers
-  instead ("Our helper is resting. Here's an offline idea!"), so the builder never breaks.
-- Every suggestion is turned into a full spec that the catalog can draw (normalize).
+The safety and fallback flow is the shared Guard (services/ai_guard.py): the kid's words are
+checked before any model sees them, Meta's answer is used only if well-formed and safe, and
+otherwise the offline helper answers ("Our helper is resting. Here's an offline idea!").
+Every suggestion is turned into a full spec that the catalog can draw (normalize).
 """
 
 import logging
 import random
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from typing import Any
 
 from PIL import Image
@@ -23,28 +20,27 @@ from app.errors import ApiError
 from app.providers.llm import LLMError, LLMProvider
 from app.schemas.builder import Ideas, Suggestion
 from app.services import helper_meta, helper_offline, safety
+from app.services.ai_guard import (
+    META_LABEL,
+    OFFLINE_LABEL,
+    RESTING,
+    UNSAFE,
+    Guard,
+    InvalidReply,
+    label,
+)
 from app.services.safety import SafetyUnavailable, Verdict
+
+__all__ = ["META_LABEL", "OFFLINE_LABEL", "RESTING", "UNSAFE", "Helper", "build_spec", "label"]
 
 log = logging.getLogger(__name__)
 
-META_LABEL = "Made with Meta AI"
-OFFLINE_LABEL = "Made by the offline helper"
-RESTING = "Our helper is resting. Here's an offline idea!"
-UNSAFE = "Let's keep Comickatha friendly for everyone! Please try different words."
 NOT_A_DRAWING = "That looks like a photo. Please upload a drawing, not a photo of a person!"
 UNSAFE_DRAWING = "Let's keep Comickatha friendly for everyone! Please try a different drawing."
 NEEDS_CONSENT = "Drawings are sent to Meta AI, so a grown-up needs to say OK first."
 TRAITS = set(helper_offline.TRAITS)
 
 Raw = dict[str, Any]
-
-
-class InvalidReply(ValueError):
-    """The model's reply doesn't have the shape we asked for."""
-
-
-def label(source: str) -> str:
-    return META_LABEL if source == "meta" else OFFLINE_LABEL
 
 
 def build_spec(spec: dict[str, Any], raw: Raw) -> tuple[dict[str, Any], list[str]]:
@@ -102,17 +98,24 @@ def _texts(raw: Raw) -> tuple[list[str], str, str, list[str]]:
     return names, reply, catchphrase, unmatched
 
 
-@dataclass
+def _reply_texts(raw: Raw) -> dict[str, str]:
+    names, reply, catchphrase, unmatched = _texts(raw)
+    return {
+        "reply": reply,
+        "catchphrase": catchphrase,
+        "names": ", ".join(names),
+        "unmatched": ", ".join(unmatched),
+    }
+
+
 class Helper:
-    llm: LLMProvider | None
-    session: Session
-    user_id: str
-    # Set when the classifier couldn't check the kid's words: only the offline helper may answer.
-    offline_only: bool = field(default=False, init=False)
+    def __init__(self, llm: LLMProvider | None, session: Session, user_id: str) -> None:
+        self.llm = llm
+        self.guard = Guard(llm, session, user_id)
 
     @property
     def source(self) -> str:
-        return "meta" if self.llm is not None else "mock"
+        return self.guard.source
 
     # ---- endpoints ------------------------------------------------------------------------------
 
@@ -181,37 +184,13 @@ class Helper:
     # ---- internals ------------------------------------------------------------------------------
 
     def _log(self, target: str, verdict: Verdict, kind: str = "text") -> None:
-        safety.log_verdict(self.session, self.user_id, target, verdict, kind)
+        self.guard.log(target, verdict, kind)
 
     def _check_input(self, target: str, fields: dict[str, str]) -> None:
-        verdict = safety.check_words(fields)
-        if verdict.allowed and self.llm is not None:
-            try:
-                verdict = safety.classify(self.llm, fields)
-            except SafetyUnavailable:
-                # Unchecked words never go to the model: the offline helper answers instead.
-                self.offline_only = True
-                self._log(target, Verdict(False, None, ["unavailable"]))
-                return
-        self._log(target, verdict)
-        if not verdict.allowed:
-            raise ApiError(422, "unsafe", UNSAFE)
+        self.guard.check_input(target, fields)
 
     def _output_ok(self, raw: Raw) -> bool:
-        """The model's words pass the word list and the classifier (fails closed)."""
-        names, reply, catchphrase, unmatched = _texts(raw)
-        fields = {
-            "reply": reply,
-            "catchphrase": catchphrase,
-            "names": ", ".join(names),
-            "unmatched": ", ".join(unmatched),
-        }
-        try:
-            verdict = safety.check_text(fields, self.llm)
-        except SafetyUnavailable:
-            verdict = Verdict(False, None, ["unavailable"])
-        self._log("builder:reply", verdict)
-        return verdict.allowed
+        return self.guard.output_ok("builder:reply", _reply_texts(raw))
 
     def _ask(
         self,
@@ -219,22 +198,9 @@ class Helper:
         offline: Callable[[], Raw],
         check: Callable[[Raw], object],
     ) -> tuple[Raw, str, bool]:
-        """Meta's reply if it's usable and safe; otherwise the offline helper's. -> raw, source,
-        fallback."""
-        if self.llm is not None and not self.offline_only:
-            for _attempt in range(2):  # one retry for a malformed reply
-                try:
-                    raw = meta(self.llm)
-                    if not check(raw):
-                        raise InvalidReply("missing fields")
-                except (InvalidReply, KeyError, TypeError, ValueError):
-                    continue
-                except LLMError:
-                    break
-                if self._output_ok(raw):
-                    return raw, "meta", False
-                break
-        return offline(), "mock", self.llm is not None
+        return self.guard.ask(
+            meta, offline, check=check, texts=_reply_texts, target="builder:reply"
+        )
 
     def _suggest(
         self,
