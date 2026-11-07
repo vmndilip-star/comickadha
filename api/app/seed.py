@@ -11,13 +11,15 @@ from typing import Any
 from sqlalchemy import delete
 from sqlmodel import Session
 
+from app.avatar import spec as avatar_spec
 from app.config import get_settings
 from app.db import init_db, make_engine
 from app.models import Background, Character, Comic, Job, ModerationLog, Panel, Scene, User
 from app.models.base import utcnow
 from app.providers.image import ImageProvider
 from app.providers.mock import MockImageProvider
-from app.services.character_sheet import SheetSpec, build_sheet
+from app.services.builder_sheet import BuilderSheets
+from app.services.character_sheet import ImageSheets, SheetProvider, SheetSpec
 from app.services.image_gen import PlaceSpec, build_place
 from app.services.storage import LocalStorage, Storage
 
@@ -44,56 +46,68 @@ MANGO, ROBO_DAY, SPACE_PICNIC = (
 
 MEDIA_PREFIXES = ("characters", "backgrounds", "comics")
 
+# Avatar specs (schemas/avatar.py), checked against the parts catalog when seeding. Anything left
+# out gets the body type's default.
 CHARACTERS: list[dict[str, Any]] = [
     {
         "id": MIRA,
         "name": "Mira",
-        "role": "hero",
-        "kind": "kid",
         "status": "locked",
         "seed": 1101,
         "spec": {
-            "skin": "#F2C29B",
-            "hair_style": "bob",
-            "hair_color": "#3B2314",
-            "outfit": "Yellow raincoat with big pockets",
-            "traits": ["brave", "curious"],
-            "catchphrase": "Adventure is my middle name!",
-            "tint": "#FFE9A8",
+            "body_type": "kid",
+            "parts": {"hair": "bob", "top": "raincoat", "bottom": "jeans", "shoes": "rain_boots"},
+            "colors": {
+                "skin": "#EFC29B",
+                "hair": "#3B2314",
+                "top": "#FFD23F",
+                "bottom": "#1F5BD1",
+                "shoes": "#FFD23F",
+                "card": "#FFE9A8",
+            },
+            "extras": ["backpack"],
+            "personality": {
+                "traits": ["brave", "curious"],
+                "catchphrase": "Adventure is my middle name!",
+            },
+            "role": "hero",
         },
     },
     {
         "id": RAJU,
         "name": "Raju",
-        "role": "sidekick",
-        "kind": "kid",
         "status": "locked",
         "seed": 1102,
         "spec": {
-            "skin": "#C98B5E",
-            "hair_style": "spiky",
-            "hair_color": "#1A1A1A",
-            "outfit": "Green football jersey and red sneakers",
-            "traits": ["funny", "loud"],
-            "catchphrase": "Snack break? Snack break!",
-            "tint": "#FFD0C2",
+            "body_type": "kid",
+            "parts": {"hair": "spiky", "top": "jersey", "bottom": "shorts", "shoes": "sneakers"},
+            "colors": {
+                "skin": "#CF8D5B",
+                "hair": "#2B2B2B",
+                "top": "#3FA34D",
+                "bottom": "#23305E",
+                "shoes": "#E53935",
+                "card": "#FFD0C2",
+            },
+            "personality": {
+                "traits": ["funny", "loud"],
+                "catchphrase": "Snack break? Snack break!",
+            },
+            "role": "sidekick",
         },
     },
     {
         "id": ROBO,
         "name": "Robo-Tik",
-        "role": "friend",
-        "kind": "robot",
         "status": "draft",
         "seed": 1103,
         "spec": {
-            "skin": "#9AD0F5",
-            "hair_style": "bob",
-            "hair_color": "#1A1A1A",
-            "outfit": "Shiny blue panels with an orange antenna",
-            "traits": ["clever"],
-            "catchphrase": "Beep boop, I can explain!",
-            "tint": "#DDF0FC",
+            "body_type": "robot",
+            "parts": {"face_shape": "dome", "eyes": "sparkle"},
+            "colors": {"skin": "#9AD0F5", "card": "#DDF0FC"},
+            "extras": ["headphones"],
+            "personality": {"traits": ["clever"], "catchphrase": "Beep boop, I can explain!"},
+            "role": "friend",
         },
     },
 ]
@@ -349,14 +363,19 @@ def seed(
     storage: Storage,
     provider: ImageProvider | None = None,
     *,
+    sheets: SheetProvider | None = None,
     reset: bool = False,
 ) -> bool:
-    """Inserts the demo data. Returns False (and changes nothing) if it is already there."""
+    """Inserts the demo data. Returns False (and changes nothing) if it is already there.
+
+    `provider` paints the places; `sheets` draws the locked characters (default: the builder).
+    """
     if reset:
         wipe(session, storage)
     if session.get(User, USER_ID) is not None:
         return False
     provider = provider or MockImageProvider()
+    sheets = sheets or BuilderSheets()
     now = utcnow()
 
     # No ORM relationships are declared, so flush parents before children (SQLite enforces FKs).
@@ -365,12 +384,23 @@ def seed(
 
     sheet_versions: dict[str, int] = {}
     for i, data in enumerate(CHARACTERS):
+        spec = avatar_spec.validate(data["spec"])
         character = Character(
-            user_id=USER_ID, created_at=now + timedelta(seconds=i), updated_at=now, **data
+            user_id=USER_ID,
+            name=data["name"],
+            role=spec["role"],
+            kind=avatar_spec.KIND_OF_BODY[spec["body_type"]],
+            spec=spec,
+            status=data["status"],
+            seed=data["seed"],
+            id=data["id"],
+            created_at=now + timedelta(seconds=i),
+            updated_at=now,
         )
         if character.status == "locked":
             character.sheet_version = 1
-            character.manifest = build_sheet(SheetSpec.of(character, 1), provider, storage, _quiet)
+            character.manifest = sheets.build(SheetSpec.of(character, 1), storage, _quiet)
+            character.style = character.manifest["style"]
         sheet_versions[character.id] = character.sheet_version
         session.add(character)
 
@@ -468,8 +498,10 @@ def main() -> None:
     engine = make_engine(settings.resolved_database_url)
     init_db(engine)
     storage = LocalStorage(settings.media_dir)
+    mock = MockImageProvider()
+    sheets = ImageSheets(mock) if settings.sheet_provider == "image" else BuilderSheets()
     with Session(engine) as session:
-        seed(session, storage, MockImageProvider(), reset=True)
+        seed(session, storage, mock, sheets=sheets, reset=True)
     print("Reset Comickatha: 1 kid, 3 characters, 3 places, 3 comics.")
 
 

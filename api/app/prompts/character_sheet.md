@@ -2,7 +2,6 @@ Draw a character for a children's comic in the "Sunday Funnies" style: thick bla
 
 Character: {name}, a {kind_label} ({role}).
 Look: {look}
-Outfit: {outfit}
 {reference_line}
 
 Sheet: {sheet}

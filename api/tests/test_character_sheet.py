@@ -9,7 +9,14 @@ from app.providers.mock import MockImageProvider
 from app.schemas.common import EXPRESSIONS, POSES
 from app.schemas.manifest import CharacterManifest
 from app.services import imaging
+from app.services.builder_sheet import BuilderSheets
+from app.services.character_sheet import ImageSheets
 from tests.conftest import IDS, app_state, sse_events, wait_for_job
+
+
+def use_image_sheets(client: TestClient, provider: Any) -> None:
+    """SHEET_PROVIDER=image with this image provider (the default is the builder)."""
+    app_state(client).sheet_provider = ImageSheets(provider)
 
 
 class FlakyProvider:
@@ -49,7 +56,8 @@ def character(client: TestClient, key: str) -> dict[str, Any]:
     return data
 
 
-def test_lock_builds_a_full_sheet(client: TestClient) -> None:
+def test_lock_builds_a_full_sheet_with_the_image_pipeline(client: TestClient) -> None:
+    use_image_sheets(client, MockImageProvider())
     job_id = lock(client, IDS["robo"])
     assert character(client, "robo")["status"] in ("generating", "locked")
 
@@ -82,7 +90,7 @@ def test_lock_builds_a_full_sheet(client: TestClient) -> None:
 
 def test_a_failed_batch_is_retried_once(client: TestClient) -> None:
     flaky = FlakyProvider(fail_times=1)
-    app_state(client).image_provider = flaky
+    use_image_sheets(client, flaky)
 
     job = wait_for_job(client, lock(client, IDS["robo"]))
 
@@ -91,7 +99,7 @@ def test_a_failed_batch_is_retried_once(client: TestClient) -> None:
 
 
 def test_a_batch_that_fails_twice_fails_the_job_and_can_be_retried(client: TestClient) -> None:
-    app_state(client).image_provider = FlakyProvider(fail_times=2)
+    use_image_sheets(client, FlakyProvider(fail_times=2))
 
     job_id = lock(client, IDS["robo"])
     job = wait_for_job(client, job_id)
@@ -101,7 +109,7 @@ def test_a_batch_that_fails_twice_fails_the_job_and_can_be_retried(client: TestC
     assert character(client, "robo")["status"] == "failed"
     assert sse_events(client, job_id)[-1][1] == "error"
 
-    app_state(client).image_provider = MockImageProvider()
+    use_image_sheets(client, MockImageProvider())
     assert wait_for_job(client, lock(client, IDS["robo"]))["status"] == "done"
     assert character(client, "robo")["status"] == "locked"
 
@@ -111,15 +119,20 @@ def test_relock_makes_a_new_version_and_keeps_the_old_one(client: TestClient) ->
     assert v1.version == 1
 
     client.post(f"/api/characters/{IDS['mira']}/unlock")
-    client.patch(f"/api/characters/{IDS['mira']}", json={"spec": {"outfit": "Purple cape"}})
+    spec = character(client, "mira")["spec"]
+    spec["parts"]["top"] = "superhero"
+    spec["extras"] = ["cape"]
+    assert client.patch(f"/api/characters/{IDS['mira']}", json={"spec": spec}).status_code == 200
     assert wait_for_job(client, lock(client, IDS["mira"]))["status"] == "done"
 
     mira = character(client, "mira")
     assert mira["sheet_version"] == 2
     assert "/v2/" in mira["manifest"]["body_sheet"]["url"]
+    assert mira["manifest"]["spec"]["extras"] == ["cape"]
     old = client.get(f"/api/characters/{IDS['mira']}/manifest?version=1")
     assert old.status_code == 200
-    assert old.json()["spec"]["outfit"] == "Yellow raincoat with big pockets"
+    assert old.json()["spec"]["parts"]["top"] == "raincoat"
+    assert old.json()["spec"]["extras"] == ["backpack"]
     assert client.get(v1.body_sheet.cell_urls["front"]).status_code == 200
 
     # The comic still points at the version it was drawn with.
@@ -133,8 +146,10 @@ def test_relock_makes_a_new_version_and_keeps_the_old_one(client: TestClient) ->
     assert versions == {1}
 
 
-def test_an_unsafe_look_is_blocked_before_drawing(client: TestClient) -> None:
-    client.patch(f"/api/characters/{IDS['robo']}", json={"spec": {"catchphrase": "I love beer!"}})
+def test_an_unsafe_catchphrase_is_blocked_before_drawing(client: TestClient) -> None:
+    spec = character(client, "robo")["spec"]
+    spec["personality"]["catchphrase"] = "I love beer!"
+    assert client.patch(f"/api/characters/{IDS['robo']}", json={"spec": spec}).status_code == 200
 
     res = client.post(f"/api/characters/{IDS['robo']}/lock")
 
@@ -162,7 +177,7 @@ def test_head_position_can_be_nudged(client: TestClient) -> None:
 
 
 def test_a_character_being_drawn_cannot_change(client: TestClient) -> None:
-    app_state(client).image_provider = MockImageProvider(delay_seconds=0.2)
+    app_state(client).sheet_provider = BuilderSheets(reveal_seconds=0.03)  # about 0.7 s in all
     job_id = lock(client, IDS["robo"])
     path = f"/api/characters/{IDS['robo']}"
 

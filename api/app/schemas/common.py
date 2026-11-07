@@ -9,7 +9,6 @@ MAX_CAST = 3
 
 Role = Literal["hero", "sidekick", "friend"]
 CharacterKind = Literal["kid", "grown_up", "animal", "robot"]
-HairStyle = Literal["bob", "spiky", "braids", "curly"]
 Trait = Literal["brave", "curious", "shy", "funny", "grumpy", "loud", "clever", "kind"]
 LockStatus = Literal["draft", "generating", "locked", "failed"]
 

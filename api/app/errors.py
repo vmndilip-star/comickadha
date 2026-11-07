@@ -39,8 +39,8 @@ FIELD_NAMES = {
     "background_id": "place",
     "panel_count": "number of panels",
     "studio_step": "step",
-    "hair_style": "hair",
-    "hair_color": "hair colour",
+    "body_type": "body",
+    "catchphrase": "catchphrase",
     "synopsis": "story",
 }
 

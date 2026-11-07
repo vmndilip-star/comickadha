@@ -50,6 +50,9 @@ class CharacterManifest(BaseModel):
     version: int
     seed: int
     style: str
+    # "builder": drawn from the avatar spec below, so any pose can be redrawn with any expression.
+    # "image": drawn by an image model; expressions are pasted onto the head boxes.
+    renderer: Literal["builder", "image"] = "image"
     spec: dict[str, Any]
     body_sheet: BodySheet
     face_sheet: FaceSheet

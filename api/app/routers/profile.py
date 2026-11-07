@@ -1,18 +1,47 @@
 from fastapi import APIRouter
 
-from app.deps import UserDep
-from app.errors import ERROR_RESPONSES
+from app.deps import SessionDep, UserDep
+from app.errors import ERROR_RESPONSES, ApiError
+from app.models import User
+from app.models.base import utcnow
 from app.schemas.common import MAX_CAST
-from app.schemas.profile import ProfileRead
+from app.schemas.profile import DrawingConsent, ProfileRead
 
 router = APIRouter(prefix="/api", tags=["profile"], responses=ERROR_RESPONSES)
 
 
-@router.get("/me")
-def get_me(user: UserDep) -> ProfileRead:
+def to_read(user: User) -> ProfileRead:
     return ProfileRead(
         id=user.id,
         display_name=user.display_name,
         avatar_color=user.avatar_color,
         max_cast=MAX_CAST,
+        drawing_consent_at=user.drawing_consent_at,
     )
+
+
+@router.get("/me")
+def get_me(user: UserDep) -> ProfileRead:
+    return to_read(user)
+
+
+@router.put("/me/drawing-consent")
+def give_drawing_consent(body: DrawingConsent, session: SessionDep, user: UserDep) -> ProfileRead:
+    """A grown-up OKs sending drawings to Meta AI (once per profile, with a timestamp)."""
+    if body.a * body.b != body.answer:
+        raise ApiError(422, "wrong_answer", "That's not quite right. Ask a grown-up to help!")
+    user.drawing_consent_at = utcnow()
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return to_read(user)
+
+
+@router.delete("/me/drawing-consent")
+def revoke_drawing_consent(session: SessionDep, user: UserDep) -> ProfileRead:
+    """Takes the OK back: drawings won't be sent until a grown-up says yes again."""
+    user.drawing_consent_at = None
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return to_read(user)

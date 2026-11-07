@@ -5,6 +5,7 @@ description = "Comickatha API: characters, stories and comic generation for kids
 requires-python = "==3.11.*"
 dependencies = [
     "fastapi>=0.162.0",
+    "openai>=3.42.1",
     "pillow>=13.0.0",
     "pydantic-settings>=2.16.2",
     "resvg-py>=0.5.0",

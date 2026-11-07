@@ -26,10 +26,19 @@ IDS = {
 }
 
 
-def make_settings(storage: Path) -> Settings:
-    return Settings(
-        storage_dir=storage, database_url="", seed_on_startup=True, mock_delay_seconds=0
-    )
+def make_settings(storage: Path, **overrides: Any) -> Settings:
+    """Offline providers, pinned: a developer's .env (say LLM_PROVIDER=meta) must not leak in."""
+    values: dict[str, Any] = {
+        "storage_dir": storage,
+        "database_url": "",
+        "seed_on_startup": True,
+        "mock_delay_seconds": 0,
+        "llm_provider": "mock",
+        "image_provider": "mock",
+        "sheet_provider": "builder",
+        "builder_reveal_seconds": 0,
+    }
+    return Settings(_env_file=None, **(values | overrides))
 
 
 @pytest.fixture(scope="session")

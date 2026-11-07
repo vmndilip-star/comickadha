@@ -18,7 +18,7 @@ class Character(SQLModel, table=True):
     name: str = Field(max_length=24)
     role: str = Field(max_length=16)
     kind: str = Field(max_length=16)
-    # {skin, hair_style, hair_color, outfit, traits[], catchphrase, tint}
+    # The avatar spec (schemas/avatar.py): body_type, parts, colors, extras, personality, role.
     spec: dict[str, Any] = Field(default_factory=dict, sa_column=Column(JSON, nullable=False))
     status: str = Field(default="draft", max_length=16)
     seed: int = Field(default_factory=new_seed)

@@ -5,11 +5,16 @@ WORKDIR /app
 ENV UV_PYTHON_PREFERENCE=only-system \
     UV_PYTHON_DOWNLOADS=never \
     UV_LINK_MODE=copy \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    AVATAR_CATALOG=/app/shared/avatar/catalog.json
 
 COPY pyproject.toml uv.lock .python-version ./
 RUN uv sync --frozen --no-dev
 
+# The avatar parts library lives in the repo's shared/ folder, outside this build context.
+# docker-compose.yml passes it in as the named context "shared"; with plain docker build, add
+# --build-context shared=../shared.
+COPY --from=shared avatar/catalog.json ./shared/avatar/catalog.json
 COPY app ./app
 
 EXPOSE 8000

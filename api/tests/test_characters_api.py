@@ -43,28 +43,53 @@ def test_patch_locked_background_returns_409(client: TestClient) -> None:
     assert res.json()["code"] == "locked"
 
 
-def test_patch_draft_character_merges_spec_and_persists(client: TestClient) -> None:
-    res = client.patch(
-        f"/api/characters/{IDS['robo']}",
-        json={"name": "Robo-Tok", "spec": {"catchphrase": "Bleep!"}},
-    )
+def test_patch_draft_character_replaces_the_spec_and_persists(client: TestClient) -> None:
+    path = f"/api/characters/{IDS['robo']}"
+    spec = client.get(path).json()["spec"]
+    spec["personality"]["catchphrase"] = "Bleep!"
+
+    res = client.patch(path, json={"name": "Robo-Tok", "spec": spec})
     assert res.status_code == 200
 
-    again = client.get(f"/api/characters/{IDS['robo']}").json()
+    again = client.get(path).json()
     assert again["name"] == "Robo-Tok"
-    assert again["spec"]["catchphrase"] == "Bleep!"
-    assert again["spec"]["outfit"] == "Shiny blue panels with an orange antenna"  # untouched
+    assert again["spec"] == spec
+    assert again["kind"] == "robot"
+
+
+def test_an_old_style_partial_spec_is_refused_not_applied(client: TestClient) -> None:
+    path = f"/api/characters/{IDS['robo']}"
+    before = client.get(path).json()["spec"]
+
+    res = client.patch(path, json={"spec": {"catchphrase": "Bleep!"}})
+
+    assert res.status_code == 422
+    assert res.json()["code"] == "invalid"
+    assert client.get(path).json()["spec"] == before  # not reset to the default kid
+
+
+def test_role_and_kind_follow_the_spec(client: TestClient) -> None:
+    path = f"/api/characters/{IDS['robo']}"
+    spec = client.get(path).json()["spec"]
+
+    spec |= {"body_type": "cat", "parts": {}, "colors": {}, "role": "hero"}
+    cat = client.patch(path, json={"spec": spec}).json()
+
+    assert (cat["kind"], cat["role"]) == ("animal", "hero")
+    assert cat["spec"]["parts"]["face_shape"] == "cat"  # left-out parts get the cat's defaults
 
 
 def test_unlock_then_edit_then_lock(client: TestClient) -> None:
     path = f"/api/characters/{IDS['raju']}"
     assert client.post(f"{path}/unlock").json()["status"] == "draft"
-    assert client.patch(path, json={"role": "hero"}).status_code == 200
+    spec = client.get(path).json()["spec"]
+    assert client.patch(path, json={"spec": spec | {"role": "hero"}}).status_code == 200
     job = client.post(f"{path}/lock")
     assert job.status_code == 202
     assert wait_for_job(client, job.json()["job_id"])["status"] == "done"
-    assert client.get(path).json()["status"] == "locked"
-    assert client.patch(path, json={"role": "friend"}).status_code == 409
+    raju = client.get(path).json()
+    assert (raju["status"], raju["role"]) == ("locked", "hero")
+    assert client.patch(path, json={"spec": spec}).status_code == 409
 
 
 def test_locked_characters_have_a_placeholder_manifest(client: TestClient) -> None:

@@ -3,11 +3,13 @@ from functools import partial
 from fastapi import APIRouter
 from sqlmodel import Session, col, select
 
-from app.deps import EngineDep, JobsDep, ProviderDep, SessionDep, StorageDep, UserDep
+from app.avatar import spec as avatar_spec
+from app.deps import EngineDep, JobsDep, SessionDep, SheetsDep, StorageDep, UserDep
 from app.errors import ERROR_RESPONSES, ApiError, not_found
 from app.models import Character, User
 from app.models.base import utcnow
-from app.schemas.character import CharacterCreate, CharacterRead, CharacterSpec, CharacterUpdate
+from app.schemas.avatar import AvatarSpec
+from app.schemas.character import CharacterCreate, CharacterRead, CharacterUpdate
 from app.schemas.common import MAX_CAST, Pose
 from app.schemas.job import JobStarted
 from app.schemas.manifest import CharacterManifest, HeadOffset
@@ -16,9 +18,7 @@ from app.services.storage import Storage
 
 router = APIRouter(prefix="/api/characters", tags=["characters"], responses=ERROR_RESPONSES)
 
-# One card colour per cast slot (sun, coral and sky tints from the boards).
-SLOT_TINTS = ("#FFE9A8", "#FFD0C2", "#DDF0FC")
-SAFETY_LABELS = {"name": "name", "outfit": "outfit", "catchphrase": "catchphrase"}
+SAFETY_LABELS = {"name": "name", "catchphrase": "catchphrase"}
 
 
 def active_characters(session: Session, user: User) -> list[Character]:
@@ -55,6 +55,20 @@ def _save(session: Session, character: Character) -> CharacterRead:
     return to_read(character)
 
 
+def checked_spec(spec: AvatarSpec) -> dict[str, object]:
+    """The full spec, checked against the parts catalog."""
+    try:
+        return avatar_spec.validate(spec.model_dump())
+    except avatar_spec.SpecError as error:
+        raise ApiError(422, "unknown_part", str(error)) from error
+
+
+def _apply_spec(character: Character, spec: dict[str, object]) -> None:
+    character.spec = spec
+    character.kind = avatar_spec.KIND_OF_BODY[str(spec["body_type"])]
+    character.role = str(spec["role"])
+
+
 def _busy(character: Character) -> ApiError:
     return ApiError(
         409, "busy", f"{character.name} is being drawn right now. Wait a moment and try again!"
@@ -84,10 +98,10 @@ def create_character(body: CharacterCreate, session: SessionDep, user: UserDep) 
             f"Your cast is full! You can have {MAX_CAST} characters. "
             "Delete one to make room for someone new.",
         )
-    spec = body.spec or CharacterSpec(tint=SLOT_TINTS[len(cast) % len(SLOT_TINTS)])
-    character = Character(
-        user_id=user.id, name=body.name, role=body.role, kind=body.kind, spec=spec.model_dump()
-    )
+    card = avatar_spec.SLOT_CARDS[len(cast) % len(avatar_spec.SLOT_CARDS)]
+    spec = checked_spec(body.spec) if body.spec else avatar_spec.default_spec("kid", card=card)
+    character = Character(user_id=user.id, name=body.name, role="friend", kind="kid")
+    _apply_spec(character, spec)
     return _save(session, character)
 
 
@@ -113,13 +127,8 @@ def update_character(
         )
     if body.name is not None:
         character.name = body.name
-    if body.role is not None:
-        character.role = body.role
-    if body.kind is not None:
-        character.kind = body.kind
     if body.spec is not None:
-        # Assign a new dict so SQLAlchemy sees the JSON change.
-        character.spec = {**character.spec, **body.spec.model_dump(exclude_unset=True)}
+        _apply_spec(character, checked_spec(body.spec))
     return _save(session, character)
 
 
@@ -140,10 +149,13 @@ def lock_character(
     user: UserDep,
     engine: EngineDep,
     jobs: JobsDep,
-    provider: ProviderDep,
+    sheets: SheetsDep,
     storage: StorageDep,
 ) -> JobStarted:
-    """Checks the look is kid-safe, then draws the character sheet as a job (follow it over SSE)."""
+    """Checks the words are kid-safe, then draws the character sheet as a job (follow it over SSE).
+
+    The builder draws all 22 cells from the parts library in a couple of seconds.
+    """
     character = get_character(session, user, character_id)
     if character.status == "generating" and character.last_job_id:
         return JobStarted(
@@ -158,8 +170,7 @@ def lock_character(
         f"character:{character.id}",
         {
             "name": character.name,
-            "outfit": str(character.spec.get("outfit", "")),
-            "catchphrase": str(character.spec.get("catchphrase", "")),
+            "catchphrase": str(character.spec.get("personality", {}).get("catchphrase", "")),
         },
     )
     if not verdict.allowed:
@@ -176,7 +187,7 @@ def lock_character(
             character_sheet.run_sheet_job,
             spec=spec,
             engine=engine,
-            provider=provider,
+            sheets=sheets,
             storage=storage,
         ),
         on_error=lambda _message: character_sheet.mark_failed(engine, spec.id),
