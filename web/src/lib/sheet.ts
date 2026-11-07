@@ -3,8 +3,8 @@ import type { Character, CharacterManifest, Expression, HeadOffset, Pose } from 
 /** x, y, w, h as fractions of a cell. */
 export type Box = [number, number, number, number]
 
-/** The locked sheet, or null for drafts (they still use the SVG placeholder). */
-export function lockedManifest(character: Character): CharacterManifest | null {
+/** The locked sheet, or null for drafts (they are drawn live from their avatar spec). */
+export function lockedManifest(character: Pick<Character, 'status' | 'manifest'>): CharacterManifest | null {
   return character.status === 'locked' ? character.manifest : null
 }
 

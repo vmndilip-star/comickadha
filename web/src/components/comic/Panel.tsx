@@ -1,4 +1,4 @@
-import { CharacterFace } from '@/components/character/CharacterFace'
+import { Avatar } from '@/components/character/Avatar'
 import { cn } from '@/lib/cn'
 import type { Background, Character, Panel as PanelData, Position } from '@/types'
 import { SpeechBubble } from './SpeechBubble'
@@ -35,7 +35,7 @@ export function Panel({ number, panel, place, cast, selected = false, onSelect }
               className={cn('absolute bottom-2', POSITION_CLASS[pc.position])}
               style={{ width: `${28 * pc.scale}%` }}
             >
-              <CharacterFace character={character} expression={pc.expression} size={100} />
+              <Avatar spec={character.spec} pose={pc.pose} expression={pc.expression} size="100%" className="aspect-square" />
             </span>
           )
         })

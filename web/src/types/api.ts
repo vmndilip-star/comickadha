@@ -38,6 +38,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/me/drawing-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Give Drawing Consent
+         * @description A grown-up OKs sending drawings to Meta AI (once per profile, with a timestamp).
+         */
+        put: operations["give_drawing_consent_api_me_drawing_consent_put"];
+        post?: never;
+        /**
+         * Revoke Drawing Consent
+         * @description Takes the OK back: drawings won't be sent until a grown-up says yes again.
+         */
+        delete: operations["revoke_drawing_consent_api_me_drawing_consent_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/characters": {
         parameters: {
             query?: never;
@@ -92,7 +116,9 @@ export interface paths {
         put?: never;
         /**
          * Lock Character
-         * @description Checks the look is kid-safe, then draws the character sheet as a job (follow it over SSE).
+         * @description Checks the words are kid-safe, then draws the character sheet as a job (follow it over SSE).
+         *
+         *     The builder draws all 22 cells from the parts library in a couple of seconds.
          */
         post: operations["lock_character_api_characters__character_id__lock_post"];
         delete?: never;
@@ -159,6 +185,100 @@ export interface paths {
          * @description Nudges where the face goes on one pose. Allowed while locked: placement, not looks.
          */
         patch: operations["update_head_offset_api_characters__character_id__heads__pose__patch"];
+        trace?: never;
+    };
+    "/api/builder/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Helper Info */
+        get: operations["helper_info_api_builder_info_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/builder/describe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Describe
+         * @description "A brave girl with curly red hair and a cape" -> a spec with those parts.
+         */
+        post: operations["describe_api_builder_describe_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/builder/surprise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Surprise */
+        post: operations["surprise_api_builder_surprise_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/builder/ideas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ideas
+         * @description Names, personality traits and a catchphrase that suit the character.
+         */
+        post: operations["ideas_api_builder_ideas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/builder/from-drawing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * From Drawing
+         * @description Picks parts and colours from a kid's drawing. The upload is never stored.
+         */
+        post: operations["from_drawing_api_builder_from_drawing_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/backgrounds": {
@@ -353,6 +473,47 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AvatarSpec */
+        AvatarSpec: {
+            /**
+             * Body Type
+             * @default kid
+             * @enum {string}
+             */
+            body_type: "kid" | "grown_up" | "robot" | "cat" | "dog" | "bear";
+            /**
+             * Parts
+             * @default {}
+             */
+            parts: {
+                [key: string]: string;
+            };
+            /**
+             * Colors
+             * @default {}
+             */
+            colors: {
+                [key: string]: string;
+            };
+            /**
+             * Extras
+             * @default []
+             */
+            extras: string[];
+            /**
+             * @default {
+             *       "traits": [],
+             *       "catchphrase": ""
+             *     }
+             */
+            personality: components["schemas"]["Personality"];
+            /**
+             * Role
+             * @default friend
+             * @enum {string}
+             */
+            role: "hero" | "sidekick" | "friend";
+        };
         /** BackgroundCreate */
         BackgroundCreate: {
             /** Name */
@@ -492,19 +653,7 @@ export interface components {
              * @default New hero
              */
             name: string;
-            /**
-             * Role
-             * @default friend
-             * @enum {string}
-             */
-            role: "hero" | "sidekick" | "friend";
-            /**
-             * Kind
-             * @default kid
-             * @enum {string}
-             */
-            kind: "kid" | "grown_up" | "animal" | "robot";
-            spec?: components["schemas"]["CharacterSpec"] | null;
+            spec?: components["schemas"]["AvatarSpec"] | null;
         };
         /**
          * CharacterManifest
@@ -523,6 +672,12 @@ export interface components {
             seed: number;
             /** Style */
             style: string;
+            /**
+             * Renderer
+             * @default image
+             * @enum {string}
+             */
+            renderer: "builder" | "image";
             /** Spec */
             spec: {
                 [key: string]: unknown;
@@ -548,7 +703,7 @@ export interface components {
              * @enum {string}
              */
             kind: "kid" | "grown_up" | "animal" | "robot";
-            spec: components["schemas"]["CharacterSpec"];
+            spec: components["schemas"]["AvatarSpec"];
             /**
              * Status
              * @enum {string}
@@ -579,74 +734,11 @@ export interface components {
              */
             updated_at: string;
         };
-        /** CharacterSpec */
-        CharacterSpec: {
-            /**
-             * Skin
-             * @default #F2C29B
-             */
-            skin: string;
-            /**
-             * Hair Style
-             * @default curly
-             * @enum {string}
-             */
-            hair_style: "bob" | "spiky" | "braids" | "curly";
-            /**
-             * Hair Color
-             * @default #3B2314
-             */
-            hair_color: string;
-            /**
-             * Outfit
-             * @default
-             */
-            outfit: string;
-            /**
-             * Traits
-             * @default []
-             */
-            traits: ("brave" | "curious" | "shy" | "funny" | "grumpy" | "loud" | "clever" | "kind")[];
-            /**
-             * Catchphrase
-             * @default
-             */
-            catchphrase: string;
-            /**
-             * Tint
-             * @default #FFE9A8
-             */
-            tint: string;
-        };
-        /**
-         * CharacterSpecPatch
-         * @description Partial spec update: only the fields sent are changed.
-         */
-        CharacterSpecPatch: {
-            /** Skin */
-            skin?: string | null;
-            /** Hair Style */
-            hair_style?: ("bob" | "spiky" | "braids" | "curly") | null;
-            /** Hair Color */
-            hair_color?: string | null;
-            /** Outfit */
-            outfit?: string | null;
-            /** Traits */
-            traits?: ("brave" | "curious" | "shy" | "funny" | "grumpy" | "loud" | "clever" | "kind")[] | null;
-            /** Catchphrase */
-            catchphrase?: string | null;
-            /** Tint */
-            tint?: string | null;
-        };
         /** CharacterUpdate */
         CharacterUpdate: {
             /** Name */
             name?: string | null;
-            /** Role */
-            role?: ("hero" | "sidekick" | "friend") | null;
-            /** Kind */
-            kind?: ("kid" | "grown_up" | "animal" | "robot") | null;
-            spec?: components["schemas"]["CharacterSpecPatch"] | null;
+            spec?: components["schemas"]["AvatarSpec"] | null;
         };
         /** ComicCreate */
         ComicCreate: {
@@ -728,6 +820,30 @@ export interface components {
             studio_step?: (1 | 2 | 3) | null;
             /** Status */
             status?: ("draft" | "finished") | null;
+        };
+        /** DescribeRequest */
+        DescribeRequest: {
+            /** Text */
+            text: string;
+            spec: components["schemas"]["AvatarSpec"];
+        };
+        /**
+         * DrawingConsent
+         * @description The grown-up check: a times-table question kids under 10 can't easily answer.
+         */
+        DrawingConsent: {
+            /** A */
+            a: number;
+            /** B */
+            b: number;
+            /** Answer */
+            answer: number;
+        };
+        /** DrawingRequest */
+        DrawingRequest: {
+            /** Image */
+            image: string;
+            spec: components["schemas"]["AvatarSpec"];
         };
         /**
          * ErrorBody
@@ -832,6 +948,51 @@ export interface components {
             llm_provider: string;
             /** Image Provider */
             image_provider: string;
+            /** Sheet Provider */
+            sheet_provider: string;
+        };
+        /** HelperInfo */
+        HelperInfo: {
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "meta" | "mock";
+            /** Label */
+            label: string;
+            /** Drawing Needs Consent */
+            drawing_needs_consent: boolean;
+            /** Drawing Consent */
+            drawing_consent: boolean;
+        };
+        /** Ideas */
+        Ideas: {
+            /** Name Ideas */
+            name_ideas: string[];
+            /** Traits */
+            traits: ("brave" | "curious" | "shy" | "funny" | "grumpy" | "loud" | "clever" | "kind")[];
+            /** Catchphrase */
+            catchphrase: string;
+            /** Reply */
+            reply: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "meta" | "mock";
+            /** Fallback */
+            fallback: boolean;
+            /** Label */
+            label: string;
+        };
+        /** IdeasRequest */
+        IdeasRequest: {
+            spec: components["schemas"]["AvatarSpec"];
+            /**
+             * Name
+             * @default
+             */
+            name: string;
         };
         /** JobRead */
         JobRead: {
@@ -958,6 +1119,19 @@ export interface components {
             /** Bubbles */
             bubbles?: components["schemas"]["Bubble"][] | null;
         };
+        /** Personality */
+        Personality: {
+            /**
+             * Traits
+             * @default []
+             */
+            traits: ("brave" | "curious" | "shy" | "funny" | "grumpy" | "loud" | "clever" | "kind")[];
+            /**
+             * Catchphrase
+             * @default
+             */
+            catchphrase: string;
+        };
         /** ProfileRead */
         ProfileRead: {
             /** Id */
@@ -968,6 +1142,8 @@ export interface components {
             avatar_color: string;
             /** Max Cast */
             max_cast: number;
+            /** Drawing Consent At */
+            drawing_consent_at: string | null;
         };
         /** SceneRead */
         SceneRead: {
@@ -995,6 +1171,36 @@ export interface components {
              * @default
              */
             summary: string;
+        };
+        /**
+         * Suggestion
+         * @description A new spec to apply in the builder (the kid can still tweak or undo it).
+         */
+        Suggestion: {
+            spec: components["schemas"]["AvatarSpec"];
+            /** Changed */
+            changed: string[];
+            /** Name Ideas */
+            name_ideas: string[];
+            /** Reply */
+            reply: string;
+            /** Unmatched */
+            unmatched: string[];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "meta" | "mock";
+            /** Fallback */
+            fallback: boolean;
+            /** Label */
+            label: string;
+        };
+        /** SurpriseRequest */
+        SurpriseRequest: {
+            /** Body Type */
+            body_type?: ("kid" | "grown_up" | "robot" | "cat" | "dog" | "bear") | null;
+            spec?: components["schemas"]["AvatarSpec"] | null;
         };
     };
     responses: never;
@@ -1026,6 +1232,104 @@ export interface operations {
         };
     };
     get_me_api_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    give_drawing_consent_api_me_drawing_consent_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DrawingConsent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    revoke_drawing_consent_api_me_drawing_consent_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -1504,6 +1808,347 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    helper_info_api_builder_info_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HelperInfo"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    describe_api_builder_describe_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DescribeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suggestion"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    surprise_api_builder_surprise_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurpriseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suggestion"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    ideas_api_builder_ideas_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdeasRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ideas"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    from_drawing_api_builder_from_drawing_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DrawingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suggestion"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
                 headers: {
                     [name: string]: unknown;
                 };

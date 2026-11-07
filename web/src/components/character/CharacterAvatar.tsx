@@ -1,17 +1,16 @@
 import { faceUrl, lockedManifest } from '@/lib/sheet'
 import type { Character, Expression } from '@/types'
-import { CharacterFace } from './CharacterFace'
+import { Avatar } from './Avatar'
 
 interface CharacterAvatarProps {
-  character: Character
+  character: Pick<Character, 'spec' | 'status' | 'manifest'>
   expression?: Expression
   size: number
   label?: string
-  cropped?: boolean
 }
 
-/** The character's real face from their sheet once locked; the SVG placeholder before that. */
-export function CharacterAvatar({ character, expression = 'happy', size, label, cropped }: CharacterAvatarProps) {
+/** The character's face: from their sheet once locked, drawn live from the parts before that. */
+export function CharacterAvatar({ character, expression = 'happy', size, label }: CharacterAvatarProps) {
   const manifest = lockedManifest(character)
   const url = manifest ? faceUrl(manifest, expression) : undefined
   if (url) {
@@ -27,5 +26,5 @@ export function CharacterAvatar({ character, expression = 'happy', size, label, 
       />
     )
   }
-  return <CharacterFace character={character} expression={expression} size={size} cropped={cropped} label={label} />
+  return <Avatar spec={character.spec} mode="face" expression={expression} size={size} label={label} />
 }

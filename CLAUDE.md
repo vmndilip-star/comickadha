@@ -58,7 +58,15 @@ uv run ruff format --check ../shared
 
 # Web (from web/)
 npm run lint
+npm test           # Vitest: avatar golden-file parity and builder rules
 npm run build      # runs tsc -b (strict) first
+```
+
+The web avatar code (`web/src/avatar/`) is a TypeScript twin of `api/app/avatar/`. After changing the catalog or either side's avatar code, regenerate the golden file and run both test suites:
+
+```powershell
+# from api/
+uv run python -m app.avatar.golden   # writes shared/avatar/golden.json (an API test fails if it is stale)
 ```
 
 ## Generated API types
@@ -83,7 +91,9 @@ Run it after any change to `api/app/schemas/` or a router signature, then fix ty
   - Autosave: store actions update the screen immediately and call `useSaveStore.schedule(key, job)`; the job runs 600ms after the last edit and sends the latest state. `editCounter()` stops a slow response overwriting newer typing. `SaveStatus` shows "Saving…" / "Saved automatically". Pending saves flush on `pagehide`, and mutating requests use `keepalive`.
   - Errors reach the kid as toasts (`toast.error(e)` → `Toaster`), never as raw messages.
   - API JSON is snake_case end to end (the planner and manifest contracts are snake_case too), so components use `studio_step`, `cast_ids`, `background_id`.
-  - `CharacterFace` draws the placeholder SVG characters from the boards; it stays as the fallback for unlocked drafts.
+  - Avatars: `src/avatar/` twins the API's avatar code: `catalog.ts` (imports `@shared/avatar/catalog.json?raw`, parsed once), `rig.ts`, `compose.ts`, `spec.ts` (`normalize`, palettes, `fits`) and `builder.ts` (pure tap/drop rules: `applyPart`, `addExtra`, `toggleExtra`, `setColor`, `setBodyType`, kid-friendly `whyNot`). `compose.test.ts` checks every SVG, head box and `normalize` result against `shared/avatar/golden.json`. `@shared` is a Vite/TS alias for the repo-root `shared/` (dev server `fs.allow`, and Docker mounts it at `/shared`).
+  - `<Avatar spec mode="pose|face" pose expression size>` draws a character from its spec (normalized first, so only palette hex reaches the SVG). `CharacterAvatar` shows the locked sheet's face cell, or the live avatar for drafts. Panels in the Reader draw each character in its pose.
+  - Character Lab builder (`components/character/builder/`): `LabBuilder` puts `BuilderPreview` (live avatar, Front/¾/Side/Back, undo/redo with Ctrl+Z / Ctrl+Shift+Z, `BuddyBubble`) beside `BuilderTabs` (Body, Face, Eyes, Hair, Hats, Outfit, Extras; 64px+ stickers and paint blobs, options that don't fit shown dimmed with a "no" badge). Two columns only when the stage is wide (container query); otherwise the preview sticks to the top above the tabs. `useBuilder` turns taps into results; `store/lab.ts` keeps per-character undo history of the look (personality and role are never undone) and the buddy message. Every tap is one undo step and autosaves through `useCastStore.update`. Locked characters show their sheet instead of the preview, and the tabs are disabled with an unlock hint. `BuddyHelper` calls `/api/builder/*` (describe, surprise, name ideas, from-drawing with the grown-up times-table check), applying answers as one undo step.
 - `api/`: FastAPI on Python 3.11 through uv.
   - `app/main.py`: `create_app(settings)` wires the engine, storage, routers and error handlers; the lifespan creates tables and seeds the demo data.
   - `app/models/`: SQLModel tables (`user`, `character`, `background`, `comic`, `scene`, `panel`, `job`, `moderation_log`) with UUID string ids, JSON columns and timezone-aware UTC timestamps. No ORM relationships are declared, so flush parents before children.
@@ -159,6 +169,13 @@ Phase 3.5b API (2026-11-07):
 32. A drawing over 5 MB is a 413 at any size (checked on the base64 length before decoding), so the request schema has no length cap of its own.
 33. The API commit leaves `web/src/types/api.ts` as it was; it is regenerated, and the web fixed to match, with the web half of 3.5b.
 
+Phase 3.5b web (2026-11-07):
+
+34. The web twin is checked by golden files written from Python (SHA-256 of 545 SVGs plus two full samples, every head box, `normalize` cases), not by a shared implementation. Vitest 3.2 (Vite 6 / Node 20.15).
+35. The old `CharacterFace` placeholder and `LookPanel` are gone; every character is drawn from its avatar spec.
+36. Options a body type can't wear stay in the trays, dimmed; tapping one makes the buddy say why (`whyNot`), so the rule is learnt, not hidden.
+37. The parts catalog ships in the JS bundle (about 1 MB minified, 171 KB gzipped, so Vite warns about chunk size); split it out if load time matters.
+
 ## Environment notes
 
 - The dev machine has Node 20.15, which is below what Vite 8, React Router 8 and ESLint 10 need. The web app pins Vite 6, React Router 7 and ESLint 9. TypeScript is 5.9 because openapi-typescript supports TypeScript 5 only. Bump them after upgrading Node to 22+.
@@ -171,7 +188,7 @@ Phase 3.5b API (2026-11-07):
 - [x] 1. Scaffolding, compose, tokens, NavBar and the 5 pages as static UIs on mock data
 - [x] 2. API models, CRUD routers, seed data; wire web to API
 - [x] 3. Provider interfaces + MockImageProvider; jobs + SSE; character_sheet service (generate, slice, manifest); place images; Lock flow (awaiting review)
-- [ ] 3.5 Character Builder: 3.5a parts library, rig and 16 poses (committed); 3.5b API: avatar spec, migration, builder sheets, Meta helper, AI safety, `shared/` in the Docker image (committed); 3.5b web: `<Avatar>` + golden-file parity tests, Lab builder UI, regenerated `api.ts`.
+- [x] 3.5 Character Builder: 3.5a parts library, rig and 16 poses; 3.5b API: avatar spec, migration, builder sheets, Meta helper, AI safety, `shared/` in the Docker image; 3.5b web: `<Avatar>` + golden-file parity tests, Lab builder UI, regenerated `api.ts` (awaiting review)
 - [ ] 4. story_planner, Story Studio steps 1–3, safety service
 - [ ] 5. Compositor, generate SSE, Reader Read/Edit, PDF export
 - [ ] 6. Real LLM and image providers, Redraw panel, polish

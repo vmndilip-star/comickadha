@@ -48,7 +48,7 @@ export function SheetProgress({ character }: { character: Character }) {
       <div className="flex flex-wrap items-start gap-4">
         <div
           className="halftone flex size-[200px] flex-none items-center justify-center overflow-hidden rounded-2xl border-3 border-ink"
-          style={{ backgroundColor: character.spec.tint }}
+          style={{ backgroundColor: character.spec.colors.card }}
         >
           {front ? (
             <img src={front} alt={`${character.name}, front view`} className="animate-pop size-full object-contain" />

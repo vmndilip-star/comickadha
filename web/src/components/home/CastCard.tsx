@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { CharacterFace } from '@/components/character/CharacterFace'
+import { Avatar } from '@/components/character/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
 import { characterTagline } from '@/lib/format'
@@ -32,12 +32,12 @@ export function CastCard({ character }: { character: Character }) {
     >
       <span
         className="flex size-[88px] flex-none items-center justify-center overflow-hidden rounded-2xl border-3 border-ink"
-        style={{ backgroundColor: character.spec.tint }}
+        style={{ backgroundColor: character.spec.colors.card }}
       >
         {thumb ? (
           <img src={thumb} alt="" draggable={false} className="size-full object-contain" />
         ) : (
-          <CharacterFace character={character} size={70} />
+          <Avatar spec={character.spec} mode="face" size={70} />
         )}
       </span>
       <span className="flex flex-col gap-1.5">

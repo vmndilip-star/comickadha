@@ -1,8 +1,8 @@
+import type { ReactNode } from 'react'
 import { TextField } from '@/components/ui/TextField'
 import { EXPRESSION_LABEL, POSE_LABEL } from '@/lib/labels'
 import { lockedManifest } from '@/lib/sheet'
 import type { Character, Expression, Pose } from '@/types'
-import { CharacterFace } from './CharacterFace'
 import { ExpressionGrid } from './ExpressionGrid'
 import { HeadPositionEditor } from './HeadPositionEditor'
 import { LockToggle } from './LockToggle'
@@ -21,6 +21,8 @@ interface CharacterStageProps {
   onToggleHeadEditor: () => void
   onRename: (name: string) => void
   onToggleLock: () => void
+  /** The builder (live preview + tabs). It gets the locked sheet view to show instead of the preview. */
+  renderBuilder: (lockedView: ReactNode | null) => ReactNode
 }
 
 export function CharacterStage(props: CharacterStageProps) {
@@ -28,10 +30,36 @@ export function CharacterStage(props: CharacterStageProps) {
   const manifest = lockedManifest(character)
   const editable = character.status === 'draft' || character.status === 'failed'
 
+  const lockedView = manifest && (
+    <div className="flex flex-col gap-4">
+      <div
+        className="halftone relative flex h-[340px] items-center justify-center rounded-2xl border-3 border-ink"
+        style={{ backgroundColor: character.spec.colors.card }}
+      >
+        <span className="absolute top-3.5 left-3.5 z-10 rounded-pill border-3 border-ink bg-surface px-3 py-1 text-label font-extrabold">
+          {EXPRESSION_LABEL[expression]} · {POSE_LABEL[pose]}
+        </span>
+        <SheetStage character={character} manifest={manifest} pose={pose} expression={expression} showHeadBox={editingHead} />
+      </div>
+      <ExpressionGrid character={character} selected={expression} onSelect={props.onExpression} />
+      <PoseGrid manifest={manifest} selected={pose} onSelect={props.onPose} />
+      {/* Builder sheets draw every pose with its own face, so there is nothing to nudge. */}
+      {manifest.renderer === 'image' && (
+        <HeadPositionEditor
+          character={character}
+          manifest={manifest}
+          pose={pose}
+          editing={editingHead}
+          onToggle={props.onToggleHeadEditor}
+        />
+      )}
+    </div>
+  )
+
   return (
     <section
       aria-label="Character preview"
-      className="flex min-w-0 flex-[2_1_380px] flex-col gap-4.5 rounded-hero border-3 border-ink bg-surface p-6 shadow-hero"
+      className="flex min-w-0 flex-[3_1_600px] flex-col gap-4.5 rounded-hero border-3 border-ink bg-surface p-5 shadow-hero sm:p-6"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <TextField
@@ -59,52 +87,7 @@ export function CharacterStage(props: CharacterStageProps) {
         </p>
       )}
 
-      {character.status === 'generating' ? (
-        <SheetProgress character={character} />
-      ) : (
-        <>
-          <div
-            className="halftone relative flex h-[340px] items-center justify-center rounded-2xl border-3 border-ink"
-            style={{ backgroundColor: character.spec.tint }}
-          >
-            <span className="absolute top-3.5 left-3.5 z-10 rounded-pill border-3 border-ink bg-surface px-3 py-1 text-label font-extrabold">
-              Expression: {EXPRESSION_LABEL[expression]}
-              {manifest && ` · ${POSE_LABEL[pose]}`}
-            </span>
-            {manifest ? (
-              <SheetStage
-                character={character}
-                manifest={manifest}
-                pose={pose}
-                expression={expression}
-                showHeadBox={editingHead}
-              />
-            ) : (
-              <CharacterFace
-                character={character}
-                expression={expression}
-                size={240}
-                label={`${character.name}, ${EXPRESSION_LABEL[expression].toLowerCase()}`}
-              />
-            )}
-          </div>
-
-          <ExpressionGrid character={character} selected={expression} onSelect={props.onExpression} />
-
-          {manifest && (
-            <>
-              <PoseGrid manifest={manifest} selected={pose} onSelect={props.onPose} />
-              <HeadPositionEditor
-                character={character}
-                manifest={manifest}
-                pose={pose}
-                editing={editingHead}
-                onToggle={props.onToggleHeadEditor}
-              />
-            </>
-          )}
-        </>
-      )}
+      {character.status === 'generating' ? <SheetProgress character={character} /> : props.renderBuilder(lockedView || null)}
     </section>
   )
 }

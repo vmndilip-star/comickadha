@@ -65,6 +65,15 @@ def test_catalog_matches_its_generator() -> None:
     assert built == CAT, "catalog.json is stale: run shared/avatar/build_catalog.py"
 
 
+def test_web_golden_file_is_current() -> None:
+    """web/src/avatar tests compare the TypeScript twin against this file."""
+    from app.avatar import golden
+
+    assert golden.GOLDEN_PATH.read_text(encoding="utf-8") == golden.render(golden.build()), (
+        "shared/avatar/golden.json is stale: run uv run python -m app.avatar.golden"
+    )
+
+
 def test_poses_and_expressions_match_the_sheet_contract() -> None:
     assert list(CAT["poses"]) == list(POSES)
     assert list(CAT["expressions"]) == list(EXPRESSIONS)

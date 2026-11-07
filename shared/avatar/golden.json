@@ -1,0 +1,8299 @@
+{
+ "catalog_version": 1,
+ "cases": [
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "1fdc81007e067995df907371993a7a83dd57dc95523d1f3ed0966139dfcaf244",
+   "length": 8002
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "0c8a82b9b8ae27df74425df933b98b5f16a2a8c46e0a8945ab79654c590e24cb",
+   "length": 7653
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "edffdfc168b6749129a42fa1f83e506a6fd58d9e5dd2fba0e89d57b07dacde48",
+   "length": 6881
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "914df5c7e08f2c1b80a277c49e91a4ef7b1ad670af29439d4cc054d2f1b4558d",
+   "length": 7954
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "6e7415ddeec95a7b5abb60cb98d3f14e93ae0d65b1ab4d327172dd865d6bf60c",
+   "length": 7605
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "af9305e86ecdb27a198deb4deb1b874145c3df4c5022d0b97b38fbc1795aa547",
+   "length": 8480
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "2e575a12188379895890ccba82dcf81a3aa74b423a925f4c39ff35616ec9615c",
+   "length": 9140
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "7c09ac72f75c2953024aac43a67a0c2065d6a12fcfbc4c0570596193c65b3e40",
+   "length": 8056
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "ade0e85e202aa312f9267652be06e926477ad94c8784e77968a79b58b797ccdc",
+   "length": 9176
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "ad79e27f7634e67ad6e3ba7d4490eb2e9aead86c4a8eebae4bfb85541d37869a",
+   "length": 9450
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "6ad5dd75e53ee60bf8b6b765fe3abe7c3d3ea4dcfd89713803668a37435e33a7",
+   "length": 8053
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "d654d92dbe863ffdb15078c124a298298db93d31346c9081d5326f3817e12671",
+   "length": 8057
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "96e2f0ce42cd63206b578055fdc343a6169c1678dd022e80321f056bd8a10b2a",
+   "length": 8562
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "13c3b563b24f3d136fc600858932e406068516332b11a8a5859c33ffeb8da3bc",
+   "length": 8862
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "0d62c7f6ae7f2ed77bd7c953ae5508ae53d25863d016439c560b7c884d50c146",
+   "length": 9293
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "kid"
+   },
+   "expression": "happy",
+   "sha256": "084492c9e90b5d9ebac1a49ea421515c90db05d552f06cd82fc28d226a7db227",
+   "length": 2623
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_right",
+   "expression": "happy",
+   "sha256": "914df5c7e08f2c1b80a277c49e91a4ef7b1ad670af29439d4cc054d2f1b4558d",
+   "length": 7954
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "kid"
+   },
+   "expression": "sad",
+   "sha256": "b3d4308ee5a9c35db4c594ce4b44c6ad1b0511d818ea45054f6943bde4aea13a",
+   "length": 2681
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sad",
+   "sha256": "511765b25db142ce0a5afbc5dc76f5eb4c522a5a134d3f49abfb182150d97ac4",
+   "length": 8012
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "kid"
+   },
+   "expression": "angry",
+   "sha256": "e2a313d392b82b6c2071d553c84dd14b1058c1bafcad358799a50eeeb1a5ead0",
+   "length": 2828
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_right",
+   "expression": "angry",
+   "sha256": "148e50d06bf467ffdea7b60b544e755b8d107e8a6ad0ad2c08643d312ae63f64",
+   "length": 8159
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "kid"
+   },
+   "expression": "surprised",
+   "sha256": "49bc886efcfbd6752e43987776c4fe6f1e327799c7df8378dc052d4c6313e8f2",
+   "length": 2766
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_right",
+   "expression": "surprised",
+   "sha256": "f2a41dbd3aa4411572fd519fb4b8f79ac1bab0576dee49177530844c4342029a",
+   "length": 8097
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "kid"
+   },
+   "expression": "scared",
+   "sha256": "89f2b840fd698dbb9c999f3eab41db89cbf70b9a5fc89ef989efe0f2157193c9",
+   "length": 2626
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_right",
+   "expression": "scared",
+   "sha256": "6001575b30d2023de9811e16e0a7c32189439c5166a66db3316352bda24f33bf",
+   "length": 7957
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "kid"
+   },
+   "expression": "laughing",
+   "sha256": "9f701dd677a5d010cdbc5e8fdbf546719da9d4237313b7255e54d077a19b0193",
+   "length": 2814
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_right",
+   "expression": "laughing",
+   "sha256": "41e043e79df940be2028e2d9f2809709feece5c0e613976cf0633e10143ad9fd",
+   "length": 8145
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "face_shape": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "face_shape": "oval"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "da0421ac2d18838d394a72c09c5366085902f38bf0a1a3141c61bf4740a9a24c",
+   "length": 8073
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "face_shape": "square"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5642ede0bcdb874146595a1f03a4fcecb2347b04dbfb9dba77e692a85fbe43cb",
+   "length": 7684
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "face_shape": "heart"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "057689b9a4a373b19f93fba09d082f6c80a864331d40da34ef1c331efaf08b75",
+   "length": 7823
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "eyes": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "eyes": "oval"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "205abd3ba9e1abc3fa0be44230806ab0906d1ec35db34baa95e6e6d3769f4a17",
+   "length": 8063
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "eyes": "almond"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "a262a482aae1e94202d38e082479d5a0f77b4166ca7d6ee2cbd8fa826414c99c",
+   "length": 8343
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "eyes": "sleepy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "cc1f5818711951ae3bcd6b0a74d469d33c5fb80c3158a904d42f11df4d690efb",
+   "length": 8215
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "eyes": "sparkle"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0fec352e2aee2d569d13de7eec732ef2edc1cbdd9431a44909b8de053e911963",
+   "length": 8147
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "eyes": "button"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c3078a501c8ebd2e151790f5d2f75665e1484185f43933176ab60b05e4a40b41",
+   "length": 7943
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "brows": "straight"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "080260e37bd976d48e0764f297251dd17c2339b4262ec2f3ed250fb3c94b2c70",
+   "length": 8023
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "brows": "arched"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "brows": "bushy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa2134a27e48c89f1467e5305bf0889cbfca440c998c6f34dbae2d0379cf286a",
+   "length": 7931
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "brows": "thin"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5e7bb31fa78071c63e1b302f68bb6308181eaada12f752c8ebcfb36da11eca08",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "nose": "button"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "nose": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5bcd01bc50222e0f534c3e667cc8abaaa6616b8b51174753ecd4e53f0724cf5d",
+   "length": 8047
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "nose": "pointy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "95d2cd21c74a6cb739cc13edc66899d684ccdb3c2a367a1bb5fec2a4a9def625",
+   "length": 8047
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "nose": "dot"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "cba88169930c9725fd4d9cd48710b177087ce75ee3248a0d59e010ff510fca8f",
+   "length": 8021
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "b3ac16b33c66edf205d61bb4b20f7dec6e98e672f3fa6e4df780983689bef637",
+   "length": 7518
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "crop"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "buzz"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "ba2417433d5fa52b81789523b8e7ebe93836c372dca1151351794fa3381026bb",
+   "length": 8051
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "spiky"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "b43abf309ffb7b61ea68629d2fe90e77ff7727b42d31df6ee5edba21ca264c33",
+   "length": 7845
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "side_part"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4aeb2c1a0af5fa31544cbcc7a23bf6d17a8484d48c277f7e7caec7cbe87f1c52",
+   "length": 8113
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "bob"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "bb40dd4a54c14358af1b070227d05a005fc81bcf2b3ed7f53bae7c1bd290e3af",
+   "length": 8612
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "curly"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5b84d37009ef3afcdbc34e2b83e333d2c05e352aa38548bc67c08b5f48b60d25",
+   "length": 10130
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "afro"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8e486f028c3e4370dcd94ee39fcdfc4f5b82189318a1821e14b96e3de79de802",
+   "length": 8225
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "ponytail"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa991063e23bd540605d0af0394c3c2e437d358ba6b5907eac93f9612bd42186",
+   "length": 8234
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "aa49c9381ce04b50f9a1ad8cd90119cf6f14ea33fe85372b2f19f26ccf790541",
+   "length": 8359
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "braids"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "6569eb12e6d7357d2c765eb4286eed426966fc1c74cffbbcd7db9dd6c36fbead",
+   "length": 9491
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "long_straight"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "af47a35c80711475e0c91b7741bd0e42b5393f0c38f5e1ca6eb70c76af78c59a",
+   "length": 8869
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "bun"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0aeb759577688143305e9c42933e0a7b9dc8400acd7c75632f6bb4ca98a88636",
+   "length": 8153
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "headwear": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "headwear": "cap"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "85a163fd4bb11cc3b2c4aa653a31bc2768a7c190581525631f473e42157228bd",
+   "length": 8895
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "headwear": "beanie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0e8dbdb6669d37e4578f18398311005950657258832d04c294e8919de35063b2",
+   "length": 8727
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "headwear": "hijab"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "539d72cbb7d3693c8559425e94486105b9111fc5f30fbf8234f6f21cb196e4b4",
+   "length": 8307
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "headwear": "turban"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e5784a4dd579dfd83a1775294393ac125fd3d005dbf74e214348e7a9a87cc26f",
+   "length": 8212
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "headwear": "space_helmet"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d6accbbd163879b0677ebb7bda6ee949fda0c64dfed526964cc2cdcce610b10",
+   "length": 8544
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "top": "tshirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "top": "hoodie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "96524bcdfbf52f1ac192aea122511c967e93d20f0872639da63d9bcc5873f45a",
+   "length": 8486
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "top": "raincoat"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0e44ee946acb2e15083e9f5d980272f47628fd1e5ddd32d81bc580a2002b6eb7",
+   "length": 8345
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "top": "sweater"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "d90ba3ca80b911e4c68edb4ba6a5931adba822e42260497e897b6fb7e407956f",
+   "length": 8260
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "top": "jersey"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c3b9c82a85c02a1cfc2cbdd798e61a5254dc7b3c438ce0b3462b9e081a15d701",
+   "length": 8281
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "top": "dress"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "371c99acf40a37d8479dcd867e9eccbf170888cd7d83256737057d56a9758b53",
+   "length": 8315
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "top": "dungarees"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "af8b1319e21aecad81cbcb30fe793704d36663e2b0948d9236c04506ae4fceb9",
+   "length": 8569
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "top": "superhero"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "649f5ca508b66b1309a5fe67f54cc27f7870436f73cda83d6e06469c62df0574",
+   "length": 8304
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "bottom": "shorts"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "bottom": "trousers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "238371bbbf25d9657109720344efb9a3404266f229f310817780693606846a39",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "bottom": "jeans"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "40de352e4dedc17c04e32ac6af624402d0daa39ff98cab316e650a95df5186c4",
+   "length": 8162
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "bottom": "skirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8e4de5a9fd525ecf84e25a674b7861ed8f1f21c1b19b7269fff03fc06ba64044",
+   "length": 8266
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "bottom": "leggings"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "65fce81ab666a49b5e9c01987649fa845cd7d7d3036630fb7ad79c3b670607c5",
+   "length": 8047
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "bottom": "cargo"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5440cf9bc01d4d5c7ca2d19352674004c5358b49dd41f69a62626c8e86faa367",
+   "length": 8194
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "shoes": "sneakers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e67eff710f6ad5fbf922128cf5a79a004eb2afefb86e821c62e5fa587c786d7d",
+   "length": 8045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "shoes": "boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "046ffefe81e701d6473d6d26a6c1610c870c5140fa0468b0b520115499c5cd71",
+   "length": 8091
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "shoes": "sandals"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "39f4e37c5aa8996216f8434f9385feb801fce4b1a2424d1270aef54ccef9b336",
+   "length": 8287
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "shoes": "rain_boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "38ff74d8641e1ca361fa60eef14841ee72dd1fcca27c8587d31f91581c45bd3f",
+   "length": 8347
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "glasses_round"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "46a5e6fe447cea10719e21b5c7e59571f94c552cc7e14aca1f47ec22b57f0617",
+   "length": 8469
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "glasses_square"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "4101526bd94a7cd251909466889d2d8a3de331f55a040b7c175c537698d9ff2e",
+   "length": 8496
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "glasses_star"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "df299711f0da1b4c054ad11daec2b6cf842235d5bd1a716d72911cf434dca1ca",
+   "length": 8635
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "cape"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "143bca877f56ba2378f16dc293fffb4104cf81ab9b62a8959fc9c89d8848ee24",
+   "length": 8567
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "backpack"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "d2748202e2b7b7e46a5610805d289130fa403d41657f74571e99fe1dda0b460a",
+   "length": 8299
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "wand"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "4e50d2d5ae5220e235d53d4563c85bcffa62b104cbbcf228aa410e9fa8a20217",
+   "length": 8408
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "headphones"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "e0da37daa87fba8b9adb7a6d477d6bac16c352b5aad36a76d08f28d7d51b119e",
+   "length": 8309
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "freckles"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "a43e5904231ba5a25f760fd08a8bd3348d3ea691d26a014a0c241cf15633d00c",
+   "length": 8595
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "extras": [
+     "blush"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "ce016a39ff2d3e330d6d7386d4e71cb6fcc3705da6bc2aa6737a59957b249bd2",
+   "length": 8176
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "ff4454e864240e48ff10c6b134da2c56d49a080e24d850eee99b4583faf1d38d",
+   "length": 8748
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "8da17c3694666481c1d9aa370f491e1e6c9c787b73fd548080e70dc5a8e97e96",
+   "length": 8246
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "df7e7741dee1104dc825cd3ce453fe00d63de2bed73bca76fdc068cbe20ea7f0",
+   "length": 7361
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "662f91e1ea76f232b8eb8f6b0e893193f7b022d96d2952b1c69e79e96e5e51da",
+   "length": 8700
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "b6cea4624bb2fe842a9d20210032291a8681da2bbed7167e46036af66944125f",
+   "length": 8198
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "afd57c34136128734edacf006ba967e1cc7cd23fd792942ec624f69435f43636",
+   "length": 9226
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "84d2ce72bdc9df7700f6d7543d5a2cd01163b83645fbd2aa3a64a58f3f189fb9",
+   "length": 9886
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "0174492508fcc59c4c0fe07a468b27fc883880d01b284fecc18f5c150321762b",
+   "length": 8767
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "2474a5e30557e23453b04d19ae0a1841280ee69b5d65fc2d75f658df04d11b6e",
+   "length": 9922
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "3be37b76e5f4710f6f9b8f50cfe810c816e52c7b633274c94f6c6e405212573b",
+   "length": 9867
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "8570d346028d19dd43f13cc9d18e99e5026281a6d2077be2b4a82ee490a863d9",
+   "length": 8764
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "e4cb12c49c31557f1f6535413e93bf8f2afa4822baa7bf61bb327fa52668e9c9",
+   "length": 8768
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "cd44619c20f3ac5bdb294ea4503346fee28e7a0f8eeb1ae83d254f74d47d2947",
+   "length": 9285
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "c4f96fd90e0358931508cb1f6dcaa417a10447a3aad7c370b0aa8cf92909c5e0",
+   "length": 9585
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "8569744e8ce06118d37f3b9e9134d6389296b453085c1189579b17552b050bf7",
+   "length": 9706
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "expression": "happy",
+   "sha256": "763a119c338bf4475ec12fbf3bbaa9f0154dfb1f4914e78335187d57fd4ac8b3",
+   "length": 2997
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_right",
+   "expression": "happy",
+   "sha256": "662f91e1ea76f232b8eb8f6b0e893193f7b022d96d2952b1c69e79e96e5e51da",
+   "length": 8700
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "expression": "sad",
+   "sha256": "dd0ff90cd4480c8124a46b9c5ac5e5ed5e2910e329a7cd8afe9c4be31165b0b5",
+   "length": 3055
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sad",
+   "sha256": "14f1eb46fb56ea8de094dc7a7bce616827e77633bf6d4a4c96d287f62d0e4611",
+   "length": 8758
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "expression": "angry",
+   "sha256": "f1eeb2f747f134ecce8b22cda2d452b5aad13e500d1d263140f2e443f4f7a94f",
+   "length": 3202
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_right",
+   "expression": "angry",
+   "sha256": "bee5902aa3e538052c9230379ed5d7fb42d803be25bbed16c336ce3129823f3d",
+   "length": 8905
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "expression": "surprised",
+   "sha256": "3eb128be949c78574ec93e6426d558219b3951e1274e476f70d5f3f2d6806b91",
+   "length": 2866
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_right",
+   "expression": "surprised",
+   "sha256": "6ddcac9c66f1ac3859e062b9dbe6be666171ce0dc49579edc16045d3dec6342a",
+   "length": 8569
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "expression": "scared",
+   "sha256": "e79dff3b58aa23b6770b8746050b6767c0d2e0ffdb0df4af39faed8c3b80e6e8",
+   "length": 3000
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_right",
+   "expression": "scared",
+   "sha256": "1e0e9a5a333fbd4e537b586549ab99b99f5d564799050178f5646878911e93d2",
+   "length": 8703
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "expression": "laughing",
+   "sha256": "45d5705219b58b07050ed0697ba89d06bc1956b803a701858467d4b8fcd91da0",
+   "length": 2890
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_right",
+   "expression": "laughing",
+   "sha256": "496f04891ac7112f6029e6910fbcfec33a16726bbd8dced9c5c0e6124abff03f",
+   "length": 8593
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "face_shape": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "af939df40bb59789c5b2e861e8c5a946b78b03b3a1aa30c27b28ca7daba3604c",
+   "length": 8728
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "face_shape": "oval"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "face_shape": "square"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "df4bff32ac61dace8a90962df3812fba45b6136f377823de95052440bc4e7c71",
+   "length": 8367
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "face_shape": "heart"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "25cf6272c998420f361cadcbf24b201a848c23ef37c014ddccd0a2f9d6d62431",
+   "length": 8506
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "eyes": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4d64ad20d41f25b3d0c168708da0ccaf8280fe3773b4d528d7b8d0bccd4352b3",
+   "length": 8458
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "eyes": "oval"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "d5dddae8cb63835c34562608d068662f6ddff51debd76a8d6253ed4f3f45af7a",
+   "length": 8476
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "eyes": "almond"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "eyes": "sleepy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "29427553db0429f396ee492f3f59d88fe15006f01ef43d27e53536a7f19625fe",
+   "length": 8628
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "eyes": "sparkle"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0f57eb077b1dc965f5810743bf414a954ea212dd5de49e031fdfca1b2bdfebf5",
+   "length": 8560
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "eyes": "button"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "7db0aef04b937b92739406779ac434aa33c069a15b4187220457561d10f79954",
+   "length": 8356
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "brows": "straight"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "brows": "arched"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "6c768e0abeffc7aa8fe57e1d200d3ef903fa25e9826e1ca378c930bbace3648c",
+   "length": 8778
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "brows": "bushy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "f33d3e7b20d2e258c6500b10e04848a4a7994f75127f81d11844bd5d8857107d",
+   "length": 8664
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "brows": "thin"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "9894e3850dd56824bfbf8e307987e271509cc4fac6c41415cff9a396b94ef7ed",
+   "length": 8778
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "nose": "button"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "9a24a911221f9ceac0197a75153767de015dfe2aee12ef2b596474f688585d1a",
+   "length": 8754
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "nose": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "nose": "pointy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "39da9bc1721ec003d44e7de9788943489a025ad56ae25b2612bd3d7029866ae3",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "nose": "dot"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "a47c316e206218ad69acdcb4f29901bb58f54bf2facb4bc27b745a65b6384472",
+   "length": 8730
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "dd3d25ff34e3e29c999486425335eba8821616959a278f078fe3c127e3d171b4",
+   "length": 8149
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "crop"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "a5764c8ceabd442272afa7e8ac341d478c65f8a49b0d9d9f20d5f46c8d5c9aa8",
+   "length": 8688
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "buzz"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "bd7ece31ab188e9e7dc5d24c2bddc5e7742587c012212c0ebc56907cc6704554",
+   "length": 8694
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "spiky"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "73564fbd5126484e05e768fffaaa3b0d9b3ece1a5d2ba06d2471632fc58ef36e",
+   "length": 8488
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "side_part"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bob"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "b2e1292b4066134a40845699717a3794aa2f99aada5f76edd747b643c3f038b3",
+   "length": 9267
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "curly"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "cd02b7f696d41d5088ad4d630086f550dfbac6dc0ddb0fe21991d9b472e8d38c",
+   "length": 10785
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "afro"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "15ceb62675bf5e068f0418dfaa026c32fd1d6c2973bff60665ff441d1a9cd0b2",
+   "length": 8880
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "ponytail"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "20267653c604a8f4d6840428023d5ffb20fa76a348fd9814f4f3613af60f20ba",
+   "length": 8889
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "two_puffs"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "daeaee161f41df55a7b5ec360f9fff06a22e492afc0d85d8415f433fd0a11b50",
+   "length": 9014
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "braids"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "90f05dad2f3f381e044d92140e0b5246b0cadc7602ae5b8555840bb7410fbc47",
+   "length": 10146
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "long_straight"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "9e851cf95725d0f0e544a81f3f415c6ae7a5adda61201441d18ef3751fb81690",
+   "length": 9524
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "016d2a8035ef99c24c70cb5d8a4ec4f14288b004c917d12699e7f6aff65c4517",
+   "length": 8796
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "headwear": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "headwear": "cap"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c861dde92df6355c5c67cfbec4cfde0dc256dc9899655b51325e796bfc7faec2",
+   "length": 9618
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "headwear": "beanie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "f16884d1d659ea1924fa28d145028a63e7f5ecc85cab5794989c0faf88543194",
+   "length": 9450
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "headwear": "hijab"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "74ddc21ef26080b0b23b8b031e274756129b3c13d1098613eedf8c032ed8103f",
+   "length": 8962
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "headwear": "turban"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "2052c3d3c0147d999bbe41cca11c31df12b7cd8bb10c3ca16b8efa532f01811d",
+   "length": 8855
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "headwear": "space_helmet"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "182dc86d763746a5710998e4c5edd88cd30a22882f0addf63ad357738945bb8b",
+   "length": 9267
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "top": "tshirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "70e66645af89a299a5ec66ad2fd57b93e8f86b22f53749b35f10843e0ef09e78",
+   "length": 8531
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "top": "hoodie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "07df83052df4d72dd6cfd3f9dc0f0c569d014530eec152cbc18639230d4e8532",
+   "length": 8972
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "top": "raincoat"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "55875bf4897c89983f3eea4bd02e327dc0fb8e9ab7dcb5e2e0e1020c31296a8a",
+   "length": 8820
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "top": "sweater"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "top": "jersey"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "58cebc5b7cc31ad8c1b4601698380615ea7a07e592c0babed3a19d1b663de83b",
+   "length": 8767
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "top": "dress"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "ef6f75678721dc0bdfbd6f3edfd789fcdf8d104faff87d1c5583ac659e5f393a",
+   "length": 8789
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "top": "dungarees"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "92927d992d1c498ea41f66e308d4462a71ba70d97bea0c0dc0bdbab7d0cd35fc",
+   "length": 9055
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "top": "superhero"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "7e722254e56e4cab1b6f32898388fb9390c1156b4d431b9f8f8dc6d5359bc8de",
+   "length": 8790
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "bottom": "shorts"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "3e8820d45dae2de58ff7ca05e68738d25140b80eb83b80f5b60b43e4c51594cd",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "bottom": "trousers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "bottom": "jeans"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "dbed46ccd9015e1416f571d3141dd280b1b6f59db5af5998149097068e50b36b",
+   "length": 8873
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "bottom": "skirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "104ac1401cbe2d039e6a29a55c72d42cec2f3c4c93175a94f0ac113eafe4de79",
+   "length": 9001
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "bottom": "leggings"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1355ebb747fce11da9a101df8cced2fb710bf147ad2f034c52f25e89bfabc7ea",
+   "length": 8754
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "bottom": "cargo"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8fe6e95775d8494e57983646e34eb32d57e5034382d4419f22642196388d4546",
+   "length": 8907
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "shoes": "sneakers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5308d6c80e97349f8d2ea1ca80fba9ee5411af3db66abcdb9fce99915227b167",
+   "length": 8718
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "shoes": "boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1d37a7ac550e70d21da9f44402f937727dfd8ced506e959d6241b3806b001b8a",
+   "length": 8756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "shoes": "sandals"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c2c871eaa24c666ff3de3926b89187508ef3590109b635cf55f08e410c219176",
+   "length": 8946
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "shoes": "rain_boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0a5bf459aa6bd713452e64ff06d2840029b9442635812825bcc4c9777497623a",
+   "length": 9000
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "glasses_round"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "0567d97aeb5e3e6c87f101c5054f2f253ee80bc509ddeb59062b70e115686ebd",
+   "length": 9227
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "glasses_square"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "9fe21634ff972f90c569a01687f2f98e83f79229296e9251c6c2ecd2fe3abc74",
+   "length": 9254
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "glasses_star"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "9680644bca694716a13d32df50d8268fea574234d4740452ae844a0cd3fdabdb",
+   "length": 9393
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "cape"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "6cc2230c82ab00b8ed100efb958aad912dd8ffbcb0ccaaa1501b4744b9b02363",
+   "length": 9313
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "backpack"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "94078a9e45b33e59478850e0c776c65d6d26821a6889d4103f09a62cf736a7df",
+   "length": 9045
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "wand"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "fbed4b3e5f5665026196be153ce64549538e194cff07e94ff0b81f7742c29b59",
+   "length": 9154
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "headphones"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "92e915b6f8ec7537c76639e87fd4ef65a7ae4e2d6d5c46fe299613ad48dfdee6",
+   "length": 9067
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "freckles"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "7348c328e4f7dc77d4d68547bab07a1c252172f048e9dbae4a2bfb0c2b95504f",
+   "length": 9353
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "extras": [
+     "blush"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "4ce3be021cea1364478995e8fad972bf3f7d9bde97ad51b7086f279111f4d967",
+   "length": 8934
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa6c3769c6f0968ef4216dc4614c78bedfb01a53df7bd91427dad14caf469051",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "ae2d7a8320af8a63bd1280c93f783e39dee497fd7efcb47ee32e7c72df8d51fc",
+   "length": 8006
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "3248bbe9793ec30615f66f66f78c70fffdf8de690b25b53998b50be5d7e275b6",
+   "length": 7667
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "aea9c66fba98d256331c8e096b3b427c0a2d26ad9f42f3e99e1a9c8f0e201503",
+   "length": 6753
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "34bb17f206166a21dde88546ad15444f0f5a2eeb598a41d26221b096797e5489",
+   "length": 7958
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "e55a570c0684ff80befdebd88b6cc4ab3c31cc384b546d73a71defdce02c2cb6",
+   "length": 7619
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "ee10612c2c772d8e5b91cb9d5b3ca622e8475e85676b82781919b6f50bf641b6",
+   "length": 8468
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "6375fede9cca13f53bb60b964e09616a5c260eb78f5ab0526f29a44ade6037d4",
+   "length": 9106
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "8301c329b28d2890bfe66c0fc5fb19d4faaf5c27a1ce5f2f3763bd91d7c5ab2d",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "75f7f3ce39162c74817eebd0e4613a41b9b1cb6166a25fc6abf23cc5eb6ff660",
+   "length": 9153
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "c688c472e5710c4a22afac18e13885b0cdfa7455b43b8b1d37883b53ab1b4d24",
+   "length": 9312
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "62a8a390947c9ead405b8b80b2cb4a15f22ee5a819971d20b9e2f4f327f5bd84",
+   "length": 7932
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "14a24583624259e9c298489ac5e589cf719f4891f58ccb27cc1d23144dc02bf0",
+   "length": 7936
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "96b57143eaa88977cbbc142c468f4d8d1c53942829786da041a073057b4bf052",
+   "length": 8431
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "ffa372522e508ab1788e86cff331137d883fe54d1fdac9008d35fb1b8097fb33",
+   "length": 8741
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "76bae928eea59a3eb61b80150d2f9829f2df362548185b17b1f6472c71c2506f",
+   "length": 9156
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "robot"
+   },
+   "expression": "happy",
+   "sha256": "bc96677a33c594f5c20ac0ea13966dc56b24c98fa278079f7fd1cca4c3b197b4",
+   "length": 1603
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_right",
+   "expression": "happy",
+   "sha256": "34bb17f206166a21dde88546ad15444f0f5a2eeb598a41d26221b096797e5489",
+   "length": 7958
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "robot"
+   },
+   "expression": "sad",
+   "sha256": "63ea2b97bb1e767ff553fe726f8ecd131c3b2dec1222e7ed58c82757453fe8b9",
+   "length": 1661
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sad",
+   "sha256": "1549ffa8c13e647f30c2fc7b1cc5bbee2be23dae8108fc95d93c155574909ee8",
+   "length": 8016
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "robot"
+   },
+   "expression": "angry",
+   "sha256": "e280c2eb2645e73a6d77531dd18093309fb921e636c4fa499f3e92ce3f3fa1e0",
+   "length": 1808
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_right",
+   "expression": "angry",
+   "sha256": "100ce74b2869a5f9ea38511b440d7b9955989c370641bb8f60ff5cc283e903ac",
+   "length": 8163
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "robot"
+   },
+   "expression": "surprised",
+   "sha256": "4309e04401b6bf46f709ac06e45c929ed55da85563e18a5141272b67dfdc0ed2",
+   "length": 1746
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_right",
+   "expression": "surprised",
+   "sha256": "cc31dd220f12024126531da3add86e2b120a1784a6b4d6f72932470eeba9847e",
+   "length": 8101
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "robot"
+   },
+   "expression": "scared",
+   "sha256": "f9c8a2d40e1690f74ffcf19c6163867416af5fb2ac4b96deca3a972285c155e6",
+   "length": 1606
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_right",
+   "expression": "scared",
+   "sha256": "83b5bef5e9986f89a6c3d1cc23c72c1a9cafe81914aa9406b77fe5edb4c51f56",
+   "length": 7961
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "robot"
+   },
+   "expression": "laughing",
+   "sha256": "4a7d5c4328375200488aea017bc0d1b1ac1091a3b69d3ef9f68fa4a7003bb961",
+   "length": 1794
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_right",
+   "expression": "laughing",
+   "sha256": "48e813c1ca3173defbba8ab862041a562a55983c131f38d3015345974743a3d0",
+   "length": 8149
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "box"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa6c3769c6f0968ef4216dc4614c78bedfb01a53df7bd91427dad14caf469051",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "dome"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "73ae4e97731e63e1f294afabd7f1793b665e00d729307ca2164ecaebe8d2ef4e",
+   "length": 8352
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "d6ce7df70d4bdd8bce1f3d78e49ea69edf535911c4415ef05629895ad79105c9",
+   "length": 8057
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "eyes": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa6c3769c6f0968ef4216dc4614c78bedfb01a53df7bd91427dad14caf469051",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "eyes": "oval"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "91cf70c5de016f54ee6a9ab66ebd9aae29db49a206c92af14ecfb01b7ea33636",
+   "length": 7942
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "eyes": "almond"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "df2338fea76be93011854df6d7c56339adf4f3134ce1cb309e9cc5ad4b6cb39e",
+   "length": 8222
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "eyes": "sleepy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5d9caf48472cb67cf25f7247a4934ad1aa9fa8b1b6129e3cb65ac3e17383d03b",
+   "length": 8094
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "eyes": "sparkle"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "954c81065859f2ff86e1c1b1d961d4b567bd1b58329cfb3d445486d663082982",
+   "length": 8026
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "eyes": "button"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "002eb08b8b13cb3129da220d7113d73875ac835de30064d4ac751a27a41a2db0",
+   "length": 7822
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "brows": "straight"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa6c3769c6f0968ef4216dc4614c78bedfb01a53df7bd91427dad14caf469051",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "brows": "arched"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4c388510fc82b03459825226c7a338aa29ed4e1298741b01fdfc2f913ac1e3be",
+   "length": 7946
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "brows": "bushy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "854fe2435b108accad4871d70f99280730af3e134b3ce1bf973fa34adac6247c",
+   "length": 7832
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "brows": "thin"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "cd8b537d550e74e1c2e7a12ae826e16f90b243566a24aaef3acd660a7ec31af1",
+   "length": 7946
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "headwear": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa6c3769c6f0968ef4216dc4614c78bedfb01a53df7bd91427dad14caf469051",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "headwear": "cap"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "365cf5c526d987c63bae2e0e4d29216f3e0a41193f62c318ff65732ec78ec1a4",
+   "length": 8774
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "headwear": "beanie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "f013706a54cbd48e4096d8ee266801211b2d7e26b96f781e372e8e144a9b4413",
+   "length": 8606
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "headwear": "space_helmet"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e286206e984bb2fb10a2dc6170661cc37dedc9edadc57151f62f11f2ab434c90",
+   "length": 8423
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "tshirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "9bc35983d084befa5eb913c0642503e9d5b210e0a1584c35285e058be40c8891",
+   "length": 7756
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "hoodie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "dd87f9e7d6db37b230c6e99580bc02b187b6d60e0c38d1f955db981e267719e1",
+   "length": 8197
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "raincoat"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fe0a6cd22c8f0312357fdcde01c600e27fe3a79244449bef89d5b09b7da24f0d",
+   "length": 8079
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "sweater"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "686f898b39d60c2e719d6e3581d131d699bb6681536cd310620c1349ff90b260",
+   "length": 7890
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "jersey"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4b567af6876bc938b3279c0c3ec465beacada6f1f7e93cdc965b486b5129a895",
+   "length": 7992
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "dress"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "7509afed943b6fea95b2e63faef03c4ca84a079f15330c5adcedc9da18289d80",
+   "length": 8016
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "dungarees"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5446c71272b3334b47489414afbd274333ee7c174c4b3eed673476ff7522e0bb",
+   "length": 8280
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "superhero"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c51522c24a0b4ed5f6ca9fb48e1ff9ba56d910c38496498055194557f3197f8b",
+   "length": 8015
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "top": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa6c3769c6f0968ef4216dc4614c78bedfb01a53df7bd91427dad14caf469051",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "bottom": "shorts"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "9c322c1966b027252cb4e24243edeb072d07858c45c535611d08c375b68a4a22",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "bottom": "trousers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1b865f581936ed7fd718ed3020670f7569626a79dea93023530f9086e839269f",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "bottom": "jeans"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "689b68e26e002223056267b79eb7a8ca16f0e63395ee70c803cabf357615de21",
+   "length": 8041
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "bottom": "skirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "ea2f610b034cb068e575bc31fd7b3b0799758484af87c04ae66099ff0e9d0f42",
+   "length": 8153
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "bottom": "leggings"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5a072280155dd3ef961f28343bbd24d9e877a023646398185dfc15b691600469",
+   "length": 7926
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "bottom": "cargo"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4a808f6de049d75a73a0f5a8093ecec7eb34d3579f0f52a36116280927634f20",
+   "length": 8073
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "bottom": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa6c3769c6f0968ef4216dc4614c78bedfb01a53df7bd91427dad14caf469051",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "shoes": "sneakers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "3866bbef7b4200f0d7541973846243c2a63ca7aa71795ed5c68c53f736662495",
+   "length": 8026
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "shoes": "boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "948a6914cdd717061844202b0da7a881f2f4812b62a802fa5bc28406e4e7a1a7",
+   "length": 8064
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "shoes": "sandals"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "d7893387dc733f610367bf825a82ff972f43b1deda56257a7966db1996f80e60",
+   "length": 8262
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "shoes": "rain_boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "3a6dab1a0ad1d11650b8ba160a9dbfa963e913f98289af1df45861b589863e1a",
+   "length": 8316
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "shoes": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fa6c3769c6f0968ef4216dc4614c78bedfb01a53df7bd91427dad14caf469051",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "extras": [
+     "glasses_round"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "17fa1d069ee6ec32a182cd62c22972545ab755e29c7003e96f2a9d0f25e10c8e",
+   "length": 8473
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "extras": [
+     "glasses_square"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "ec2d47ad196d7196aae38e1fc68b71800a559b5e1873e822662cbabb495f8a22",
+   "length": 8500
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "extras": [
+     "glasses_star"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "915170c1ba6d2fc4dfabd7b3abfa48bcd1fc888aa41431f4212f00a7dc0e56af",
+   "length": 8639
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "extras": [
+     "cape"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "ca00c44a913e31ca997262e90a526a00ff29dc829a5ccf690ed2f220fe345f5d",
+   "length": 8571
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "extras": [
+     "backpack"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "c74381864161c223682cf74decd40305183903b598a683bfdebc0de5584cd1f4",
+   "length": 8303
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "extras": [
+     "wand"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "bb8f0367a51165028c1cdc6241924bbb56b751113421dae998e6442423950531",
+   "length": 8412
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "extras": [
+     "headphones"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "f8b680c65b2fe48e0467895eb05112c1b05b0b3632b0149ab07cc36da94f56ce",
+   "length": 8313
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "extras": [
+     "blush"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "17d6c65afa0bc823efd5393793d188004dee816cbf4a7f0de5ab14ec4400583f",
+   "length": 8180
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c40b99e7f54999f9e45414d29ce958fce3bca214da47d554f6b925ab09e73355",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "e7a235aad251c1c62f9840d94355349c54f92d0b478b93b40d34ffdda5be1bdc",
+   "length": 9561
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "109b71d9b4f889c2201a11e08bfcb0fecc3a8a3b67f2a187e46b587988a90a2e",
+   "length": 8577
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "27d624ad558c0e8359b06b5f4eb0bee36a571737243e3d2c96dce5bc0fac96ed",
+   "length": 7367
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "75b59eaa2c101cef06cbaa944b156f16cda567408bf02d11c280d10366c33c23",
+   "length": 9513
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "e71554543b8649c71f407673aab4df203ced989021b989270a8faf588cc46082",
+   "length": 8529
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "28e4177b0c30d3ef4b42196ef1d6f6642ec494b0f290dd30bad7d611bbb54032",
+   "length": 10039
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "40ed14daf78af22ffadb809fd0216279df909ac627ee174e9387186eebb39000",
+   "length": 10688
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "1f352da6699032b17e2f372b5cdaff46ba267449dfebe90a05c7fcdc30f591fc",
+   "length": 9357
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "6544c18420b13463f7927d049c8718a930b711e34d89a89e8c37a6724146fd6e",
+   "length": 10724
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "e319744cc7623cc59a78c774c9eacb37a50b32c8ef6ba0bda5f3c944c9f9455c",
+   "length": 10453
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "542062570fc98ed9543343bbfa0ab4c1277c177a7e009bb7851e523c89f99d86",
+   "length": 9354
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "200655a3b29939d1fafe132140e4a7c05c1c79c6178cb6ec3a24895bb8425ce4",
+   "length": 9358
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "82643cee9198ca3a4edfe1816f4aa096c5b3c33b401f4a848e009cd3098758ab",
+   "length": 9875
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "6eb4a6b4b16953994f673ef95e2f1dc0469b43e83dbf39824ddd1f40fa956d90",
+   "length": 10175
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "3efe5dde4fb8b983b0244677da74ed7e9a27dafdd8347dc437bd0b7f37a881e1",
+   "length": 10296
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "cat"
+   },
+   "expression": "happy",
+   "sha256": "77f00cb30b5170a43b420230f93630555edfd6e582b243c5bfab4c7612eda154",
+   "length": 2862
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_right",
+   "expression": "happy",
+   "sha256": "75b59eaa2c101cef06cbaa944b156f16cda567408bf02d11c280d10366c33c23",
+   "length": 9513
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "cat"
+   },
+   "expression": "sad",
+   "sha256": "3dc05f0b43c03df594b7fb4bb8a51da251adeb445e22e550833bb42dc186d05e",
+   "length": 2920
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sad",
+   "sha256": "f4752c0c9a1937d905b4cf8ccd3e473de299bbbd00164f4bcd04a82a3453f0a0",
+   "length": 9571
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "cat"
+   },
+   "expression": "angry",
+   "sha256": "e143450a5701cc7d1b1984fd56244b2d78d2389869eb5adad60a06bee36e5c0c",
+   "length": 3067
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_right",
+   "expression": "angry",
+   "sha256": "5a2dffcf72cdabd0674408c03082245ef27684af170b10c9be69233f60bb9157",
+   "length": 9718
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "cat"
+   },
+   "expression": "surprised",
+   "sha256": "b46ab8776bc4fa60a1a2cbdd20f485b61e57f0b636d5d6a35aa87211cf92a04f",
+   "length": 2731
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_right",
+   "expression": "surprised",
+   "sha256": "55712d40689308801db012fd31cadc79e5275d48f4dd4853961d85a645661168",
+   "length": 9382
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "cat"
+   },
+   "expression": "scared",
+   "sha256": "5c4a1cac242507a73c3776ff18f5210c2b3c6811632ac1fb5e2ee1c5cc90e736",
+   "length": 2865
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_right",
+   "expression": "scared",
+   "sha256": "ce17e768b93bf8109d7aa73ef758aba660dde7d5962f254e3d8519755b2f5f08",
+   "length": 9516
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "cat"
+   },
+   "expression": "laughing",
+   "sha256": "138e5a84aa7a2b8bf702aa62e83f2e9a044446729c8bc22c0220205eed54acc6",
+   "length": 2755
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_right",
+   "expression": "laughing",
+   "sha256": "8e8017183b7811acbfb850e36c6aaadc89722c0fc7bc3d3f8f65cb331c654e7a",
+   "length": 9406
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "face_shape": "cat"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c40b99e7f54999f9e45414d29ce958fce3bca214da47d554f6b925ab09e73355",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "eyes": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "93dad1a4db6b5b0339498639c1559806163931a16a5e4a909596b27e85ecd301",
+   "length": 9048
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "eyes": "oval"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "a484ac81377309ed524f81aa381c88653d9631289aa40e3c5a066a9c35ef2fac",
+   "length": 9066
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "eyes": "almond"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c40b99e7f54999f9e45414d29ce958fce3bca214da47d554f6b925ab09e73355",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "eyes": "sleepy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "86a8c9b59434e22560fe489312a2b0d9b62ba576ab620ddac32554ed56e49d6e",
+   "length": 9218
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "eyes": "sparkle"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0ca45f86d0b604b70138ac20c262ff8bf592fb0127627607633ed47b0a6e8a64",
+   "length": 9150
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "eyes": "button"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "3542720b27ab60ad8a46c2a0d15a5ca1f55be97a952a9b06c6bc7c1cf14cbcc2",
+   "length": 8946
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "brows": "straight"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "bef755c7247145a98b9d2eec6d82a8d9eba0d058ddb81429dd7d2fd3f680db69",
+   "length": 9324
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "brows": "arched"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "32d57634b0d6a999feddb5c7091c8617e88c585426aeebe5598b641d6ac424e4",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "brows": "bushy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "66599262e1ee3fbcf5a77cba81705701d346ba21b8f31248f46c08be71caa810",
+   "length": 9232
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "brows": "thin"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c40b99e7f54999f9e45414d29ce958fce3bca214da47d554f6b925ab09e73355",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "headwear": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c40b99e7f54999f9e45414d29ce958fce3bca214da47d554f6b925ab09e73355",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "headwear": "cap"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4b1c1063aca97d3b3132819b3f603dc1e5afff2fe7366cee8e8aeed46625f3b9",
+   "length": 10208
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "headwear": "beanie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "147e6b893825f767ebb8f9bae6415e3de813f80663886604d93f037cb2512939",
+   "length": 10040
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "headwear": "space_helmet"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "2ebe30347a095046417c30bb944f96841bc419ee82f44794ccdfe7ef36a8a9fb",
+   "length": 9857
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "tshirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "afe8fe163fc53189dfeeca44cff6d39ec52203c28a721d84450910a7515ec7ad",
+   "length": 9417
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "hoodie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "3f78cb37e11811c6992cd5c62cc5db2fa9fde91301fa76805436c9b2cab3cb31",
+   "length": 9858
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "raincoat"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "2392f7d04d51de876e46318db0c5ed091f3a55a772a2bb1e828ab89639aee242",
+   "length": 9718
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "sweater"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "ae47b4515ec58ff321b8368c80c8fe85f48cb9349b474477a448455996477306",
+   "length": 9740
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "jersey"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "768caa7b0236371285ace0951cb362b90544eb975efafbf1d6c8adc2f9326fa3",
+   "length": 9653
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "dress"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "88ddaa8bd6f9dcee3638f5f9a48fbc9258b2ab504d33c230fc5a580baa9cdc35",
+   "length": 9676
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "dungarees"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "99319d8d9ffba383f63e08fcf9cdf60adfdea2de779c1372823a67ac77db5479",
+   "length": 9941
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "superhero"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "79b015943d0386623d8157e816f9f52e3eb377ea77af96a68fc02949810a0fb5",
+   "length": 9674
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "top": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c40b99e7f54999f9e45414d29ce958fce3bca214da47d554f6b925ab09e73355",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "bottom": "shorts"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e384a198bae098a9409138866a19b65b36f02f4578d992de94c80b2e31637eef",
+   "length": 9534
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "bottom": "trousers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "88c2c98968defb9d7184dd93b7ec3bbabb899b6856f7e6c30f20d1d028bd9c1b",
+   "length": 9534
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "bottom": "jeans"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "31d04c38415cc6d4d947659b13bd2174f9e435ee560f1b5dc59bf7ff46c32d1a",
+   "length": 9651
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "bottom": "skirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "730431a1317ff09673fa57ca97989d3654ee1a5b5b30a0ca376c69d5eff06fce",
+   "length": 9755
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "bottom": "leggings"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "afc7f13dc54587798c71a3d8656dd3416b880456138bacd4a0cb74ac2d07e636",
+   "length": 9536
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "bottom": "cargo"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0e6f83c02823a6089c50db96e5538604a803243ad0e7e5937b3f34ac31bfea21",
+   "length": 9683
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "bottom": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c40b99e7f54999f9e45414d29ce958fce3bca214da47d554f6b925ab09e73355",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "shoes": "sneakers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c14c1deb30d5a05f29a62167f4c7b6456af3daf2f3c13ce1a409da1888e70961",
+   "length": 9122
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "shoes": "boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "f485d7d0f0f66c7fcf02aeb4e3c923e38ee99199abf47a148fc67f75987a3804",
+   "length": 9160
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "shoes": "sandals"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "47ec5e97609361d1358c54751b21e9f9a7b2bd64504e983bde2794317e007364",
+   "length": 9350
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "shoes": "rain_boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0797dbf72edbc319f50222c7a8e902f03d121c6fd983c8cf4e41ede54a755642",
+   "length": 9412
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "parts": {
+     "shoes": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c40b99e7f54999f9e45414d29ce958fce3bca214da47d554f6b925ab09e73355",
+   "length": 9346
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "glasses_round"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "2458f94bcf2c9f3641b4b00465d3a17eb873431ac65ae4944d4bca129d84ec64",
+   "length": 10040
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "glasses_square"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "2669e4829529297a8e97bcb844eb14213302a423a4b49bfd076066e445e79889",
+   "length": 10067
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "glasses_star"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "308f51a512a69306cb323d80d34b57efb3a84c67ffdf0a6d0dc54feb0b7d53f7",
+   "length": 10206
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "cape"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "17a5f636260ac874ffa73d87ff9f858cf1fb10563764b60c3400d3c4c15cd1c5",
+   "length": 10122
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "backpack"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "33494f5ca20bfbb0bba076d665dfbf33721c3d289740ba4c00e264ff57e1e328",
+   "length": 9858
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "wand"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "9d0744b59a65cd64287bff2050faf8bac86591353bc76ad5d37dc7aa6b1d4783",
+   "length": 9965
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "headphones"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "27ab714b6bc47e7070746503f12e846ce425a8c89db20084387af59e5191faf0",
+   "length": 9880
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "freckles"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "1830ecfcf1580a592b898b2fc42f9a6bb7ab1826800b04dafb8d448dc563c10f",
+   "length": 10166
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat",
+    "extras": [
+     "blush"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "5d5a71dbe1ff717cc9048558d8fb86f0fc6b1e755c11c4f0911a8ef6c85a7642",
+   "length": 9747
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ef81ba3f3ab84797f4e919715bfe4dfb4a1f3ac65d77a73b1a9592cf4241ba4",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "a215ed237dca14d3e371a9ce20f6d48ff504df0825fa17bec11a1d830847d37a",
+   "length": 8326
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "f6fa182730ab540f39d801be5ae774defb067787a387313c5dedc0942417cc29",
+   "length": 8010
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "f43783bad8667c66bedfa65199e312ce12198ee2932f4098886337070ee34950",
+   "length": 7471
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "a46d15a4b686dc5fec8536dbb39521dc6f839b3e597af189ea0b8d200aa704ae",
+   "length": 8278
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "b2932255391c887688becc529147028dda5c47e496badfac9064aa0a7c50876c",
+   "length": 7962
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "afcc49112aca0e72526c772d8ad291ab71ed30bdb87038dd032e81daee52f586",
+   "length": 8788
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "55d120171b0cc3f9b4f7a333e7077189a1786e3b7fadda02ff0825391bc19f46",
+   "length": 9415
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "8ee56afd6fcfeeed1ad37fde8a40142bf154443aee8e05081f18223ec1899c48",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "9b9cff104065b09323581081609e7aeda7f3a856b46dc9925ba42d069fd2fa24",
+   "length": 9462
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "9373fd2b3e52787cc93e1a9bcf7c33c43b44f038b691aadd264cb648a31cffbb",
+   "length": 9877
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "3c883adbedb3e905829c0a1c0d15fce63c9b5700e75cb74ee7c0104278523adf",
+   "length": 8395
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "3d3f9cff28d6fb363e1ff68e27c5775dc20c50657824706bc0c05249c6d315ca",
+   "length": 8399
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "c65096026e5127f0ceb9f5f2d6b6301635bfc14d5788d1e19dc889dc5ed40d0d",
+   "length": 8906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "323752c487c14e49c7b9a0826b93e42f79e8b06c1c3bdd2361e97f28caff19be",
+   "length": 9322
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "476745e9d7d84dfa0b9197f8c73b153cc661224685d2818330833f4895a5f229",
+   "length": 9721
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "dog"
+   },
+   "expression": "happy",
+   "sha256": "50cb7dfc5fa36ab81b506f493d16b5553f5cd1ef270bbea45dbf1c2d0c8b3462",
+   "length": 2039
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_right",
+   "expression": "happy",
+   "sha256": "a46d15a4b686dc5fec8536dbb39521dc6f839b3e597af189ea0b8d200aa704ae",
+   "length": 8278
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "dog"
+   },
+   "expression": "sad",
+   "sha256": "b2e4ad0128d4079ec37bc96f10a032a1fd7cbb976c67d3bcf7b656e514595b6f",
+   "length": 2097
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sad",
+   "sha256": "329d4c8311559abdee18edd09f49004848b9e4603fbd499d2d9fba69f1eb418f",
+   "length": 8336
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "dog"
+   },
+   "expression": "angry",
+   "sha256": "bb2b3b88553ccdeab5e7a41edf93e8f9f114ccbbf58cce2be13b2f22d05902ac",
+   "length": 2244
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_right",
+   "expression": "angry",
+   "sha256": "ded1369dc0aea381bbf2a9999e3d82de564a5e7868f37d5af15c8ba0e5c505d7",
+   "length": 8483
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "dog"
+   },
+   "expression": "surprised",
+   "sha256": "1d9b24a11fe190e44e063e03c3f87e2ec0ea6296f32472b3ca11cfee095ca84b",
+   "length": 2284
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_right",
+   "expression": "surprised",
+   "sha256": "e71e4ff338cd7fe22d9b7800b451eed696959c8f1902340fbda5618e108597a6",
+   "length": 8523
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "dog"
+   },
+   "expression": "scared",
+   "sha256": "759891630a19d2c481c88abae1d0233b564067be22a3f7a45fae3925a9e2ee33",
+   "length": 2148
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_right",
+   "expression": "scared",
+   "sha256": "b6b696c4b32954685a9a644a77f976953026e3d04948c14100a9ef741c120e9c",
+   "length": 8387
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "dog"
+   },
+   "expression": "laughing",
+   "sha256": "66cf1febc0684f37c6208aa1269cf5eb78de72a901c3e96b5b2ef3570da64675",
+   "length": 2332
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_right",
+   "expression": "laughing",
+   "sha256": "b21bf2b65fcd13a8430de469214cb5b94fcfdbab3fef0af54fd042a325adc33c",
+   "length": 8571
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "face_shape": "dog"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ef81ba3f3ab84797f4e919715bfe4dfb4a1f3ac65d77a73b1a9592cf4241ba4",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "eyes": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "07761dd240b583b1942d1cc382872351aa21e7c9e9ad38aeaa24c67275b6fcc5",
+   "length": 8489
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "eyes": "oval"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "85123b9379035896dd9cd985420f8a2e41eb457ee7e1f1d0f58975f68c784b24",
+   "length": 8507
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "eyes": "almond"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "81b61189347a89e4339aff6c39161e76152f868f4e8f723aee5b591c6db7af63",
+   "length": 8787
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "eyes": "sleepy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "61e846595b8a653de4a13f38a01677061f28fccae74706f46a8bfa5bd17acb26",
+   "length": 8659
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "eyes": "sparkle"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "684078bf01865e19ac8e466a727ca7187e62d3c485cf305657d887bb273709fe",
+   "length": 8591
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "eyes": "button"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ef81ba3f3ab84797f4e919715bfe4dfb4a1f3ac65d77a73b1a9592cf4241ba4",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "brows": "straight"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0d9bfeb3cddb5ff42c5c42feeb0bc2bfbefcd3d56dd922871add877607998ac8",
+   "length": 8365
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "brows": "arched"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ef81ba3f3ab84797f4e919715bfe4dfb4a1f3ac65d77a73b1a9592cf4241ba4",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "brows": "bushy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "b77ccb045b6ee7904cb13c848937d3173a5dcfca492bb94dad26c107f63bc491",
+   "length": 8273
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "brows": "thin"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e4c273a15f7179098ca41c8114bac46f59d6222314f5c1744305535960a97b0e",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ef81ba3f3ab84797f4e919715bfe4dfb4a1f3ac65d77a73b1a9592cf4241ba4",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "cap"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "f3cad0a283798769136b8c6a87f1a882019f75648b9bd12c699f20bc191f3222",
+   "length": 9249
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "beanie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "1c09769841abfaf625fa420ae32097b6608937ef6af4571a18af4f65d2c3249e",
+   "length": 9081
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "6850cce356a8dd6f2b595bab80c945eb832a88aba5cbc86898beab64898b8dda",
+   "length": 8898
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "tshirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "2c732ace940167d2da0ad276bca2a133c70c2505bfe3123557b61100ae66df1f",
+   "length": 8458
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "hoodie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "391cb9ff6e6c451db68b5e3b1f19b5b947a23a6fc1e4cbfe144a1ca49b51fd39",
+   "length": 8899
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "raincoat"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "a7787ca08a606c703a019fe930eb7287b5c441dfa9b7f373f48c666abbc26f20",
+   "length": 8759
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "sweater"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "49396943f596ad9cbb478a0b22cbc4e0256df889b4de8ff32511796071903352",
+   "length": 8781
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "jersey"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e10c251485bbbb80bfe0845d9fd258727938dbc95f5b26dbaebacc07361810e1",
+   "length": 8694
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "dress"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "3c842c1c3771a3c8119e4ab5517b3a962ca088eb915a60f4c3e355ceef1dbe55",
+   "length": 8717
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "dungarees"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e6d94786904f65ad00ceeb07aea1f6227b15451f2b23e46085a0410f4489ab28",
+   "length": 8982
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "superhero"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "d7b5ed13796c83723be6ec36cd9d9a70d7a2e653a7ac367f205327bb3c1bc2a1",
+   "length": 8715
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "top": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ef81ba3f3ab84797f4e919715bfe4dfb4a1f3ac65d77a73b1a9592cf4241ba4",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "bottom": "shorts"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4630b061d02c04d6eba9ad83f8a1380e27211e885b94845003a1735cb8ba4e23",
+   "length": 8575
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "bottom": "trousers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0f0ebf8044c7e30478a9e014be53f57f67760e0611300c43606490b249910e3b",
+   "length": 8575
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "bottom": "jeans"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "2f153e76c3a9599b9830a73f20af94b812a296d6164bfd2dd631b92bcec3f9a4",
+   "length": 8692
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "bottom": "skirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "d7e4f5f58cee026389933618df9e63a244f93f8a785d3e7133450c70783bac40",
+   "length": 8796
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "bottom": "leggings"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "af2d22e66ec457007b5365d12db3666d9dcb8c16280312d1ddfde41be9b7b247",
+   "length": 8577
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "bottom": "cargo"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "74cc3696920f67fa7e01c58c86649ef39ce09077b42377b520bdf72685daf996",
+   "length": 8724
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "bottom": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ef81ba3f3ab84797f4e919715bfe4dfb4a1f3ac65d77a73b1a9592cf4241ba4",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "shoes": "sneakers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "f2466d701b77f146b6fdc1164458d9e54a60b7207bd34dded89aece07710f7f7",
+   "length": 8163
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "shoes": "boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ea938c59d5f30d65d27af527dfbb54dfee0150279df869b1d502f91803bc970",
+   "length": 8201
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "shoes": "sandals"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4f8146cc5a8ff1f3d6992c9a59d482abae933b19a7495f7a8772ae786773f508",
+   "length": 8391
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "shoes": "rain_boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "b0d892c0331828082336aba0be127819f0e15b91a61aee5894384ced374347ac",
+   "length": 8453
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "shoes": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "8ef81ba3f3ab84797f4e919715bfe4dfb4a1f3ac65d77a73b1a9592cf4241ba4",
+   "length": 8387
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "glasses_round"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "777700f33173b3da8c74d6ed699a6dc886c1f46be8e26ed57e2643ced418acc4",
+   "length": 8805
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "glasses_square"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "aa1d1197ea1bbc3173f3b39e2928abeb73f179103fd5e5a676bd3f748a859350",
+   "length": 8832
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "glasses_star"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "5ae56e2e7a4a00c458ccb73ea88f7c1fe50e3d9ffd9984f80e779e86ae459a17",
+   "length": 8971
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "cape"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "594b9e48c9dfe7f8fbdb7301c7ae22c36acb23d02f6cd740627a1ba93f5040f9",
+   "length": 8887
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "backpack"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "1bb79bc336ade29a47d168760fe860eca7acda7bbaa1d42d8750a11e84f55f7d",
+   "length": 8623
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "wand"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "8abba21c3e4a1b4cfe54b25e935412904a5e43af7360c598a550c114f22a9f2a",
+   "length": 8730
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "headphones"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "9227ecad64fa24fdeecd4280c97c637717399f2ac8015a200a570c7e5ea77de9",
+   "length": 8645
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "freckles"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "2bfc4dc4a650df7a34b400b92d81d78809d0b4b506d45a01f74e51db4491349c",
+   "length": 8931
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "extras": [
+     "blush"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "7306dd7fbc33ac2ab729ae106934a86b736853e1be456e4d5e52a2673d48a227",
+   "length": 8512
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "98e013ced2b2c2030f887733d04fe71e4959691e554c24dfddfdb2e372311a94",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "93c5ac0a41d649b93b188a16fe53ebeb965ae01e5a549301cd9a89a024ff54ec",
+   "length": 8232
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "b83b5369c3d7ed7aaf549794814793297cbeb2ddd87333e7700e92b24ae6a155",
+   "length": 7731
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "6aa3fea41d365d449f362f96724c2bcf7d51709ce0bfec1f8ff4c3cc8d606ccc",
+   "length": 7105
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "b6e99d8e41630c9350bb0e034da516a70019eb0fd272902272ef8b30c78db717",
+   "length": 8184
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "2b6d8e8c7acc375e59cc25b41c6847ffe2a176edb648294df7f198136bf405e0",
+   "length": 7683
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "e353d6eff4c31bbd38f72a04d760305341e459a1dcc62469e72c996cd56500f8",
+   "length": 8694
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "ff5cf0dc0dd93cbfaaaf68d6c5948e673040cbd39f9f27796ea3d376d157e249",
+   "length": 9321
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "da03c890322bb02eb44d1b0d61d4eb99edba50cb69c6e151bf3937d2f3d36998",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "333e332f7d28ed450522926ecfcaa84db01a85aa0dc52fa592c5dd88cdf13a6b",
+   "length": 9368
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "693c2d82c7d6edd026c8233733a6751eb80d8ef1d0c2f0dedbb0e43282ebb835",
+   "length": 9281
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "b4192b072b060e2d70c8a471ed424e0a23ead8eee773cffeacc67759a1f5cb0b",
+   "length": 7914
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "e4d3d9895869290331158def0fad1a16d3cedb85df2155af117f02563fabd662",
+   "length": 7918
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "a7a8fd4d5b32e0f9fcadacd931ac3a13a2d52dabb6cbbf05e5c90fb81d685cea",
+   "length": 8425
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "a7fcf218f7cea32305940519c3fbe205ebae63f9f5a8bc075c75d68d4845bd47",
+   "length": 8735
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "6c8f519e0d66abcb9cfc739ace94b213911570c557f8c4579d4214618ef16941",
+   "length": 9122
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "bear"
+   },
+   "expression": "happy",
+   "sha256": "5129a17612563a588658a6ab9257d665971ee4bbb8d263f77d448e8b7c900228",
+   "length": 1922
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_right",
+   "expression": "happy",
+   "sha256": "b6e99d8e41630c9350bb0e034da516a70019eb0fd272902272ef8b30c78db717",
+   "length": 8184
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "bear"
+   },
+   "expression": "sad",
+   "sha256": "4f512d617d90e06cf0b2bb7180b8265454f946ceee524275e5b35e63f91252df",
+   "length": 1980
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sad",
+   "sha256": "898ffb6b03c6b090dc119b5c17cd1459d9298bb192a8ec85ec0535b3f7c214ac",
+   "length": 8242
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "bear"
+   },
+   "expression": "angry",
+   "sha256": "8cbd606bffbd2eb1adce2ce787374183a02aee8473f053c3492c049700dc7761",
+   "length": 2127
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_right",
+   "expression": "angry",
+   "sha256": "6f11eca0f4bf94abbd53689d27871e1f2cf84c42ac5c13c24eb85be375ea156a",
+   "length": 8389
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "bear"
+   },
+   "expression": "surprised",
+   "sha256": "8d8b337971340a074a9a3abdf57888beeba9c3de498c907f68bc31997a42a93f",
+   "length": 2065
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_right",
+   "expression": "surprised",
+   "sha256": "462cb6eb6435bb758f12b07903ca2670323d05303d28223dfac9e2063969c826",
+   "length": 8327
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "bear"
+   },
+   "expression": "scared",
+   "sha256": "30864f63ee61b9d4ceb66d8ceac5b4f73e4d0c846d0589296e9b6d281d1ce271",
+   "length": 1925
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_right",
+   "expression": "scared",
+   "sha256": "e51d249ab43b6ed148b4d00eff13a24b254b1a3fa1df04c210b24b25ecdc58fc",
+   "length": 8187
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "bear"
+   },
+   "expression": "laughing",
+   "sha256": "5ed9f57ba853cbd73969c0ca58d6e6fcee0dbeb6f2a7c6a7527400ec4129698b",
+   "length": 2113
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_right",
+   "expression": "laughing",
+   "sha256": "a1c467a4e5561212d27a90afffb3e74f4b6d8103d5fa1bd64234526c9598bda0",
+   "length": 8375
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "face_shape": "bear"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "98e013ced2b2c2030f887733d04fe71e4959691e554c24dfddfdb2e372311a94",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "eyes": "round"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "98e013ced2b2c2030f887733d04fe71e4959691e554c24dfddfdb2e372311a94",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "eyes": "oval"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "a57ec1c990e4889867703adaa169c2fc84e92cd4371cc1ee2978d6561f5e2f31",
+   "length": 7924
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "eyes": "almond"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "86324ad89f20ab541536d5d96919c6b8085384ca26a617269c1adea9ba5db568",
+   "length": 8204
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "eyes": "sleepy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "2a697e21d15af1a24653be262caeb4ab979ad2a2d43e0dda928a878a7e9a57fc",
+   "length": 8076
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "eyes": "sparkle"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "a454bde802af9271bb970810d1dda075a4f84e29b4f1a4a2ec36f49af7216650",
+   "length": 8008
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "eyes": "button"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "5e6e7aa4008d69351158a54f3628b986e2e42e428711eac4b11f70e84746cdb4",
+   "length": 7804
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "brows": "straight"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "19e34f988a8c1335142451ab091e7d24ab159799db6c819a35a05f660de432db",
+   "length": 7998
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "brows": "arched"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "d59e5119ae088b8a884b795f02b787870fd46d7366c3e5b4f2ad9409bbd561b4",
+   "length": 8020
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "brows": "bushy"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "98e013ced2b2c2030f887733d04fe71e4959691e554c24dfddfdb2e372311a94",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "brows": "thin"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "b0c6324d14c11ced96b518ed38973d75d00931d9cfe5845dc351232f7cdcb8d5",
+   "length": 8020
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "headwear": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "98e013ced2b2c2030f887733d04fe71e4959691e554c24dfddfdb2e372311a94",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "headwear": "cap"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "95e9e842cacdce06661d8757b1db1f1168b0330197b76c80a1a66608c6d65c3d",
+   "length": 8768
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "headwear": "beanie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "c44ba363c5c3ca7d3e7bc9c5e256d6764d9159c8a9176fec00555f35148eba5a",
+   "length": 8600
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "headwear": "space_helmet"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "11423bce5b7e41c1f0b5ae27eb0fd9e4c9d62f91ff755153b38c5caad829f3a6",
+   "length": 8417
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "tshirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "9c7aa46fa6b88cd3b9c52ed19197b76ab3c4a31b4fef4d12ca278edc93319cfb",
+   "length": 7977
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "hoodie"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "2df357749614cfe7abd96fa683cb3ed634700c72b969d1f6713c2a52387df017",
+   "length": 8418
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "raincoat"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "d995bb10774e4599cc3dee0716ac0dddeee34acb3e781c54b8cc504892e76a16",
+   "length": 8282
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "sweater"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fd50f6a2fdbbaacfb396a3557b7ee437b2c31d8a62b8b1dbb594b031bd43800b",
+   "length": 8292
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "jersey"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "384eea87921a74bd2778b3477076f264c3ec1d4a6ffcb2b9922b3e3f2421232a",
+   "length": 8213
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "dress"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "fdf528e719e7534cc8fed500e2bbe4901bbef5c9675fd78fd3c936692876b898",
+   "length": 8240
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "dungarees"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "ec7c92daea33aa648da5450ab9fde8efcb1afdb723dafc793761e3b81c669dbd",
+   "length": 8501
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "superhero"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "78c3f63d193604697a9b103bf4ae916a9542ae960fa52e5a213a651f82810ba9",
+   "length": 8236
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "top": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "98e013ced2b2c2030f887733d04fe71e4959691e554c24dfddfdb2e372311a94",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "bottom": "shorts"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "171cac446a68e735e10f11544875276580a1113dbf7edcc7bad547fc67df5805",
+   "length": 8096
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "bottom": "trousers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "b53d1600b4bf9c2493658032d33163839276ed1258760b345ed13cb431c5cec4",
+   "length": 8096
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "bottom": "jeans"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "2b85adcffb7939a63a17c8810a955d116750388bf56292b180806c159f261427",
+   "length": 8213
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "bottom": "skirt"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "cf92464983a8a16f0f559ca5dc73ea59e9c3cd27f56910f3261f8ffa4fb6a1f3",
+   "length": 8339
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "bottom": "leggings"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "43229d9a45df58971dcadebe5e34f31206fab29a48705a3aae1c48463e04fb29",
+   "length": 8094
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "bottom": "cargo"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4d3ff0a852fff85d5abbc7bb199dbbf7255529db04e39d7940043e2b48ae0d19",
+   "length": 8247
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "bottom": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "98e013ced2b2c2030f887733d04fe71e4959691e554c24dfddfdb2e372311a94",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "shoes": "sneakers"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0c0e89717d1cbf74ff0f67941ed45d4ed5b00d56098bb20997dc161829232bd6",
+   "length": 7682
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "shoes": "boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "e234aa5c3feffde3eeb221f146b4326ba8c7549813f86a4d6cadc04e1dd2c75d",
+   "length": 7720
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "shoes": "sandals"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "12c7f8205f24d0725684235b631f7abe6bffe0fe4a33071b8fc053286d8e4d21",
+   "length": 7914
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "shoes": "rain_boots"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "33acdcc26cf770728a8e2b1719edd94a43179a55231bf62885674166f1e57473",
+   "length": 7964
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "parts": {
+     "shoes": "none"
+    }
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "98e013ced2b2c2030f887733d04fe71e4959691e554c24dfddfdb2e372311a94",
+   "length": 7906
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "glasses_round"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "26417ebafeaf0582b19505ccfc0486f625cf27d1ae95e8cbb91e3d13f3e2fa08",
+   "length": 8711
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "glasses_square"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "2cad8923f032cf6f085d77efae5f32c7a4765c1cea4f6c18acb4a262a5efd74b",
+   "length": 8738
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "glasses_star"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "1f3cbd2204a6ed431ad40b543490712ba3b5e2c05e804544fd7aa613caf7c1d6",
+   "length": 8877
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "cape"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "44a9cd0848abf91311453ed097f12e32a7bf53898c0ec190d04b3c7864586444",
+   "length": 8785
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "backpack"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "6763f92b8dfae91df91656624f049d247fffabb57a29030a0985280978aab106",
+   "length": 8529
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "wand"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "8b863f022bbe132309ddb84814e6e3de2a4da33ad6954bf044ecc38683f76a42",
+   "length": 8638
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "headphones"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "6de5cf7567a8bc52f628a2562f9f1806c2bf0ebda2a7dcea4cd458cf10bcbefb",
+   "length": 8551
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "freckles"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "1089a42e4caa747e9d72032c9b47aaa5bd7078e19dec3d7dbc42a24804634381",
+   "length": 8837
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear",
+    "extras": [
+     "blush"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "cf3250ccfbb045b17ef5966c413898be1a9c2f03160ddb710b4e9f9aac48bf54",
+   "length": 8418
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "0cd621722e2f5f33d4ca840b1410c407743ad6a0eb88815355490042587306f9",
+   "length": 11901
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "a0448ceed0584e16adfaffaeeb184665dfb6586b2b41452164873b45c6d539dc",
+   "length": 11834
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "728f69f9cdee7422897e22de563f17feeffc5a75fda2d85ac65a797b0c4f11a3",
+   "length": 10472
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "eead9c9d2c425bd01d9312b267e2dbfea8d94a19955e0130a51681a4faad18e1",
+   "length": 8882
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "27c2d0b97bbe3fc1984189bc975c826ffd14879f5b4301703c5e479992e85c82",
+   "length": 11786
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "c5310215f9fcd53965731dd0b35342c1dcb9deb167b9becf310ad534f3795dfb",
+   "length": 10424
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "e5c7195ba0ffeace9aa941455dc2bc86d63585d091a1f7f6df602c5d20cd4b08",
+   "length": 12425
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "c20f7ad3a9f093e2be3639809f704ff50818b30d1068532604d91492c5dd19f2",
+   "length": 13207
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "6f5a011ffe34b2cb7e0e3df88937934c67364a0f048ed7904e1c23185fb696bd",
+   "length": 11945
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "f5592dbf4158fbb65b4a9f65f877233ac68e038ce1cf9f7870cd1c0ad943acaa",
+   "length": 13199
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "f1741e34d48aa6b728630917fd0288c6fbd2d00604c61aabd658d413e1bfd56a",
+   "length": 13427
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "e3fd8fcf49d6f103edd10b3ffda7c5b215004bf9a8a4172bc1b2329e5a716a64",
+   "length": 11911
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "fcec4feb1cd03693a3cd0494ecf32c36d1edccbabcadf3240d669cf3dfb6a79b",
+   "length": 11914
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "3764f35fc8eb7a8abe14c21cce62bd40779e681ece5390639acebd1e28dcdaac",
+   "length": 12459
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "82b9caafa9e8916852e8466cb46e340290728d2f7bea8bba855ca5a62e4aee7b",
+   "length": 12720
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "b850ed0f59b5241e5995b7dd4b23d72caf34fc0b3046df5216b4e908c5f5f742",
+   "length": 13263
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "expression": "laughing",
+   "sha256": "c105826aade9665f03aa0565e98c744b87261ee46382e2d7b6d5b876c61ab99f",
+   "length": 5015
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "f6b5c09c66022db8cdccd310555af1a22d5c3a30781ff57e83b82470655f9aa5",
+   "length": 10758
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "47f5818c975f454164088f9e1084df25830a7dc1720c832451902aafec2409fa",
+   "length": 10467
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "7b22b100009c37cdcaaae6b3ea25ac1b5016888e3a7f122c15bcc0491f615243",
+   "length": 9718
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "90519b61dd99d11c862287df14ee8422f50987460ff1ea0c22f216a32e5a6631",
+   "length": 8478
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "e6a4d39c1c08533f3b594a7bba648a356cd0e7f528fda158803188b999901fc4",
+   "length": 10419
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "1550d2e61926b54c74d921a6f1e77215c06734f3581682e633f7b75a0d559049",
+   "length": 9670
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "685b278750a6eab5876f776655ce3a8fb268594e2145264ad9974bb5afbf2335",
+   "length": 11041
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "f57e08f3a45033e190b3990c2987ddc012a4cdaf141df7460f1887a135590c2d",
+   "length": 11811
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "d0777644cdcb164eeceaaf037f835abc5ea58440fc2382813353fb91b6bb7cfd",
+   "length": 10813
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "8f60fb0453333a0f20a51af682b7f69bfbc7d47e0a0d01c1b18ee919c17f83c2",
+   "length": 11803
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "20b84b276d4946ee5c428a6403d2c051056a462227d87d95ce33f47937396ed9",
+   "length": 11971
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "a6d21827bae24fe8ce2c07dd34fc9f107daee08e5bb24a284618e45357a01d6a",
+   "length": 10766
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "55a2cb06316467241b4c68b459daab03367dc2af9e319774c06b0b64f6a14ad5",
+   "length": 10770
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "ad2294b5fea2de685334c6cb3e76745847427ce676c92854f091b154a8c80968",
+   "length": 11327
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "71c8e6450682bdfc37cfd09f0ecfb5a48391970ac2aa89e965b2ec5fb222dcb3",
+   "length": 11587
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "8a9b0d18275e2f199fac9449221f64beebf1c8bff0e1090584667e52d9ed9b03",
+   "length": 11804
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "expression": "laughing",
+   "sha256": "2edf54d833c13eeb45e2efd221b7b3161b97260b77a02a887047a98109d03aef",
+   "length": 4060
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "4f3866c78bc1abe320e519cc6e525c5552ab483ca230affea376beaf0d79565e",
+   "length": 10219
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "afd35ce432eceaac5439468cff1e87331f9bec17ad2ced840d39e5d7f8561334",
+   "length": 10240
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "d241e9756d6553071a10045822890fd791dcda2dbf1b012e8c349cf27a298d34",
+   "length": 9489
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "ab5decf4bb6347c6308d8271f17e522528b36b8e7cdb961f339522dd0eef1127",
+   "length": 8230
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "9c4fd34d7563a4a0f70a390702d7907a4c2917ae630a0bc724e000faacd250c5",
+   "length": 10192
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "a8d01b421f662363cdef944498a49c89e82fa676a291af44da3b08c8108ab70f",
+   "length": 9441
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "b2dbebfb13d9a4c298bfcd77cb5f40b039406dedbaad499bfae59e520660a4ef",
+   "length": 10782
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "fe93dee98620cefdd3fdbbec231aea65bb72bbe96444b94050764dcac1b44b45",
+   "length": 11497
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "d7ed519e173f7918df923ff9bb48465baf6144653d6b8d44549a491572e897b5",
+   "length": 10241
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "8c0f4fce671f9cf913304f50e7eaf71374003e247478e1f9f9510d467d60d66f",
+   "length": 11522
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "6d7d7cf0a9b08064d0c3e68293428a0654d024062acf9f514cc99bbed249c72c",
+   "length": 11590
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "759f6716c5956f090177d37cbf0c60c9b10b318f65721b804508a53b70b43a21",
+   "length": 10227
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "78c7c2f2c79d027b2ad84b1623328652cc2867e1e0d3fa4a942e2b7cd69bebdd",
+   "length": 10231
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "685b7dcd80ca0429564cd0ba47e37d5907599ccc68efd90a14e3a4d931a3f0e0",
+   "length": 10746
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "75bf6708620bb5d1841b532ac97ca2bc71c8671b0c3afb99e3ff62df67355dd8",
+   "length": 11040
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "ce4466003a97cf9e7e136e046002a072da41cf03425a82c1abf0a4c58279e049",
+   "length": 11429
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "expression": "laughing",
+   "sha256": "af19244c34fb44f857f03e4819eb8dd8558c5cea2eb368ddc2c036f048ece402",
+   "length": 2961
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "front",
+   "expression": null,
+   "sha256": "ec5dd66d122c733628003a90e8ef9aef00e9f429f773e1f50772cea19af595ac",
+   "length": 9884
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "three_quarter_left",
+   "expression": null,
+   "sha256": "3016cc94f2539d1c9b0ec326636f6bd3a31e11aebed10a3e71d801512d350eb5",
+   "length": 9704
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "side_left",
+   "expression": null,
+   "sha256": "9fc2fcfa6cf1464385fdaf8d7a3bb1e57a2c3ddfc8c6e408034f161afe47977d",
+   "length": 9388
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "back",
+   "expression": null,
+   "sha256": "972c326b744541457ea930e28f2e41d491127247763e149a2760419bca82ef0d",
+   "length": 8841
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "three_quarter_right",
+   "expression": null,
+   "sha256": "cbdcec061f180df936fc2da67183d16685a116424f20b116899a3a830c88346c",
+   "length": 9656
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "side_right",
+   "expression": null,
+   "sha256": "3fe7ccd664efee62364be7d2df70d0fa26210acea3365d0e20e6892381203f91",
+   "length": 9340
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "walk",
+   "expression": null,
+   "sha256": "1da46fec78c5e5adfd5c044a6c044354b6aa84c3b3b1bd5282a91d859e27e79d",
+   "length": 10231
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "run",
+   "expression": null,
+   "sha256": "bb1c48b803d9c9c488db1ab4fbed41a530774868aae52cb4b627ebad6ce970c5",
+   "length": 10914
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "point",
+   "expression": null,
+   "sha256": "520dc10e4bb629a943713ed414388b604c78ef6772b059c3bf1dec348c142d9b",
+   "length": 9884
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "sit",
+   "expression": null,
+   "sha256": "c8c2734f8ff320adad4da65e122a9ea30f4b69e23b95bba2d6032f23c756c578",
+   "length": 10950
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "jump",
+   "expression": null,
+   "sha256": "c442d236136714f472f699c7943295e4486111ef427fec2ffaf867296bf29a29",
+   "length": 11444
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "wave",
+   "expression": null,
+   "sha256": "a1c9b21d1367f2b26e0cfebce56bf0818698b1d5f96031f6baf6ccee588d8c16",
+   "length": 9894
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "hands_on_hips",
+   "expression": null,
+   "sha256": "d7378a92955010bddc039db0746a97a881f9316ff2fe76a5ab3e1fb268fd80d1",
+   "length": 9897
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "thinking",
+   "expression": null,
+   "sha256": "417e906a8f28dc67909dc5ea268a403128580da8f03382d588ec2f146cb83f58",
+   "length": 10414
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "scared_pose",
+   "expression": null,
+   "sha256": "76eabae94b011b52f87147681bb06bf4f6010e1c22326c3d394fa600bbec97f5",
+   "length": 10821
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "celebrate",
+   "expression": null,
+   "sha256": "ba935a172e0a184a80c8cd0c5979ae3af40e90ad7c84242cdf54d0c4ffb4ab07",
+   "length": 11284
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "expression": "laughing",
+   "sha256": "44c6602cc2dc4ea76840f60f2a454a2bbb6decbdd4f6d23b4db59430d0d5d0df",
+   "length": 2759
+  }
+ ],
+ "samples": [
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "wave",
+   "svg": "<g transform=\"translate(100 128)\"><path d=\"M-15 -32 C-8.83 -41.83 8.83 -41.83 15 -32 C21.17 -22.17 24.5 16.5 22 27 C19.5 37.5 7.33 31 0 31 C-7.33 31 -19.5 37.5 -22 27 C-24.5 16.5 -21.17 -22.17 -15 -32 Z\" fill=\"#CDAA37\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(0 -34) translate(0 -27)\"><circle cx=\"-21\" cy=\"-25\" r=\"10\" fill=\"#FF7FB0\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"21\" cy=\"-25\" r=\"10\" fill=\"#FF7FB0\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-7 0) rotate(3)\"><path d=\"M0 0 L0 21\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"13.3\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-7 0) rotate(3) translate(0 21)\"><path d=\"M0 0 L0 20\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"13.3\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(7 0) rotate(-3)\"><path d=\"M0 0 L0 21\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"13.3\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(7 0) rotate(-3) translate(0 21)\"><path d=\"M0 0 L0 20\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"13.3\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-7 0) rotate(3)\"><path d=\"M0 0 L0 21\" fill=\"none\" stroke=\"#1F5BD1\" stroke-width=\"8.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-7 0) rotate(3) translate(0 21)\"><path d=\"M0 0 L0 20\" fill=\"none\" stroke=\"#EFC29B\" stroke-width=\"8.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(7 0) rotate(-3)\"><path d=\"M0 0 L0 21\" fill=\"none\" stroke=\"#1F5BD1\" stroke-width=\"8.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(7 0) rotate(-3) translate(0 21)\"><path d=\"M0 0 L0 20\" fill=\"none\" stroke=\"#EFC29B\" stroke-width=\"8.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-7 0) rotate(3) translate(0 21) translate(0 20) rotate(-3)\"><rect x=\"-5.85\" y=\"-9\" width=\"11.7\" height=\"12\" rx=\"2\" fill=\"#FF6B4A\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><ellipse cx=\"0\" cy=\"2.5\" rx=\"6.2\" ry=\"3.84\" fill=\"#FF6B4A\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(7 0) rotate(-3) translate(0 21) translate(0 20) rotate(3)\"><rect x=\"-5.85\" y=\"-9\" width=\"11.7\" height=\"12\" rx=\"2\" fill=\"#FF6B4A\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><ellipse cx=\"0\" cy=\"2.5\" rx=\"6.2\" ry=\"3.84\" fill=\"#FF6B4A\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128)\"><rect x=\"-12\" y=\"-5\" width=\"24\" height=\"11\" rx=\"3\" fill=\"#1F5BD1\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(0 -34)\"><rect x=\"-3.5\" y=\"-9\" width=\"7\" height=\"12\" rx=\"2.5\" fill=\"#EFC29B\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128)\"><path d=\"M-9 4 Q-13 4 -13.19 0 L-14.31 -23 Q-14.5 -27 -13.25 -30.5 L-13.25 -30.5 Q-12 -34 -8 -34 L8 -34 Q12 -34 13.25 -30.5 L13.25 -30.5 Q14.5 -27 14.31 -23 L13.19 0 Q13 4 9 4 Z\" fill=\"#E53935\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><rect x=\"-14\" y=\"-6\" width=\"28\" height=\"5\" rx=\"1\" fill=\"#B8322F\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M0 -27.5 L1.88 -22.59 L7.13 -22.32 L3.04 -19.01 L4.41 -13.93 L0 -16.8 L-4.41 -13.93 L-3.04 -19.01 L-7.13 -22.32 L-1.88 -22.59 Z\" fill=\"#FFD23F\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128)\"><path d=\"M-9 -35 L0 -29 L9 -35 Z\" fill=\"#FFD23F\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"-31\" r=\"2.2\" fill=\"#FFD23F\" stroke=\"#1A1A1A\" stroke-width=\"1.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-14 -30) rotate(14)\"><path d=\"M0 0 L0 19\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"12.3\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-14 -30) rotate(14) translate(0 19) rotate(4)\"><path d=\"M0 0 L0 17\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"12.3\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-14 -30) rotate(14)\"><path d=\"M0 0 L0 19\" fill=\"none\" stroke=\"#E53935\" stroke-width=\"7.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-14 -30) rotate(14) translate(0 19) rotate(4)\"><path d=\"M0 0 L0 17\" fill=\"none\" stroke=\"#E53935\" stroke-width=\"7.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(-14 -30) rotate(14) translate(0 19) rotate(4) translate(0 17)\"><circle cx=\"0\" cy=\"2\" r=\"4.6\" fill=\"#EFC29B\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(14 -30) rotate(-110)\"><path d=\"M0 0 L0 19\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"12.3\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(14 -30) rotate(-110) translate(0 19) rotate(-60)\"><path d=\"M0 0 L0 17\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"12.3\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(14 -30) rotate(-110)\"><path d=\"M0 0 L0 19\" fill=\"none\" stroke=\"#E53935\" stroke-width=\"7.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(14 -30) rotate(-110) translate(0 19) rotate(-60)\"><path d=\"M0 0 L0 17\" fill=\"none\" stroke=\"#E53935\" stroke-width=\"7.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(14 -30) rotate(-110) translate(0 19) rotate(-60) translate(0 17)\"><path d=\"M0 2 L0 20\" fill=\"none\" stroke=\"#8A5A3B\" stroke-width=\"2.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M0 17.5 L1.41 21.06 L5.23 21.3 L2.28 23.74 L3.23 27.45 L0 25.4 L-3.23 27.45 L-2.28 23.74 L-5.23 21.3 L-1.41 21.06 Z\" fill=\"#FFD23F\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(14 -30) rotate(-110) translate(0 19) rotate(-60) translate(0 17)\"><circle cx=\"0\" cy=\"2\" r=\"4.6\" fill=\"#EFC29B\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(0 -34) translate(0 -27)\"><ellipse cx=\"-23.5\" cy=\"3\" rx=\"4.2\" ry=\"6\" fill=\"#EFC29B\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M-24.5 0 Q-21.9 3 -24.5 6\" fill=\"none\" stroke=\"#C09D7F\" stroke-width=\"1.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><ellipse cx=\"23.5\" cy=\"3\" rx=\"4.2\" ry=\"6\" fill=\"#EFC29B\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M22.5 0 Q25.1 3 22.5 6\" fill=\"none\" stroke=\"#C09D7F\" stroke-width=\"1.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(0 -34) translate(0 -27)\"><path d=\"M24 0 C24 3.06 23.34 6.36 22.17 9.18 C21 12.01 19.14 14.81 16.97 16.97 C14.81 19.14 12.01 21 9.18 22.17 C6.36 23.34 3.06 24 0 24 C-3.06 24 -6.36 23.34 -9.18 22.17 C-12.01 21 -14.81 19.14 -16.97 16.97 C-19.14 14.81 -21 12.01 -22.17 9.18 C-23.34 6.36 -24 3.06 -24 0 C-24 -3.06 -23.34 -6.36 -22.17 -9.18 C-21 -12.01 -19.14 -14.81 -16.97 -16.97 C-14.81 -19.14 -12.01 -21 -9.18 -22.17 C-6.36 -23.34 -3.06 -24 0 -24 C3.06 -24 6.36 -23.34 9.18 -22.17 C12.01 -21 14.81 -19.14 16.97 -16.97 C19.14 -14.81 21 -12.01 22.17 -9.18 C23.34 -6.36 24 -3.06 24 0 Z\" fill=\"#EFC29B\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(0 -34) translate(0 -27)\"><g transform=\"translate(-9 1)\"><circle cx=\"0\" cy=\"0\" r=\"3.5\" fill=\"#1A1A1A\"/><circle cx=\"1.2\" cy=\"-1.3\" r=\"1.1\" fill=\"#FFFFFF\"/></g><g transform=\"translate(9 1)\"><circle cx=\"0\" cy=\"0\" r=\"3.5\" fill=\"#1A1A1A\"/><circle cx=\"1.2\" cy=\"-1.3\" r=\"1.1\" fill=\"#FFFFFF\"/></g><g transform=\"translate(-9 -8)\"><path d=\"M-4.6 1.3 Q0 -2.6 4.6 1.3\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(9 -8)\"><path d=\"M-4.6 1.3 Q0 -2.6 4.6 1.3\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(0 8)\"><path d=\"M-2.3 0 Q0 2.6 2.3 0\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(0 15)\"><path d=\"M-6 -1 Q0 5.5 6 -1\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g></g><g transform=\"translate(100 128) translate(0 -34) translate(0 -27)\"><circle cx=\"-16.5\" cy=\"8.5\" r=\"0.75\" fill=\"#8A4B2A\" fill-opacity=\"0.75\"/><circle cx=\"-14\" cy=\"10\" r=\"0.75\" fill=\"#8A4B2A\" fill-opacity=\"0.75\"/><circle cx=\"-11.5\" cy=\"8.5\" r=\"0.75\" fill=\"#8A4B2A\" fill-opacity=\"0.75\"/><circle cx=\"-13.5\" cy=\"7\" r=\"0.75\" fill=\"#8A4B2A\" fill-opacity=\"0.75\"/><circle cx=\"11.5\" cy=\"8.5\" r=\"0.75\" fill=\"#8A4B2A\" fill-opacity=\"0.75\"/><circle cx=\"14\" cy=\"10\" r=\"0.75\" fill=\"#8A4B2A\" fill-opacity=\"0.75\"/><circle cx=\"16.5\" cy=\"8.5\" r=\"0.75\" fill=\"#8A4B2A\" fill-opacity=\"0.75\"/><circle cx=\"14.5\" cy=\"7\" r=\"0.75\" fill=\"#8A4B2A\" fill-opacity=\"0.75\"/></g><g transform=\"translate(100 128) translate(0 -34) translate(0 -27)\"><path d=\"M-25.5 2 C-27.02 1.75 -27.35 -7.33 -26.1 -12 C-24.85 -16.67 -22.35 -23.33 -18 -26 C-13.65 -28.67 -6 -28 0 -28 C6 -28 13.65 -28.67 18 -26 C22.35 -23.33 24.85 -16.67 26.1 -12 C27.35 -7.33 27.02 1.75 25.5 2 C23.98 2.25 21.25 -8 17 -10.5 C12.75 -13 5.67 -13 0 -13 C-5.67 -13 -12.75 -13 -17 -10.5 C-21.25 -8 -23.98 2.25 -25.5 2 Z\" fill=\"#FF7FB0\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(0 -34) translate(0 -27)\"><path d=\"M-25.5 -11 C-29.67 -12.5 -26.92 -18.5 -25 -22 C-23.08 -25.5 -18.17 -30 -14 -32 C-9.83 -34 -4.67 -34 0 -34 C4.67 -34 9.83 -34 14 -32 C18.17 -30 23.08 -25.5 25 -22 C26.92 -18.5 29.67 -12.5 25.5 -11 C21.33 -9.5 8.5 -13 0 -13 C-8.5 -13 -21.33 -9.5 -25.5 -11 Z\" fill=\"#1F5BD1\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"-33.5\" r=\"2.2\" fill=\"#1E4DA9\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M-27 -12 C-23 -13.67 -9 -17 0 -17 C9 -17 23 -13.67 27 -12 C31 -10.33 28.5 -7.33 24 -7 C19.5 -6.67 8 -10 0 -10 C-8 -10 -19.5 -6.67 -24 -7 C-28.5 -7.33 -31 -10.33 -27 -12 Z\" fill=\"#1E4DA9\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(100 128) translate(0 -34) translate(0 -27)\"><path d=\"M-9 -6 L-7.12 -1.59 L-2.34 -1.16 L-5.96 1.99 L-4.89 6.66 L-9 4.2 L-13.11 6.66 L-12.04 1.99 L-15.66 -1.16 L-10.88 -1.59 Z\" fill=\"#FFD23F\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\" fill-opacity=\"0.55\"/><path d=\"M9 -6 L10.88 -1.59 L15.66 -1.16 L12.04 1.99 L13.11 6.66 L9 4.2 L4.89 6.66 L5.96 1.99 L2.34 -1.16 L7.12 -1.59 Z\" fill=\"#FFD23F\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\" fill-opacity=\"0.55\"/><path d=\"M-3.4 0 L3.4 0\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g>"
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "expression": "surprised",
+   "svg": "<g transform=\"translate(100 112) scale(2.55)\"><path d=\"M-31 -8 C-30.33 -16.17 -34.17 -22.5 -29 -27 C-23.83 -31.5 -9.67 -35 0 -35 C9.67 -35 23.83 -31.5 29 -27 C34.17 -22.5 30.33 -16.17 31 -8 C31.67 0.17 34.33 14.33 33 22 C31.67 29.67 32.33 35.33 23 38 C13.67 40.67 -13.67 40.67 -23 38 C-32.33 35.33 -31.67 29.67 -33 22 C-34.33 14.33 -31.67 0.17 -31 -8 Z\" fill=\"#7A4FC9\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><ellipse cx=\"-23.5\" cy=\"3\" rx=\"4.2\" ry=\"6\" fill=\"#5E3720\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M-24.5 0 Q-21.9 3 -24.5 6\" fill=\"none\" stroke=\"#4F311F\" stroke-width=\"1.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><ellipse cx=\"23.5\" cy=\"3\" rx=\"4.2\" ry=\"6\" fill=\"#5E3720\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M22.5 0 Q25.1 3 22.5 6\" fill=\"none\" stroke=\"#4F311F\" stroke-width=\"1.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M21 0 C21 3.25 20.43 6.75 19.4 9.76 C18.38 12.76 16.74 15.73 14.85 18.03 C12.96 20.33 10.51 22.31 8.04 23.56 C5.56 24.8 2.68 25.5 0 25.5 C-2.68 25.5 -5.56 24.8 -8.04 23.56 C-10.51 22.31 -12.96 20.33 -14.85 18.03 C-16.74 15.73 -18.38 12.76 -19.4 9.76 C-20.43 6.75 -21 3.25 -21 0 C-21 -3.25 -20.43 -6.75 -19.4 -9.76 C-18.38 -12.76 -16.74 -15.73 -14.85 -18.03 C-12.96 -20.33 -10.51 -22.31 -8.04 -23.56 C-5.56 -24.8 -2.68 -25.5 0 -25.5 C2.68 -25.5 5.56 -24.8 8.04 -23.56 C10.51 -22.31 12.96 -20.33 14.85 -18.03 C16.74 -15.73 18.38 -12.76 19.4 -9.76 C20.43 -6.75 21 -3.25 21 0 Z\" fill=\"#5E3720\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><g transform=\"translate(-9 1)\"><path d=\"M-6 0 Q0 -6.5 6 0 Q0 6.5 -6 0 Z\" fill=\"#FFFFFF\" stroke=\"#1A1A1A\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"0\" r=\"2.4\" fill=\"#1A1A1A\"/></g><g transform=\"translate(9 1)\"><path d=\"M-6 0 Q0 -6.5 6 0 Q0 6.5 -6 0 Z\" fill=\"#FFFFFF\" stroke=\"#1A1A1A\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"0\" r=\"2.4\" fill=\"#1A1A1A\"/></g><g transform=\"translate(-9 -8) translate(0 -4) rotate(-4)\"><path d=\"M-4.5 0 L4.5 0\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(9 -8) translate(0 -4) rotate(4)\"><path d=\"M-4.5 0 L4.5 0\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(0 8)\"><circle cx=\"0\" cy=\"0\" r=\"2.9\" fill=\"#4F311F\" stroke=\"#1A1A1A\" stroke-width=\"1.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g><g transform=\"translate(0 15)\"><ellipse cx=\"0\" cy=\"0.5\" rx=\"2.8\" ry=\"3.6\" fill=\"#1A1A1A\"/></g><ellipse cx=\"-14\" cy=\"9\" rx=\"4\" ry=\"2.4\" fill=\"#FF8FA3\" fill-opacity=\"0.6\"/><ellipse cx=\"14\" cy=\"9\" rx=\"4\" ry=\"2.4\" fill=\"#FF8FA3\" fill-opacity=\"0.6\"/><path d=\"M-30 -2 A30 34 0 1 0 30 -2 A30 34 0 1 0 -30 -2 Z M-19.5 4 A19.5 23.5 0 1 0 19.5 4 A19.5 23.5 0 1 0 -19.5 4 Z\" fill=\"#7A4FC9\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\" fill-rule=\"evenodd\"/><rect x=\"-14.6\" y=\"-3.6\" width=\"11.2\" height=\"8.4\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#1A1A1A\" stroke-width=\"1.8\" stroke-linejoin=\"round\" stroke-linecap=\"round\" fill-opacity=\"0.18\"/><rect x=\"3.4\" y=\"-3.6\" width=\"11.2\" height=\"8.4\" rx=\"2\" fill=\"#FFFFFF\" stroke=\"#1A1A1A\" stroke-width=\"1.8\" stroke-linejoin=\"round\" stroke-linecap=\"round\" fill-opacity=\"0.18\"/><path d=\"M-3.4 0 L3.4 0\" fill=\"none\" stroke=\"#1A1A1A\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M-25 -2 Q0 -48 25 -2\" fill=\"none\" stroke=\"#2B2B2B\" stroke-width=\"3.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><rect x=\"-30\" y=\"-8\" width=\"8\" height=\"15\" rx=\"3\" fill=\"#FF6B4A\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><rect x=\"22\" y=\"-8\" width=\"8\" height=\"15\" rx=\"3\" fill=\"#FF6B4A\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/></g>"
+  }
+ ],
+ "document": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 200 200\" width=\"64\" height=\"64\"><g/></svg>",
+ "head_boxes": {
+  "kid": {
+   "front": [
+    70,
+    31,
+    60,
+    66
+   ],
+   "three_quarter_left": [
+    65,
+    31,
+    60,
+    66
+   ],
+   "side_left": [
+    63,
+    31,
+    60,
+    66
+   ],
+   "back": [
+    70,
+    31,
+    60,
+    66
+   ],
+   "three_quarter_right": [
+    75,
+    31,
+    60,
+    66
+   ],
+   "side_right": [
+    77,
+    31,
+    60,
+    66
+   ],
+   "walk": [
+    75,
+    30,
+    60,
+    66
+   ],
+   "run": [
+    83.4969618826253,
+    24.789967932912546,
+    64.45777028270172,
+    70.0246157417959
+   ],
+   "point": [
+    67.56184543741676,
+    28.994999978322575,
+    64.45777028270172,
+    70.02461574179591
+   ],
+   "sit": [
+    68.29452079032424,
+    44.79481054375267,
+    64.45777028270172,
+    70.02461574179591
+   ],
+   "jump": [
+    70,
+    21,
+    60,
+    66
+   ],
+   "wave": [
+    70,
+    31,
+    60,
+    66
+   ],
+   "hands_on_hips": [
+    70,
+    31,
+    60,
+    66
+   ],
+   "thinking": [
+    67.0284892409222,
+    28.061357868712562,
+    66.57019229776154,
+    71.91015289036524
+   ],
+   "scared_pose": [
+    70,
+    31,
+    60,
+    66
+   ],
+   "celebrate": [
+    70,
+    27,
+    60,
+    66
+   ]
+  },
+  "grown_up": {
+   "front": [
+    75.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "three_quarter_left": [
+    70.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "side_left": [
+    68.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "back": [
+    75.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "three_quarter_right": [
+    80.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "side_right": [
+    82.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "walk": [
+    80.4,
+    22.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "run": [
+    90.30238177824822,
+    17.722021418741228,
+    52.85537163181539,
+    57.42018490827264
+   ],
+   "point": [
+    73.40071325868175,
+    21.835899982224507,
+    52.855371631815416,
+    57.42018490827266
+   ],
+   "sit": [
+    73.71484976912447,
+    37.65032624609566,
+    52.855371631815416,
+    57.42018490827266
+   ],
+   "jump": [
+    75.4,
+    13.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "wave": [
+    75.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "hands_on_hips": [
+    75.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "thinking": [
+    72.96336117755621,
+    21.070313452344298,
+    54.58755768416444,
+    58.9663253700995
+   ],
+   "scared_pose": [
+    75.4,
+    23.48,
+    49.19999999999999,
+    54.11999999999999
+   ],
+   "celebrate": [
+    75.4,
+    19.48,
+    49.19999999999999,
+    54.11999999999999
+   ]
+  },
+  "robot": {
+   "front": [
+    70,
+    29,
+    60,
+    66
+   ],
+   "three_quarter_left": [
+    65,
+    29,
+    60,
+    66
+   ],
+   "side_left": [
+    63,
+    29,
+    60,
+    66
+   ],
+   "back": [
+    70,
+    29,
+    60,
+    66
+   ],
+   "three_quarter_right": [
+    75,
+    29,
+    60,
+    66
+   ],
+   "side_right": [
+    77,
+    29,
+    60,
+    66
+   ],
+   "walk": [
+    75,
+    28,
+    60,
+    66
+   ],
+   "run": [
+    83.84425823795917,
+    22.82035242688812,
+    64.45777028270172,
+    70.02461574179591
+   ],
+   "point": [
+    67.56184543741676,
+    26.994999978322575,
+    64.45777028270172,
+    70.02461574179591
+   ],
+   "sit": [
+    68.15500784283599,
+    42.79968244323302,
+    64.45777028270173,
+    70.02461574179591
+   ],
+   "jump": [
+    70,
+    19,
+    60,
+    66
+   ],
+   "wave": [
+    70,
+    29,
+    60,
+    66
+   ],
+   "hands_on_hips": [
+    70,
+    29,
+    60,
+    66
+   ],
+   "thinking": [
+    67.0284892409222,
+    26.061357868712562,
+    66.57019229776154,
+    71.91015289036524
+   ],
+   "scared_pose": [
+    70,
+    29,
+    60,
+    66
+   ],
+   "celebrate": [
+    70,
+    25,
+    60,
+    66
+   ]
+  },
+  "cat": {
+   "front": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "three_quarter_left": [
+    63.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "side_left": [
+    61.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "back": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "three_quarter_right": [
+    73.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "side_right": [
+    75.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "walk": [
+    73.5,
+    36.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "run": [
+    81.20138838595165,
+    30.828948943877492,
+    67.68065879683681,
+    73.5258465288857
+   ],
+   "point": [
+    65.93993770928759,
+    35.09474997723869,
+    67.68065879683681,
+    73.52584652888572
+   ],
+   "sit": [
+    66.95163895717158,
+    50.884816743708086,
+    67.68065879683681,
+    73.52584652888572
+   ],
+   "jump": [
+    68.5,
+    27.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "wave": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "hands_on_hips": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "thinking": [
+    65.37991370296831,
+    34.11442576214818,
+    69.89870191264961,
+    75.5056605348835
+   ],
+   "scared_pose": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "celebrate": [
+    68.5,
+    33.199999999999996,
+    63.0,
+    69.30000000000001
+   ]
+  },
+  "dog": {
+   "front": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "three_quarter_left": [
+    63.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "side_left": [
+    61.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "back": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "three_quarter_right": [
+    73.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "side_right": [
+    75.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "walk": [
+    73.5,
+    36.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "run": [
+    81.20138838595165,
+    30.828948943877492,
+    67.68065879683681,
+    73.5258465288857
+   ],
+   "point": [
+    65.93993770928759,
+    35.09474997723869,
+    67.68065879683681,
+    73.52584652888572
+   ],
+   "sit": [
+    66.95163895717158,
+    50.884816743708086,
+    67.68065879683681,
+    73.52584652888572
+   ],
+   "jump": [
+    68.5,
+    27.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "wave": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "hands_on_hips": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "thinking": [
+    65.37991370296831,
+    34.11442576214818,
+    69.89870191264961,
+    75.5056605348835
+   ],
+   "scared_pose": [
+    68.5,
+    37.199999999999996,
+    63.0,
+    69.30000000000001
+   ],
+   "celebrate": [
+    68.5,
+    33.199999999999996,
+    63.0,
+    69.30000000000001
+   ]
+  },
+  "bear": {
+   "front": [
+    67.6,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "three_quarter_left": [
+    62.599999999999994,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "side_left": [
+    60.599999999999994,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "back": [
+    67.6,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "three_quarter_right": [
+    72.6,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "side_right": [
+    74.6,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "walk": [
+    72.6,
+    33.12,
+    64.80000000000001,
+    71.28
+   ],
+   "run": [
+    80.41444809201502,
+    27.703991190214957,
+    69.61439190531789,
+    75.62658500113957
+   ],
+   "point": [
+    64.9667930724101,
+    31.95459997658837,
+    69.61439190531786,
+    75.6265850011396
+   ],
+   "sit": [
+    65.90873784654995,
+    47.74710269279794,
+    69.61439190531787,
+    75.6265850011396
+   ],
+   "jump": [
+    67.6,
+    24.119999999999997,
+    64.80000000000001,
+    71.28
+   ],
+   "wave": [
+    67.6,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "hands_on_hips": [
+    67.6,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "thinking": [
+    64.39076838019596,
+    30.94626649820956,
+    71.89580768158245,
+    77.66296512159448
+   ],
+   "scared_pose": [
+    67.6,
+    34.12,
+    64.80000000000001,
+    71.28
+   ],
+   "celebrate": [
+    67.6,
+    30.119999999999997,
+    64.80000000000001,
+    71.28
+   ]
+  }
+ },
+ "face_cell_head_box": [
+  23.5,
+  20.200000000000003,
+  153.0,
+  168.29999999999998
+ ],
+ "normalize": [
+  {
+   "input": {},
+   "output": {
+    "body_type": "kid",
+    "parts": {
+     "face_shape": "round",
+     "eyes": "round",
+     "brows": "arched",
+     "nose": "button",
+     "hair": "crop",
+     "headwear": "none",
+     "top": "tshirt",
+     "bottom": "shorts",
+     "shoes": "sneakers"
+    },
+    "colors": {
+     "skin": "#EFC29B",
+     "hair": "#3B2314",
+     "top": "#FFD23F",
+     "bottom": "#1F5BD1",
+     "shoes": "#FF6B4A",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D",
+     "card": "#FFE9A8"
+    },
+    "extras": [],
+    "personality": {
+     "traits": [],
+     "catchphrase": ""
+    },
+    "role": "friend"
+   }
+  },
+  {
+   "input": {
+    "body_type": "cat"
+   },
+   "output": {
+    "body_type": "cat",
+    "parts": {
+     "face_shape": "cat",
+     "eyes": "almond",
+     "brows": "thin",
+     "headwear": "none",
+     "top": "none",
+     "bottom": "none",
+     "shoes": "none"
+    },
+    "colors": {
+     "skin": "#E8954F",
+     "hair": "#3B2314",
+     "top": "#FFD23F",
+     "bottom": "#1F5BD1",
+     "shoes": "#FF6B4A",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D",
+     "card": "#FFD0C2"
+    },
+    "extras": [],
+    "personality": {
+     "traits": [],
+     "catchphrase": ""
+    },
+    "role": "friend"
+   }
+  },
+  {
+   "input": {
+    "body_type": "robot",
+    "parts": {
+     "hair": "bob",
+     "face_shape": "nope",
+     "top": "hoodie"
+    },
+    "colors": {
+     "skin": "#0000FF",
+     "top": "#FF0001",
+     "bad": "#FFFFFF",
+     "hair": "red"
+    },
+    "extras": [
+     "freckles",
+     "cape",
+     "cape",
+     "jetpack"
+    ]
+   },
+   "output": {
+    "body_type": "robot",
+    "parts": {
+     "top": "hoodie",
+     "face_shape": "box",
+     "eyes": "round",
+     "brows": "straight",
+     "headwear": "none",
+     "bottom": "none",
+     "shoes": "none"
+    },
+    "colors": {
+     "skin": "#9AD0F5",
+     "top": "#E53935",
+     "hair": "#3B2314",
+     "bottom": "#1F5BD1",
+     "shoes": "#FF6B4A",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D",
+     "card": "#DDF0FC"
+    },
+    "extras": [
+     "cape"
+    ],
+    "personality": {
+     "traits": [],
+     "catchphrase": ""
+    },
+    "role": "friend"
+   }
+  },
+  {
+   "input": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "afro",
+     "nose": "pointy",
+     "shoes": "none"
+    },
+    "colors": {
+     "skin": "#f2c29b",
+     "card": "#DDF0FC"
+    },
+    "extras": [
+     "glasses_round",
+     "glasses_star",
+     "wand"
+    ],
+    "personality": {
+     "traits": [
+      "brave",
+      "kind"
+     ],
+     "catchphrase": "Hi!"
+    },
+    "role": "hero"
+   },
+   "output": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "afro",
+     "nose": "pointy",
+     "face_shape": "round",
+     "eyes": "round",
+     "brows": "arched",
+     "headwear": "none",
+     "top": "tshirt",
+     "bottom": "shorts",
+     "shoes": "sneakers"
+    },
+    "colors": {
+     "skin": "#EFC29B",
+     "card": "#DDF0FC",
+     "hair": "#3B2314",
+     "top": "#FFD23F",
+     "bottom": "#1F5BD1",
+     "shoes": "#FF6B4A",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D"
+    },
+    "extras": [
+     "glasses_round",
+     "wand"
+    ],
+    "personality": {
+     "traits": [
+      "brave",
+      "kind"
+     ],
+     "catchphrase": "Hi!"
+    },
+    "role": "hero"
+   }
+  },
+  {
+   "input": {
+    "body_type": "bear",
+    "parts": {
+     "headwear": "turban",
+     "top": "none"
+    },
+    "extras": [
+     "blush"
+    ]
+   },
+   "output": {
+    "body_type": "bear",
+    "parts": {
+     "top": "none",
+     "face_shape": "bear",
+     "eyes": "round",
+     "brows": "bushy",
+     "headwear": "none",
+     "bottom": "none",
+     "shoes": "none"
+    },
+    "colors": {
+     "skin": "#8A5A3B",
+     "hair": "#3B2314",
+     "top": "#FFD23F",
+     "bottom": "#1F5BD1",
+     "shoes": "#FF6B4A",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D",
+     "card": "#E6F6DF"
+    },
+    "extras": [
+     "blush"
+    ],
+    "personality": {
+     "traits": [],
+     "catchphrase": ""
+    },
+    "role": "friend"
+   }
+  },
+  {
+   "input": {
+    "body_type": "grown_up",
+    "colors": {
+     "hair": "#123456",
+     "top": "#ffffff"
+    }
+   },
+   "output": {
+    "body_type": "grown_up",
+    "parts": {
+     "face_shape": "oval",
+     "eyes": "almond",
+     "brows": "straight",
+     "nose": "round",
+     "hair": "side_part",
+     "headwear": "none",
+     "top": "sweater",
+     "bottom": "trousers",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#2B2B2B",
+     "top": "#FFFFFF",
+     "skin": "#B9773F",
+     "bottom": "#23305E",
+     "shoes": "#8A5A3B",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D",
+     "card": "#E6F6DF"
+    },
+    "extras": [],
+    "personality": {
+     "traits": [],
+     "catchphrase": ""
+    },
+    "role": "friend"
+   }
+  }
+ ]
+}

@@ -2,24 +2,26 @@ import { Card } from '@/components/ui/Card'
 import { Pill } from '@/components/ui/Pill'
 import { TextField } from '@/components/ui/TextField'
 import { ROLE_LABEL, TRAIT_LABEL } from '@/lib/labels'
-import { ROLES, TRAITS, type Character, type Role, type Trait } from '@/types'
+import { ROLES, TRAITS, type AvatarSpec, type Role, type Trait } from '@/types'
 
 const MAX_TRAITS = 3
 
 interface PersonalityPanelProps {
-  character: Character
+  spec: AvatarSpec
   disabled: boolean
-  onRole: (role: Role) => void
-  onTraits: (traits: Trait[]) => void
-  onCatchphrase: (catchphrase: string) => void
+  /** The whole spec with the new role, traits or catchphrase (autosaved, not an undo step). */
+  onChange: (spec: AvatarSpec) => void
 }
 
-export function PersonalityPanel({ character, disabled, onRole, onTraits, onCatchphrase }: PersonalityPanelProps) {
-  const { traits, catchphrase } = character.spec
+export function PersonalityPanel({ spec, disabled, onChange }: PersonalityPanelProps) {
+  const { traits, catchphrase } = spec.personality
+  const setPersonality = (patch: Partial<AvatarSpec['personality']>) =>
+    onChange({ ...spec, personality: { ...spec.personality, ...patch } })
+  const setRole = (role: Role) => onChange({ ...spec, role })
 
   const toggleTrait = (trait: Trait) => {
-    if (traits.includes(trait)) onTraits(traits.filter((t) => t !== trait))
-    else if (traits.length < MAX_TRAITS) onTraits([...traits, trait])
+    if (traits.includes(trait)) setPersonality({ traits: traits.filter((t) => t !== trait) })
+    else if (traits.length < MAX_TRAITS) setPersonality({ traits: [...traits, trait] })
   }
 
   return (
@@ -30,7 +32,7 @@ export function PersonalityPanel({ character, disabled, onRole, onTraits, onCatc
         <span className="text-label font-extrabold">Role in the story</span>
         <div className="flex flex-wrap gap-2">
           {ROLES.map((role) => (
-            <Pill key={role} selected={character.role === role} disabled={disabled} onClick={() => onRole(role)}>
+            <Pill key={role} selected={spec.role === role} disabled={disabled} onClick={() => setRole(role)}>
               {ROLE_LABEL[role]}
             </Pill>
           ))}
@@ -61,7 +63,7 @@ export function PersonalityPanel({ character, disabled, onRole, onTraits, onCatc
         value={catchphrase}
         disabled={disabled}
         placeholder="Adventure is my middle name!"
-        onChange={(e) => onCatchphrase(e.target.value)}
+        onChange={(e) => setPersonality({ catchphrase: e.target.value })}
       />
     </Card>
   )

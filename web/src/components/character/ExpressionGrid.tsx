@@ -26,7 +26,7 @@ export function ExpressionGrid({ character, selected, onSelect }: ExpressionGrid
               selected === e ? 'bg-sun shadow-sm' : 'bg-surface',
             )}
           >
-            <CharacterAvatar character={character} expression={e} size={54} cropped />
+            <CharacterAvatar character={character} expression={e} size={54} />
             <span className="text-label font-extrabold">{EXPRESSION_LABEL[e]}</span>
           </button>
         ))}

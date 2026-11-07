@@ -38,7 +38,7 @@ export function CastSlotList({ selectedId }: { selectedId: string }) {
           >
             <span
               className="flex size-14 flex-none items-center justify-center rounded-button border-3 border-ink font-display text-[26px]"
-              style={{ backgroundColor: c.spec.tint }}
+              style={{ backgroundColor: c.spec.colors.card }}
             >
               {c.name.charAt(0)}
             </span>

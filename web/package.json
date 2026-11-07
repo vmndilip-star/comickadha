@@ -11,6 +11,7 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "eslint .",
+    "test": "vitest run",
     "preview": "vite preview",
     "gen:types": "uv run --directory ../api python -m app.openapi_export ../web/node_modules/.tmp/openapi.json && openapi-typescript node_modules/.tmp/openapi.json -o src/types/api.ts"
   },
@@ -37,6 +38,7 @@
     "tailwindcss": "^4.3.4",
     "typescript": "~5.9",
     "typescript-eslint": "^8.72.1",
-    "vite": "^6.4.5"
+    "vite": "^6.4.5",
+    "vitest": "^3.2.7"
   }
 }

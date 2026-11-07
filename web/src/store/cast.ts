@@ -1,14 +1,22 @@
 import { create } from 'zustand'
 import { ApiError } from '@/api/client'
 import * as api from '@/api/characters'
-import type { Character, CharacterSpec, CharacterUpdate, HeadOffset, Pose } from '@/types'
+import type { AvatarSpec, BodyType, Character, CharacterKind, CharacterUpdate, HeadOffset, Pose } from '@/types'
 import { useJobsStore } from './jobs'
 import type { LoadStatus } from './load'
 import { editCounter, useSaveStore } from './save'
 import { toast } from './toast'
 
-export type CharacterPatch = Partial<Pick<Character, 'name' | 'role' | 'kind'>> & {
-  spec?: Partial<CharacterSpec>
+/** A name and/or a whole avatar spec (the API replaces the spec; role and kind follow it). */
+export type CharacterPatch = { name?: string; spec?: AvatarSpec }
+
+const KIND_OF_BODY: Record<BodyType, CharacterKind> = {
+  kid: 'kid',
+  grown_up: 'grown_up',
+  robot: 'robot',
+  cat: 'animal',
+  dog: 'animal',
+  bear: 'animal',
 }
 
 interface CastState {
@@ -41,7 +49,7 @@ export const useCastStore = create<CastState>()((set, get) => {
     const character = find(id)
     if (!character || character.status === 'locked' || character.status === 'generating') return
     const seen = edits.current(id)
-    const body: CharacterUpdate = { role: character.role, kind: character.kind, spec: character.spec }
+    const body: CharacterUpdate = { spec: character.spec }
     // A blank name stays on screen (with a hint) but is not saved.
     if (character.name.trim()) body.name = character.name
     const saved = await api.updateCharacter(id, body)
@@ -88,9 +96,11 @@ export const useCastStore = create<CastState>()((set, get) => {
 
     update: (id, patch) => {
       set((s) => ({
-        characters: s.characters.map((c) =>
-          c.id === id ? { ...c, ...patch, spec: { ...c.spec, ...patch.spec } } : c,
-        ),
+        characters: s.characters.map((c) => {
+          if (c.id !== id) return c
+          const spec = patch.spec ?? c.spec
+          return { ...c, name: patch.name ?? c.name, spec, role: spec.role, kind: KIND_OF_BODY[spec.body_type] }
+        }),
       }))
       edits.mark(id)
       useSaveStore.getState().schedule(characterSaveKey(id), () => save(id))

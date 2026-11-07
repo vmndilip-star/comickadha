@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
+import { BuddyHelper } from '@/components/character/builder/BuddyHelper'
+import { LabBuilder } from '@/components/character/builder/LabBuilder'
+import { useBuilder } from '@/components/character/builder/useBuilder'
 import { CastSlotList } from '@/components/character/CastSlotList'
 import { CharacterStage } from '@/components/character/CharacterStage'
-import { LookPanel } from '@/components/character/LookPanel'
 import { PersonalityPanel } from '@/components/character/PersonalityPanel'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoading } from '@/components/layout/PageLoading'
@@ -13,24 +15,14 @@ import { characterSaveKey, useCastStore } from '@/store/cast'
 import { useStartComic } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
 import { useSaveStore } from '@/store/save'
-import { MAX_CAST, type Expression, type Pose } from '@/types'
+import { MAX_CAST, type Character, type Expression, type Pose } from '@/types'
 
 export function CharacterLabPage() {
   const { id } = useParams()
   const status = useDataStatus()
   const characters = useCastStore((s) => s.characters)
-  const update = useCastStore((s) => s.update)
-  const setLocked = useCastStore((s) => s.setLocked)
-  const remove = useCastStore((s) => s.remove)
   const add = useCastStore((s) => s.add)
-  const flush = useSaveStore((s) => s.flush)
-  const startComic = useStartComic()
   const navigate = useNavigate()
-  const [expression, setExpression] = useState<Expression>('happy')
-  const [pose, setPose] = useState<Pose>('front')
-  const [editingHead, setEditingHead] = useState(false)
-  const [locking, setLocking] = useState(false)
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   if (status !== 'ready') return <PageLoading status={status} layout="split" />
 
@@ -57,9 +49,26 @@ export function CharacterLabPage() {
     )
   }
 
+  return <CharacterLab key={character.id} character={character} characters={characters} />
+}
+
+function CharacterLab({ character, characters }: { character: Character; characters: Character[] }) {
+  const update = useCastStore((s) => s.update)
+  const setLocked = useCastStore((s) => s.setLocked)
+  const remove = useCastStore((s) => s.remove)
+  const flush = useSaveStore((s) => s.flush)
+  const startComic = useStartComic()
+  const navigate = useNavigate()
+  const [expression, setExpression] = useState<Expression>('happy')
+  const [pose, setPose] = useState<Pose>('front')
+  const [editingHead, setEditingHead] = useState(false)
+  const [locking, setLocking] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+
   const locked = character.status === 'locked'
   // Being drawn counts as locked too: the sheet is made from the look as it was when Lock was tapped.
   const readOnly = locked || character.status === 'generating'
+  const builder = useBuilder(character, readOnly)
   const lockedCount = characters.filter((c) => c.status === 'locked').length
 
   const toggleLock = async () => {
@@ -99,22 +108,20 @@ export function CharacterLabPage() {
           onToggleHeadEditor={() => setEditingHead(!editingHead)}
           onRename={(name) => update(character.id, { name })}
           onToggleLock={() => void toggleLock()}
+          renderBuilder={(lockedView) => (
+            <LabBuilder
+              character={character}
+              builder={builder}
+              expression={expression}
+              onExpression={setExpression}
+              lockedView={lockedView}
+            />
+          )}
         />
 
         <aside aria-label="Character details" className="flex min-w-0 flex-[1_1_280px] flex-col gap-4.5">
-          {locked && (
-            <p className="m-0 rounded-tile border-3 border-ink bg-mint px-3.5 py-2.5 font-bold">
-              {character.name} is locked. Tap “Locked · tap to edit” to change the look.
-            </p>
-          )}
-          <LookPanel character={character} disabled={readOnly} onChange={(patch) => update(character.id, patch)} />
-          <PersonalityPanel
-            character={character}
-            disabled={readOnly}
-            onRole={(role) => update(character.id, { role })}
-            onTraits={(traits) => update(character.id, { spec: { traits } })}
-            onCatchphrase={(catchphrase) => update(character.id, { spec: { catchphrase } })}
-          />
+          <PersonalityPanel spec={character.spec} disabled={readOnly} onChange={(spec) => update(character.id, { spec })} />
+          <BuddyHelper character={character} builder={builder} onName={(name) => update(character.id, { name })} />
           <div className="flex flex-wrap gap-2.5">
             <Button
               variant="primary"

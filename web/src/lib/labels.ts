@@ -1,13 +1,4 @@
-import type {
-  BubbleType,
-  CharacterKind,
-  Expression,
-  HairStyle,
-  Mood,
-  Pose,
-  Role,
-  Trait,
-} from '@/types'
+import type { BubbleType, CharacterKind, Expression, Mood, Pose, Role, Trait } from '@/types'
 
 export const EXPRESSION_LABEL: Record<Expression, string> = {
   happy: 'Happy',
@@ -44,13 +35,6 @@ export const KIND_LABEL: Record<CharacterKind, string> = {
   robot: 'Robot',
 }
 
-export const HAIR_LABEL: Record<HairStyle, string> = {
-  bob: 'Bob',
-  spiky: 'Spiky',
-  braids: 'Braids',
-  curly: 'Curly',
-}
-
 export const ROLE_LABEL: Record<Role, string> = {
   hero: 'Hero',
   sidekick: 'Sidekick',
@@ -81,25 +65,6 @@ export const BUBBLE_LABEL: Record<BubbleType, string> = {
   shout: 'Shout!',
   narrator: 'Narrator',
 }
-
-export const SKIN_SWATCHES = [
-  { label: 'Light peach', value: '#F2C29B' },
-  { label: 'Warm brown', value: '#C98B5E' },
-  { label: 'Deep brown', value: '#8A5A3B' },
-  { label: 'Sky blue', value: '#9AD0F5' },
-  { label: 'Mint green', value: '#B7E4A7' },
-] as const
-
-export const HAIR_SWATCHES = [
-  { label: 'Dark brown', value: '#3B2314' },
-  { label: 'Black', value: '#1A1A1A' },
-  { label: 'Ginger', value: '#C8552B' },
-  { label: 'Golden', value: '#E8C15A' },
-  { label: 'Purple', value: '#7A4FC9' },
-] as const
-
-/** Character card tints, one per cast slot. */
-export const CAST_TINTS = ['#FFE9A8', '#FFD0C2', '#DDF0FC'] as const
 
 /** Placeholder colours for new places. */
 export const PLACE_TINTS = ['#B7E4A7', '#FFD0C2', '#9AD0F5', '#FFE9A8', '#2E2A6B', '#FF8A6B'] as const

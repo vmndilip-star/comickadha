@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { Avatar } from '@/components/character/Avatar'
 import { cn } from '@/lib/cn'
 import { joinWithAnd } from '@/lib/format'
 import type { Character } from '@/types'
@@ -26,16 +27,20 @@ export function CastPicker({ characters, selectedIds, onChange }: CastPickerProp
               type="button"
               aria-pressed={on}
               onClick={() => toggle(c.id)}
-              style={{ backgroundColor: on ? c.spec.tint : undefined }}
+              style={{ backgroundColor: on ? c.spec.colors.card : undefined }}
               className={cn(
                 'inline-flex min-h-[52px] items-center gap-2.5 rounded-pill border-3 border-ink py-2 pr-4 pl-2 font-extrabold text-ink',
                 on ? 'shadow-sm' : 'bg-surface font-bold',
               )}
             >
               <span
-                className={cn('size-[34px] border-2 border-ink', c.kind === 'robot' ? 'rounded-lg' : 'rounded-full')}
-                style={{ backgroundColor: c.spec.skin }}
-              />
+                className={cn(
+                  'flex size-[34px] items-center justify-center overflow-hidden border-2 border-ink bg-surface',
+                  c.kind === 'robot' ? 'rounded-lg' : 'rounded-full',
+                )}
+              >
+                <Avatar spec={c.spec} mode="face" size={34} />
+              </span>
               {c.name}
               {on && ' ✓'}
             </button>

@@ -35,5 +35,7 @@ services:
       - ./web:/app
       # Keep the container's own node_modules (Linux binaries) instead of the Windows one.
       - /app/node_modules
+      # The avatar parts catalog, imported as @shared (../shared from /app).
+      - ./shared:/shared:ro
     depends_on:
       - api

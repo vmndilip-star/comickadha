@@ -9,7 +9,7 @@ export function joinWithAnd(items: string[]): string {
 
 /** "Hero · Brave & curious" */
 export function characterTagline(character: Character): string {
-  const traits = character.spec.traits.map((t, i) =>
+  const traits = character.spec.personality.traits.map((t, i) =>
     i === 0 ? TRAIT_LABEL[t] : TRAIT_LABEL[t].toLowerCase(),
   )
   const role = ROLE_LABEL[character.role]
