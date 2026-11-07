@@ -1,9 +1,12 @@
 import { Avatar } from '@/components/character/Avatar'
+import { Button } from '@/components/ui/Button'
+import type { Box } from '@/lib/bubbles'
 import { cn } from '@/lib/cn'
-import type { Background, Character, Panel as PanelData, Position } from '@/types'
-import { SpeechBubble } from './SpeechBubble'
+import { lookFor } from '@/lib/comic'
+import type { Background, Character, Comic, Panel as PanelData, Position } from '@/types'
+import { BubbleLayer } from './BubbleLayer'
 
-const POSITION_CLASS: Record<Position, string> = {
+const STAND: Record<Position, string> = {
   left: 'left-[6%]',
   center: 'left-1/2 -translate-x-1/2',
   right: 'right-[6%]',
@@ -12,70 +15,144 @@ const POSITION_CLASS: Record<Position, string> = {
 interface PanelProps {
   number: number
   panel: PanelData
+  looks: Comic['looks']
   place: Background | undefined
   cast: Character[]
+  editing?: boolean
   selected?: boolean
-  /** Edit mode: panels are buttons that select themselves. */
   onSelect?: () => void
+  /** Make my comic! is inking this panel right now. */
+  inking?: boolean
+  /** A face, pose or position change is being drawn. */
+  redrawing?: boolean
+  trying?: boolean
+  onTryAgain?: () => void
+  selectedBubbleId?: string | null
+  onSelectBubble?: (bubbleId: string) => void
+  onBubbleBox?: (bubbleId: string, box: Box) => void
 }
 
-export function Panel({ number, panel, place, cast, selected = false, onSelect }: PanelProps) {
-  const nameOf = (id: string) => cast.find((c) => c.id === id)?.name
-  const content = (
-    <>
+/** One comic panel: its art (background + characters) with the bubbles drawn live on top. */
+export function Panel(props: PanelProps) {
+  const { number, panel, looks, place, cast, editing = false, selected = false } = props
+  const names = panel.characters.map((pc) => cast.find((c) => c.id === pc.id)?.name).filter(Boolean)
+  const busy = props.inking || panel.status === 'rendering'
+  const broken = panel.status === 'failed' || panel.status === 'blocked'
+  const description = `Panel ${number}: ${names.join(' and ') || 'nobody'} in ${place?.name ?? 'a place'}`
+
+  return (
+    <figure
+      aria-label={`Panel ${number}`}
+      onClick={editing ? props.onSelect : undefined}
+      className={cn(
+        '@container relative m-0 aspect-[4/3] w-full overflow-hidden rounded-[4px] border-4 border-ink bg-surface',
+        selected && 'outline-5 outline-offset-3 outline-pow-blue',
+        editing && !selected && 'cursor-pointer',
+      )}
+      style={{ backgroundColor: place?.tint }}
+    >
       {panel.art_url ? (
-        <img src={panel.art_url} alt="" className="absolute inset-0 size-full object-cover" />
+        <img key={panel.art_url} src={panel.art_url} alt={description} draggable={false} className="absolute inset-0 size-full object-cover" />
       ) : (
-        panel.characters.map((pc) => {
-          const character = cast.find((c) => c.id === pc.id)
-          if (!character) return null
-          return (
-            <span
-              key={pc.id}
-              className={cn('absolute bottom-2', POSITION_CLASS[pc.position])}
-              style={{ width: `${28 * pc.scale}%` }}
-            >
-              <Avatar spec={character.spec} pose={pc.pose} expression={pc.expression} size="100%" className="aspect-square" />
-            </span>
-          )
-        })
+        <Sketch panel={panel} looks={looks} place={place} cast={cast} label={description} />
       )}
 
-      <span className="absolute inset-x-2.5 top-2.5 flex flex-col gap-1.5">
-        {panel.bubbles.map((b) => (
-          <SpeechBubble key={b.id} bubble={b} speakerName={nameOf(b.speaker)} />
-        ))}
-      </span>
+      <BubbleLayer
+        bubbles={panel.bubbles}
+        editable={editing && selected && !busy}
+        selectedId={props.selectedBubbleId}
+        onSelect={props.onSelectBubble}
+        onBox={props.onBubbleBox}
+      />
 
-      <span className="absolute right-2.5 bottom-2 rounded-md bg-ink px-2 py-0.5 text-[12px] font-extrabold text-white">
-        {number}
-      </span>
-      {panel.status !== 'ready' && (
+      {busy && (
+        <div role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface/70">
+          <span className="font-display text-[clamp(20px,7cqw,40px)] tracking-[1px]">Inking panel {number}…</span>
+          <span className="flex gap-1.5" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="size-3 animate-bounce rounded-full bg-ink motion-reduce:animate-none" style={{ animationDelay: `${i * 120}ms` }} />
+            ))}
+          </span>
+        </div>
+      )}
+
+      {!busy && broken && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-surface/85 p-4 text-center">
+          <p role="alert" className="m-0 max-w-[30ch] font-extrabold">
+            {panel.error ?? 'Oops, this panel didn’t draw.'}
+          </p>
+          {props.onTryAgain && (
+            <Button
+              size="sm"
+              variant="primary"
+              disabled={props.trying}
+              onClick={(e) => {
+                e.stopPropagation()
+                props.onTryAgain?.()
+              }}
+            >
+              {props.trying ? 'Trying…' : 'Try again'}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {!busy && !broken && panel.status === 'planned' && (
         <span className="absolute bottom-2 left-2.5 rounded-pill border-2 border-ink bg-surface px-2 py-0.5 text-[12px] font-extrabold">
-          Not drawn yet
+          Waiting for ink
         </span>
       )}
-    </>
-  )
 
-  const classes = cn(
-    'relative aspect-[4/3] w-full overflow-hidden rounded-[4px] border-4 border-ink p-0 text-ink',
-    '[&_svg]:h-auto [&_svg]:w-full',
-    panel.status !== 'ready' && 'opacity-70',
-    selected && 'outline-5 outline-offset-3 outline-pow-blue',
-  )
-  const style = { backgroundColor: place?.tint ?? '#FFF8EC' }
+      {props.redrawing && (
+        <span role="status" className="absolute top-2 right-2 flex items-center gap-1.5 rounded-pill border-2 border-ink bg-surface px-2 py-0.5 text-[12px] font-extrabold">
+          <span className="size-3 animate-spin rounded-full border-2 border-ink border-t-transparent motion-reduce:animate-none" aria-hidden />
+          Redrawing…
+        </span>
+      )}
 
-  if (!onSelect) {
-    return (
-      <figure aria-label={`Panel ${number}`} className={cn(classes, 'm-0')} style={style}>
-        {content}
-      </figure>
-    )
-  }
+      {panel.text_check === 'blocked' && panel.status === 'ready' && panel.error && (
+        <p role="alert" className="absolute inset-x-2 bottom-9 m-0 rounded-button border-3 border-ink bg-coral-tint px-2.5 py-1.5 text-[13px] font-extrabold">
+          {panel.error}
+        </p>
+      )}
+
+      {editing ? (
+        <button
+          type="button"
+          aria-pressed={selected}
+          aria-label={`Edit panel ${number}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            props.onSelect?.()
+          }}
+          className="absolute right-2 bottom-2 min-h-8 min-w-8 rounded-md border-2 border-ink bg-ink px-2 text-[13px] font-extrabold text-white"
+        >
+          {number}
+        </button>
+      ) : (
+        <span className="absolute right-2.5 bottom-2 rounded-md bg-ink px-2 py-0.5 text-[12px] font-extrabold text-white" aria-hidden>
+          {number}
+        </span>
+      )}
+    </figure>
+  )
+}
+
+/** Before a panel is drawn: its place and characters as a light sketch from their pinned looks. */
+function Sketch({ panel, looks, place, cast, label }: Pick<PanelProps, 'panel' | 'looks' | 'place' | 'cast'> & { label: string }) {
+  const thumb = place?.thumb_url ?? place?.image_url
   return (
-    <button type="button" aria-label={`Panel ${number}`} aria-pressed={selected} onClick={onSelect} className={classes} style={style}>
-      {content}
-    </button>
+    <div role="img" aria-label={label} className="absolute inset-0 opacity-60 grayscale-[40%]">
+      {thumb && <img src={thumb} alt="" draggable={false} className="absolute inset-0 size-full object-cover" />}
+      {panel.characters.map((pc) => {
+        const character = cast.find((c) => c.id === pc.id)
+        if (!character) return null
+        return (
+          <span key={pc.id} className={cn('absolute bottom-0 w-[36%] [&_svg]:h-auto [&_svg]:w-full', STAND[pc.position])}>
+            <Avatar spec={lookFor(looks, pc, character)} pose={pc.pose} expression={pc.expression} size="100%" className="aspect-square" />
+          </span>
+        )
+      })}
+    </div>
   )
 }

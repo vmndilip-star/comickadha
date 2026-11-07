@@ -37,6 +37,8 @@ def make_settings(storage: Path, **overrides: Any) -> Settings:
         "image_provider": "mock",
         "sheet_provider": "builder",
         "builder_reveal_seconds": 0,
+        "panel_reveal_seconds": 0,
+        "recheck_seconds": 0,
     }
     return Settings(_env_file=None, **(values | overrides))
 

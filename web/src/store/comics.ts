@@ -27,6 +27,11 @@ interface ComicsState {
   /** Shows a fresh plan from the API (already saved there, so no autosave). */
   applyScenes: (id: string, scenes: Scene[]) => void
   applyPanels: (id: string, panels: Panel[]) => void
+  /** A panel as the API has it now (drawn by Make my comic!, or tried again). */
+  applyPanel: (comicId: string, panel: Panel) => void
+  replaceComic: (comic: Comic) => void
+  /** Finish my comic!: saves waiting edits, then marks it finished. False if it can't yet. */
+  finish: (id: string) => Promise<boolean>
 }
 
 const edits = editCounter()
@@ -58,7 +63,8 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     const saved = await api.updateComic(id, body)
     // Only the comic's own fields: scenes and panels have their own saves.
     if (edits.isLatest(key, seen)) {
-      change(id, () => ({ cast_ids: saved.cast_ids, updated_at: saved.updated_at, safety_notes: saved.safety_notes }))
+      const { cast_ids, updated_at, safety_notes, status, text_check, cover_url } = saved
+      change(id, () => ({ cast_ids, updated_at, safety_notes, status, text_check, cover_url }))
     }
   }
 
@@ -142,7 +148,8 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     },
 
     updatePanel: (comicId, panelId, update) => {
-      change(comicId, (c) => ({ panels: c.panels.map((p) => (p.id === panelId ? update(p) : p)) }))
+      // Any edit makes a finished comic a draft again (the API does the same).
+      change(comicId, (c) => ({ status: 'draft', panels: c.panels.map((p) => (p.id === panelId ? update(p) : p)) }))
       schedule(`panel:${panelId}`, () => savePanel(comicId, panelId))
     },
 
@@ -156,6 +163,23 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     applyScenes: (id, scenes) => change(id, (c) => ({ scenes, studio_step: c.studio_step > 2 ? c.studio_step : 2 })),
 
     applyPanels: (id, panels) => change(id, () => ({ panels, studio_step: 3 })),
+
+    applyPanel: (comicId, panel) =>
+      change(comicId, (c) => ({ panels: c.panels.map((p) => (p.id === panel.id ? panel : p)) })),
+
+    replaceComic: (comic) => set((s) => ({ comics: s.comics.map((c) => (c.id === comic.id ? comic : c)) })),
+
+    finish: async (id) => {
+      try {
+        await get().flushComic(id)
+        const saved = await api.updateComic(id, { status: 'finished' })
+        get().replaceComic(saved)
+        return true
+      } catch (error) {
+        toast.error(error)
+        return false
+      }
+    },
   }
 })
 

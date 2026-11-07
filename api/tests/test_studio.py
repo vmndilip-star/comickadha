@@ -367,7 +367,7 @@ def test_moving_a_character_moves_their_bubble(client: TestClient) -> None:
 
     res = client.patch(f"/api/panels/{panel['id']}", json={"characters": moved})
 
-    assert res.json()["bubbles"][0]["tail"][0] == 0.78
+    assert abs(res.json()["bubbles"][0]["tail"][0] - 0.78) < 0.04  # at their head, on the right
 
 
 # ---- Meta's planner, with a fake client --------------------------------------------------------

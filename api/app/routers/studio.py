@@ -1,8 +1,10 @@
 """Story Studio: plan scenes (step 1->2), plan panels (step 2->3), the Story Buddy and sparks.
 
 The planner reads the comic as saved (the web app flushes its autosave first). Story text is
-fully safety-checked (classifier included, failing closed) before anything reaches Meta, and a
-block names the exact field. Only locked characters and places go into a plan.
+fully safety-checked (classifier included) before anything reaches Meta, and a block names the
+exact field. If the classifier can't answer, text that passed the local checks is planned by the
+offline planner only and marked "not yet AI-checked" (decision 55). Only locked characters and
+places go into a plan.
 """
 
 from fastapi import APIRouter, Query
@@ -25,7 +27,7 @@ from app.schemas.studio import (
     ScenesPlanned,
     Spark,
 )
-from app.services import safety, story_buddy, story_planner
+from app.services import looks, safety, story_buddy, story_planner
 from app.services.ai_guard import Guard, label
 from app.services.bubbles import layout
 from app.services.story_planner import CastMember, Place, PlanFailed, SceneInfo, StoryContext
@@ -101,11 +103,17 @@ def _panels(session: Session, comic: Comic) -> list[Panel]:
 
 def _check_story(
     session: Session, user: User, comic: Comic, fields: dict[str, str], llm: LLMDep
-) -> None:
-    """The full check (local + classifier). Blocks name the field; nothing unchecked goes on."""
+) -> bool:
+    """The full check (local + classifier). Blocks name the field. Returns True when the words are
+    only locally checked (classifier down): then only the offline planner may use them."""
     verdict = safety.check_story(session, user.id, f"comic:{comic.id}", fields, llm)
     if not verdict.allowed:
         raise ApiError(422, "unsafe", verdict.message(STORY_LABELS), verdict.field_name)
+    comic.text_check = "pending" if verdict.pending else "checked"
+    if not verdict.pending:
+        comic.check_note = None
+    session.add(comic)
+    return verdict.pending
 
 
 def _needs_locked(cast: list[CastMember], places: list[Place]) -> None:
@@ -137,7 +145,9 @@ def plan_scenes(
     _needs_locked(cast, places)
     if len(comic.synopsis.split()) < 3:
         raise invalid("Write a sentence or two about your story first!", "synopsis")
-    _check_story(session, user, comic, {"title": comic.title, "synopsis": comic.synopsis}, llm)
+    pending = _check_story(
+        session, user, comic, {"title": comic.title, "synopsis": comic.synopsis}, llm
+    )
 
     existing = _scenes(session, comic)
     if any(s.edited_at for s in existing) and not body.start_over:
@@ -150,6 +160,7 @@ def plan_scenes(
 
     ctx = StoryContext(comic.title, comic.synopsis, comic.mood, comic.panel_count, cast, places)
     guard = Guard(llm, session, user.id)
+    guard.offline_only = pending  # unchecked words never reach Meta
     try:
         outcome = story_planner.plan_scenes(guard, ctx)
     except PlanFailed as failed:
@@ -240,7 +251,7 @@ def plan_panels(
             )
     fields = {"title": comic.title, "synopsis": comic.synopsis}
     fields |= {f"scenes.{s.id}.summary": s.summary for s in scenes}
-    _check_story(session, user, comic, fields, llm)
+    pending = _check_story(session, user, comic, fields, llm)
 
     existing = _panels(session, comic)
     keep = (
@@ -266,12 +277,14 @@ def plan_panels(
         [SceneInfo(s.id, s.background_id, tuple(s.character_ids), s.summary) for s in scenes],
     )
     guard = Guard(llm, session, user.id)
+    guard.offline_only = pending  # unchecked words never reach Meta
     try:
         outcome = story_planner.plan_panels(guard, ctx)
     except PlanFailed as failed:
         raise ApiError(422, "plan_failed", PLAN_FAILED) from failed
 
-    panels = _save_panels(session, comic, existing, keep, outcome.plan, ctx, scenes)
+    check = "pending" if pending else "checked"
+    panels = _save_panels(session, comic, existing, keep, outcome.plan, ctx, scenes, check)
     return PanelsPlanned(
         panels=[panel_read(p, storage) for p in panels],
         kept=len(keep),
@@ -289,6 +302,7 @@ def _save_panels(
     plan: PanelPlan,
     ctx: StoryContext,
     scenes: list[Scene],
+    text_check: str,
 ) -> list[Panel]:
     background = {s.id: s.background_id for s in scenes}
     for panel in existing:
@@ -324,8 +338,9 @@ def _save_panels(
             background_id=background[planned.scene_id],
             beat=planned.beat,
             characters=characters,
-            bubbles=layout(bubbles, characters),
+            bubbles=layout(bubbles, characters, looks.specs_for(session, characters)),
             status="planned",
+            text_check=text_check,
         )
         session.add(panel)
         out.append(panel)

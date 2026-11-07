@@ -22,6 +22,7 @@ from app.providers.image import ImageProvider
 from app.providers.mock import MockImageProvider
 from app.routers import backgrounds, builder, characters, comics, jobs, media, profile, studio
 from app.seed import seed
+from app.services import looks, recheck
 from app.services.backup import backup_storage
 from app.services.builder_sheet import BuilderSheets
 from app.services.character_sheet import ImageSheets, SheetProvider
@@ -58,6 +59,19 @@ def _log_to_console() -> None:
         app_log.setLevel(logging.INFO)
 
 
+async def recheck_loop(app: FastAPI, every: float) -> None:
+    """Decision 55: story text saved during a Meta outage is re-checked every so often."""
+    while True:
+        await asyncio.sleep(every)
+        try:
+            settled = await asyncio.to_thread(recheck.recheck_all, app.state.engine, app.state.llm)
+        except Exception:
+            log.exception("background re-check failed")
+            continue
+        if settled:
+            log.info("re-checked %d story item(s) that were waiting for the safety helper", settled)
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     _log_to_console()
@@ -71,7 +85,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         settings.storage_dir.mkdir(parents=True, exist_ok=True)
         engine = make_engine(settings.resolved_database_url)
         # Back up the storage folder before changing an existing database (the newest 5 are kept).
-        migrating = missing_columns(engine) or has_old_character_specs(engine)
+        migrating = (
+            missing_columns(engine)
+            or has_old_character_specs(engine)
+            or looks.needs_backfill(engine)
+        )
         if migrating and not settings.database_url:
             backup_storage(settings.storage_dir, reason="before-migration")
         init_db(engine)
@@ -81,6 +99,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             log.info("moved %d character(s) to builder specs", migrated)
         app.state.engine = engine
         app.state.storage = LocalStorage(settings.media_dir)
+        if frozen := looks.backfill_versions(engine, app.state.storage):
+            log.info("froze the looks of %d locked sheet version(s)", frozen)
         app.state.image_provider = get_image_provider(settings)
         app.state.sheet_provider = make_sheet_provider(settings, app.state.image_provider)
         app.state.jobs = JobRunner(engine, asyncio.get_running_loop())
@@ -89,7 +109,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 mock = MockImageProvider()
                 sheets = make_sheet_provider(settings, mock, reveal=False)
                 seed(session, app.state.storage, mock, sheets=sheets)
+        rechecks = (
+            asyncio.create_task(recheck_loop(app, settings.recheck_seconds))
+            if settings.recheck_seconds > 0
+            else None
+        )
         yield
+        if rechecks is not None:
+            rechecks.cancel()
         app.state.jobs.cancel_all()
         engine.dispose()
 

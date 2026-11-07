@@ -1,4 +1,4 @@
-import type { Background, Character, Comic } from '@/types'
+import type { AvatarSpec, Background, Character, Comic, PanelCharacter } from '@/types'
 
 /**
  * Everyone a comic can show: live characters first, then the comic's own copies of deleted ones.
@@ -13,6 +13,24 @@ export function castFor(comic: Comic, live: Character[]): Character[] {
 export function placesFor(comic: Comic, live: Background[]): Background[] {
   const ids = new Set(live.map((p) => p.id))
   return [...live, ...comic.backgrounds.filter((p) => !ids.has(p.id))]
+}
+
+/**
+ * The look a panel draws a character with: the spec frozen when their sheet version was locked,
+ * so re-locking with a new hat never changes an old comic. Falls back to the current spec.
+ */
+export function lookFor(looks: Comic['looks'], pc: Pick<PanelCharacter, 'id' | 'sheet_version'>, character: Character): AvatarSpec {
+  return looks[pc.id]?.[String(pc.sheet_version)] ?? character.spec
+}
+
+/** Every panel is drawn (Make my comic! has finished them all). */
+export function allDrawn(comic: Comic): boolean {
+  return comic.panels.length > 0 && comic.panels.every((p) => p.status === 'ready' && p.art_url)
+}
+
+/** Some words are waiting for the AI safety check (decision 55): no PDF until they pass. */
+export function wordsWaiting(comic: Comic): boolean {
+  return comic.text_check !== 'checked' || comic.panels.some((p) => p.text_check !== 'checked')
 }
 
 export function readyPanelCount(comic: Comic): number {

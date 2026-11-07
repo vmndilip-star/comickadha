@@ -8,7 +8,7 @@ from sqlmodel import Session
 
 from app.deps import JobsDep, SessionDep, UserDep
 from app.errors import ERROR_RESPONSES, not_found
-from app.models import Background, Character, Job, User
+from app.models import Background, Character, Comic, Job, User
 from app.schemas.job import JobRead
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"], responses=ERROR_RESPONSES)
@@ -17,11 +17,13 @@ router = APIRouter(prefix="/api/jobs", tags=["jobs"], responses=ERROR_RESPONSES)
 def _owned_job(session: Session, user: User, job: Job | None) -> Job:
     if job is None:
         raise not_found("drawing")
-    target = (
-        session.get(Character, job.target_id)
-        if job.kind == "character_sheet"
-        else session.get(Background, job.target_id)
-    )
+    target: Character | Background | Comic | None
+    if job.kind == "character_sheet":
+        target = session.get(Character, job.target_id)
+    elif job.kind == "comic":
+        target = session.get(Comic, job.target_id)
+    else:
+        target = session.get(Background, job.target_id)
     if target is None or target.user_id != user.id:
         raise not_found("drawing")
     return job

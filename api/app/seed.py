@@ -14,10 +14,21 @@ from sqlmodel import Session
 from app.avatar import spec as avatar_spec
 from app.config import get_settings
 from app.db import init_db, make_engine
-from app.models import Background, Character, Comic, Job, ModerationLog, Panel, Scene, User
+from app.models import (
+    Background,
+    Character,
+    CharacterVersion,
+    Comic,
+    Job,
+    ModerationLog,
+    Panel,
+    Scene,
+    User,
+)
 from app.models.base import utcnow
 from app.providers.image import ImageProvider
 from app.providers.mock import MockImageProvider
+from app.services import looks
 from app.services.builder_sheet import BuilderSheets
 from app.services.character_sheet import ImageSheets, SheetProvider, SheetSpec
 from app.services.image_gen import PlaceSpec, build_place
@@ -347,7 +358,17 @@ COMICS: list[dict[str, Any]] = [
 
 def wipe(session: Session, storage: Storage) -> None:
     """Deletes every row (children first) and every generated file."""
-    for model in (Panel, Scene, Comic, Job, ModerationLog, Character, Background, User):
+    for model in (
+        Panel,
+        Scene,
+        Comic,
+        Job,
+        ModerationLog,
+        CharacterVersion,
+        Character,
+        Background,
+        User,
+    ):
         session.execute(delete(model))
     session.commit()
     for prefix in MEDIA_PREFIXES:
@@ -416,6 +437,11 @@ def seed(
         keys = build_place(PlaceSpec.of(bg, 1), provider, storage, _quiet)
         bg.image_key, bg.thumb_key = keys["image_key"], keys["thumb_key"]
         session.add(bg)
+    session.flush()
+    # The looks the locked characters were locked with (panels are drawn from these).
+    for data in CHARACTERS:
+        if data["status"] == "locked":
+            looks.freeze(session, data["id"], 1, data["spec"])
     session.flush()
 
     for data in COMICS:

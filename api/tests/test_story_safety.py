@@ -1,4 +1,5 @@
-"""Safety on story text: blocks name the exact field, personal info stays secret, fails closed."""
+"""Safety on story text: blocks name the exact field, personal info stays secret, and a
+classifier outage leaves locally checked words "not yet AI-checked" (decision 55)."""
 
 from typing import Any
 
@@ -7,7 +8,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, col, select
 
 from app.models import ModerationLog
-from app.services import safety
+from app.services import recheck, safety
 from tests.conftest import IDS, app_state
 from tests.fakes import server_error, use_meta
 
@@ -139,18 +140,74 @@ def test_the_classifier_blocks_unsafe_story_text(client: TestClient) -> None:
     assert (f"comic:{comic_id}", ["bullying"]) in blocks(client)
 
 
-def test_a_classifier_error_blocks_too(client: TestClient) -> None:
-    """Fails closed: if the story can't be checked, it isn't planned (and never reaches Meta)."""
+def verdicts(client: TestClient, verdict: str) -> list[str]:
+    with Session(app_state(client).engine) as session:
+        stmt = select(ModerationLog).where(ModerationLog.verdict == verdict)
+        return [log.target for log in session.exec(stmt)]
+
+
+def test_a_classifier_outage_plans_offline_and_marks_the_story_pending(
+    client: TestClient,
+) -> None:
+    """Decision 55: the local checks still pass it, the offline planner takes over, nothing
+    unchecked reaches Meta, and the story is "not yet AI-checked"."""
     fake = use_meta(client)
     fake.replies["safety_verdicts"] = server_error()
     comic_id = new_comic(client)
 
     res = plan(client, comic_id, "scenes")
 
-    assert (res.status_code, res.json()["code"], res.json()["field"]) == (422, "unsafe", "title")
-    assert res.json()["message"] == safety.CHECKER_RESTING
+    assert res.status_code == 200 and res.json()["fallback"] is True
     assert fake.calls_for("scene_plan") == []
-    assert (f"comic:{comic_id}", ["unavailable"]) in blocks(client)
+    assert f"comic:{comic_id}" in verdicts(client, "pending")
+    assert client.get(f"/api/comics/{comic_id}").json()["text_check"] == "pending"
+    panels = plan(client, comic_id, "panels").json()["panels"]
+    assert fake.calls_for("panel_plan") == []
+    assert {p["text_check"] for p in panels} == {"pending"}
+
+
+def test_the_local_checks_still_block_during_an_outage(client: TestClient) -> None:
+    fake = use_meta(client)
+    fake.replies["safety_verdicts"] = server_error()
+    comic_id = new_comic(client, synopsis="Mira calls 07700 900 123 to find the mango.")
+
+    res = plan(client, comic_id, "scenes")
+
+    assert (res.status_code, res.json()["field"]) == (422, "synopsis")
+
+
+def test_pending_story_text_is_rechecked_when_meta_is_back(client: TestClient) -> None:
+    fake = use_meta(client)
+    fake.replies["safety_verdicts"] = server_error()
+    comic_id = new_comic(client)
+    plan(client, comic_id, "scenes")
+    plan(client, comic_id, "panels")
+    state = app_state(client)
+
+    assert recheck.recheck_all(state.engine, state.llm) == 0  # still resting: nothing settles
+
+    del fake.replies["safety_verdicts"]  # Meta is back: everything is safe
+    assert recheck.recheck_all(state.engine, state.llm) == 7  # the comic and its 6 panels
+    comic = client.get(f"/api/comics/{comic_id}").json()
+    assert comic["text_check"] == "checked"
+    assert {p["text_check"] for p in comic["panels"]} == {"checked"}
+
+
+def test_a_later_block_shows_under_the_field(client: TestClient) -> None:
+    fake = use_meta(client)
+    fake.replies["safety_verdicts"] = server_error()
+    comic_id = new_comic(client)
+    plan(client, comic_id, "scenes")
+    fake.replies["safety_verdicts"] = {
+        "verdicts": [{"safe": True, "categories": []}, {"safe": False, "categories": ["bullying"]}]
+    }
+
+    state = app_state(client)
+    recheck.recheck_all(state.engine, state.llm)
+
+    comic = client.get(f"/api/comics/{comic_id}").json()
+    assert comic["text_check"] == "blocked"
+    assert [n["field"] for n in comic["safety_notes"]] == ["synopsis"]
 
 
 def test_scene_summaries_are_checked_before_planning_panels(client: TestClient) -> None:
@@ -183,7 +240,7 @@ def test_bubble_text_is_checked_on_save_and_names_the_bubble(client: TestClient)
     assert saved == bubble["text"]  # nothing unsafe was saved
 
 
-def test_bubble_classifier_errors_fail_closed(client: TestClient) -> None:
+def test_bubble_words_saved_during_an_outage_are_pending(client: TestClient) -> None:
     comic_id = new_comic(client)
     plan(client, comic_id, "scenes")
     panel = plan(client, comic_id, "panels").json()["panels"][1]
@@ -195,7 +252,16 @@ def test_bubble_classifier_errors_fail_closed(client: TestClient) -> None:
         f"/api/panels/{panel['id']}", json={"bubbles": [{**bubble, "text": "Hello!"}]}
     )
 
-    assert res.status_code == 422 and res.json()["message"] == safety.CHECKER_RESTING
-    # Unchanged words aren't re-checked: moving a character still works while the checker rests.
-    moved = [{**panel["characters"][0], "position": "center"}]
-    assert client.patch(f"/api/panels/{panel['id']}", json={"characters": moved}).status_code == 200
+    assert res.status_code == 200 and res.json()["text_check"] == "pending"
+    assert res.json()["bubbles"][0]["text"] == "Hello!"
+    # Unsafe words are still caught by the local checks while the classifier rests.
+    bad = client.patch(
+        f"/api/panels/{panel['id']}", json={"bubbles": [{**bubble, "text": "Grab the gun!"}]}
+    )
+    assert bad.status_code == 422
+    # Once Meta answers, the next save checks every bubble of a pending panel.
+    del fake.replies["safety_verdicts"]
+    res = client.patch(
+        f"/api/panels/{panel['id']}", json={"bubbles": [{**bubble, "text": "Hello again!"}]}
+    )
+    assert res.json()["text_check"] == "checked"

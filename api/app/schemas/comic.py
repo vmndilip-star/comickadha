@@ -1,5 +1,8 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
+from app.schemas.avatar import AvatarSpec
 from app.schemas.background import BackgroundRead
 from app.schemas.character import CharacterRead
 from app.schemas.common import (
@@ -16,6 +19,8 @@ from app.schemas.common import (
     StudioStep,
     UtcDatetime,
 )
+
+TextCheck = Literal["checked", "pending", "blocked"]
 
 
 class PanelCharacter(BaseModel):
@@ -35,6 +40,8 @@ class Bubble(BaseModel):
     # Phase 5: bubble box (x, y, w, h) and tail tip (x, y), as fractions of the panel.
     box: tuple[float, float, float, float] | None = None
     tail: tuple[float, float] | None = None
+    # The kid moved or resized it: its box is kept; only its tail is re-aimed.
+    fixed: bool = False
 
 
 class SceneWrite(BaseModel):
@@ -69,7 +76,14 @@ class PanelRead(BaseModel):
     bubbles: list[Bubble]
     status: PanelStatus
     mode: PanelMode
+    # art.png (background + characters, no bubbles), with ?v= so a re-draw shows at once.
     art_url: str | None
+    thumb_url: str | None
+    # final.png (art + bubbles baked in), made on demand when stale.
+    final_url: str | None
+    # Bubble words checked by every available check, still waiting for Meta (decision 55), or
+    # blocked by that later check (the message is in `error`).
+    text_check: TextCheck
     image_url: str | None
     error: str | None
     updated_at: UtcDatetime
@@ -108,5 +122,13 @@ class ComicRead(BaseModel):
     # Notes from the instant local safety checks on the title and synopsis (a draft is still
     # saved; it just can't be planned until it's changed).
     safety_notes: list[FieldNote]
+    # The frozen look of every character sheet version the panels use: {character_id:
+    # {"version": spec}}. Panels are drawn from these, never the current spec.
+    looks: dict[str, dict[str, AvatarSpec]]
+    # The latest Make my comic! job, to follow (and reconnect to) over SSE.
+    last_job_id: str | None
+    # Title and synopsis: checked, waiting for Meta (decision 55), or blocked by that later check
+    # (the message is in safety_notes). PDF export needs "checked" here and on every panel.
+    text_check: TextCheck
     created_at: UtcDatetime
     updated_at: UtcDatetime

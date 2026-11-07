@@ -17,10 +17,3 @@ export const BUBBLE_FILL: Record<BubbleType, string> = {
   shout: 'bg-sun',
   narrator: 'bg-sun-tint',
 }
-
-export const BUBBLE_TEXT: Record<BubbleType, string> = {
-  talk: 'font-extrabold',
-  think: 'font-extrabold',
-  shout: 'font-display font-normal tracking-[1px] uppercase',
-  narrator: 'font-bold italic',
-}

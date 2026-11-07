@@ -427,10 +427,95 @@ export interface paths {
         head?: never;
         /**
          * Update Panel
-         * @description Kid edits to a planned panel. New bubble words are safety-checked (with the classifier
-         *     when Meta is on); a block names the bubble, so the message shows under it.
+         * @description Kid edits to a panel. New bubble words are safety-checked first (with the classifier when
+         *     Meta is on); a block names the bubble, so the message shows under it, and nothing is saved.
+         *     Bubbles sit over their speakers unless the kid moved them (`fixed`). A drawn panel whose
+         *     characters changed (face, pose, position) is re-drawn now; text edits never re-draw art.
          */
         patch: operations["update_panel_api_panels__panel_id__patch"];
+        trace?: never;
+    };
+    "/api/panels/{panel_id}/render": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Render Panel
+         * @description Draws one panel again now (Try again on a failed or blocked panel).
+         */
+        post: operations["render_panel_api_panels__panel_id__render_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/panels/{panel_id}/final.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Panel Final
+         * @description The panel with its bubbles lettered in (made again only when it's out of date).
+         */
+        get: operations["panel_final_api_panels__panel_id__final_png_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/comics/{comic_id}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate Comic
+         * @description Make my comic!: draws every panel as a job (follow it over SSE: panel_ready or
+         *     panel_failed per panel, then done with the cover). Needs a full panel plan with every
+         *     character locked. Pressing it again while drawing reconnects to the same job.
+         */
+        post: operations["generate_comic_api_comics__comic_id__generate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/comics/{comic_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Comic Pdf
+         * @description The comic as a PDF (cover, then 6 panels a page). Every panel must be drawn and every
+         *     word AI-checked (decision 55); otherwise a 409 says what's missing.
+         */
+        get: operations["comic_pdf_api_comics__comic_id__pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/studio/{comic_id}/plan-scenes": {
@@ -730,6 +815,11 @@ export interface components {
                 number,
                 number
             ] | null;
+            /**
+             * Fixed
+             * @default false
+             */
+            fixed: boolean;
         };
         /** BuddyReply */
         BuddyReply: {
@@ -922,6 +1012,19 @@ export interface components {
             backgrounds: components["schemas"]["BackgroundRead"][];
             /** Safety Notes */
             safety_notes: components["schemas"]["FieldNote"][];
+            /** Looks */
+            looks: {
+                [key: string]: {
+                    [key: string]: components["schemas"]["AvatarSpec"];
+                };
+            };
+            /** Last Job Id */
+            last_job_id: string | null;
+            /**
+             * Text Check
+             * @enum {string}
+             */
+            text_check: "checked" | "pending" | "blocked";
             /**
              * Created At
              * Format: date-time
@@ -1176,7 +1279,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "character_sheet" | "background_image";
+            kind: "character_sheet" | "background_image" | "comic";
             /** Target Id */
             target_id: string;
         };
@@ -1241,6 +1344,15 @@ export interface components {
             mode: "composite" | "redraw";
             /** Art Url */
             art_url: string | null;
+            /** Thumb Url */
+            thumb_url: string | null;
+            /** Final Url */
+            final_url: string | null;
+            /**
+             * Text Check
+             * @enum {string}
+             */
+            text_check: "checked" | "pending" | "blocked";
             /** Image Url */
             image_url: string | null;
             /** Error */
@@ -3034,6 +3146,202 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PanelRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    render_panel_api_panels__panel_id__render_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                panel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PanelRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    panel_final_api_panels__panel_id__final_png_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                panel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    generate_comic_api_comics__comic_id__generate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobStarted"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    comic_pdf_api_comics__comic_id__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                comic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
                 };
             };
             /** @description Not Found */

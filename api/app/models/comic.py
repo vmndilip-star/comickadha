@@ -18,6 +18,13 @@ class Comic(SQLModel, table=True):
     studio_step: int = 1
     status: str = Field(default="draft", max_length=16)
     cover_key: str | None = None
+    # The latest "Make my comic!" job, so the Reader can reconnect after a refresh.
+    last_job_id: str | None = None
+    # Title, synopsis and scene summaries: "checked" by every available check, or "pending" when
+    # Meta's classifier couldn't look yet (decision 55). None counts as checked (older comics).
+    text_check: str | None = None
+    # A classifier block found later (background re-check): {"field", "message"}.
+    check_note: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
     deleted_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
@@ -55,6 +62,14 @@ class Panel(SQLModel, table=True):
     art_key: str | None = None
     image_key: str | None = None
     error: str | None = None
+    # Bubble words: "checked" or "pending" (decision 55). None counts as checked.
+    text_check: str | None = None
+    # Bumped on every re-draw, so browsers fetch the new art (art.png?v=n).
+    art_version: int | None = None
+    thumb_key: str | None = None
+    # final.png (art + bubbles), and the hash of what it was made from (stale when it differs).
+    final_key: str | None = None
+    final_hash: str | None = None
     # When the kid last changed it (None: as the planner made it). Re-planning keeps edited panels.
     edited_at: datetime | None = None
     updated_at: datetime = Field(default_factory=utcnow)

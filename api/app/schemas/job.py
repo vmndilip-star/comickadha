@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from app.schemas.common import UtcDatetime
 
 JobStatus = Literal["queued", "running", "done", "failed"]
-JobKind = Literal["character_sheet", "background_image"]
+JobKind = Literal["character_sheet", "background_image", "comic"]
 
 
 class JobStarted(BaseModel):

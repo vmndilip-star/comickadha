@@ -31,12 +31,16 @@ export function ComicCard({ comic, variant = 'full' }: ComicCardProps) {
     const cover = finished ? (tints[0] ?? '#FFD23F') : '#FFD23F'
     return (
       <Link to={href} className="flex flex-col overflow-hidden rounded-card border-3 border-ink bg-surface no-underline shadow-card">
-        <span
-          className="flex h-[150px] items-center justify-center border-b-3 border-ink font-display text-[30px]"
-          style={{ backgroundColor: cover, color: textOn(cover) }}
-        >
-          {episode ? `EPISODE ${episode}` : 'DRAFT'}
-        </span>
+        {comic.cover_url ? (
+          <img src={comic.cover_url} alt="" className="h-[150px] w-full border-b-3 border-ink object-cover" />
+        ) : (
+          <span
+            className="flex h-[150px] items-center justify-center border-b-3 border-ink font-display text-[30px]"
+            style={{ backgroundColor: cover, color: textOn(cover) }}
+          >
+            {episode ? `EPISODE ${episode}` : 'DRAFT'}
+          </span>
+        )}
         <span className="flex flex-col gap-1 px-4 py-3.5">
           <span className="text-lg font-extrabold text-ink">{title}</span>
           <span className="font-semibold text-muted">
@@ -50,9 +54,12 @@ export function ComicCard({ comic, variant = 'full' }: ComicCardProps) {
   return (
     <article className="flex flex-col overflow-hidden rounded-card border-3 border-ink bg-surface shadow-card">
       <div className="relative box-border grid h-[180px] grid-cols-2 gap-1.5 border-b-3 border-ink bg-ink p-2.5">
-        {tints.map((tint, i) => (
-          <div key={i} className="rounded-[4px]" style={{ backgroundColor: tint }} />
-        ))}
+        {comic.cover_url ? (
+          // The cover: panel 1 with the title, made when the comic is drawn.
+          <img src={comic.cover_url} alt="" className="absolute inset-0 size-full object-cover" />
+        ) : (
+          tints.map((tint, i) => <div key={i} className="rounded-[4px]" style={{ backgroundColor: tint }} />)
+        )}
         <Badge tone={finished ? 'finished' : 'draft'} className="absolute top-4 left-4">
           {finished ? 'Finished' : 'Draft'}
         </Badge>

@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react'
 import { Avatar } from '@/components/character/Avatar'
 import { FieldMessage } from '@/components/ui/FieldMessage'
+import { ThumbPicker } from '@/components/ui/ThumbPicker'
 import { cn } from '@/lib/cn'
+import { lookFor } from '@/lib/comic'
 import { BUBBLE_LABEL, EXPRESSION_LABEL, POSE_LABEL } from '@/lib/labels'
 import { MAX_BUBBLE_WORDS, moveCharacter, wordCount } from '@/lib/studio'
 import { useFieldError } from '@/store/fieldErrors'
@@ -15,6 +16,7 @@ import {
   type Bubble,
   type BubbleType,
   type Character,
+  type Comic,
   type Panel,
   type PanelCharacter,
 } from '@/types'
@@ -22,6 +24,8 @@ import {
 interface PanelPlanCardProps {
   number: number
   panel: Panel
+  /** The comic's pinned looks (comic.looks): characters are drawn as they were locked. */
+  looks: Comic['looks']
   place: Background | undefined
   cast: Character[]
   editing: boolean
@@ -37,7 +41,7 @@ const STAND: Record<PanelCharacter['position'], string> = {
 const POSITION_LABEL: Record<PanelCharacter['position'], string> = { left: 'Left', center: 'Middle', right: 'Right' }
 
 /** One planned panel: the real characters (live <Avatar>) in their pose and face over the place. */
-export function PanelPlanCard({ number, panel, place, cast, editing, onEdit, onChange }: PanelPlanCardProps) {
+export function PanelPlanCard({ number, panel, looks, place, cast, editing, onEdit, onChange }: PanelPlanCardProps) {
   const thumb = place?.thumb_url ?? place?.image_url
   const nameOf = (id: string) => (id === NARRATOR ? 'Narrator' : (cast.find((c) => c.id === id)?.name ?? 'Someone'))
   const drawn = panel.status === 'ready'
@@ -58,7 +62,7 @@ export function PanelPlanCard({ number, panel, place, cast, editing, onEdit, onC
           return (
             <span key={pc.id} className={cn('absolute bottom-0 w-[38%]', STAND[pc.position])}>
               <Avatar
-                spec={character.spec}
+                spec={lookFor(looks, pc, character)}
                 pose={pc.pose}
                 expression={pc.expression}
                 size="100%"
@@ -98,7 +102,7 @@ export function PanelPlanCard({ number, panel, place, cast, editing, onEdit, onC
         >
           {editing ? 'Done' : 'Edit panel'}
         </button>
-        {editing && <PanelEditor panel={panel} cast={cast} onChange={onChange} nameOf={nameOf} />}
+        {editing && <PanelEditor panel={panel} looks={looks} cast={cast} onChange={onChange} nameOf={nameOf} />}
       </div>
     </article>
   )
@@ -125,12 +129,13 @@ function BubbleBox({ bubble }: { bubble: Bubble }) {
 
 interface PanelEditorProps {
   panel: Panel
+  looks: Comic['looks']
   cast: Character[]
   onChange: (update: (panel: Panel) => Panel) => void
   nameOf: (id: string) => string
 }
 
-function PanelEditor({ panel, cast, onChange, nameOf }: PanelEditorProps) {
+function PanelEditor({ panel, looks, cast, onChange, nameOf }: PanelEditorProps) {
   const setBubble = (id: string, patch: Partial<Bubble>) =>
     onChange((p) => ({ ...p, bubbles: p.bubbles.map((b) => (b.id === id ? { ...b, ...patch } : b)) }))
   const setCharacter = (id: string, patch: Partial<PanelCharacter>) =>
@@ -145,22 +150,23 @@ function PanelEditor({ panel, cast, onChange, nameOf }: PanelEditorProps) {
       {panel.characters.map((pc) => {
         const character = cast.find((c) => c.id === pc.id)
         if (!character) return null
+        const look = lookFor(looks, pc, character)
         return (
           <div key={pc.id} className="flex flex-col gap-2 rounded-tile border-3 border-ink bg-paper p-3">
             <span className="font-extrabold">{character.name}</span>
-            <Picker
+            <ThumbPicker
               label={`${character.name}'s face`}
               options={EXPRESSIONS.map((e) => ({ id: e, label: EXPRESSION_LABEL[e] }))}
               selected={pc.expression}
               onSelect={(expression) => setCharacter(pc.id, { expression: expression as PanelCharacter['expression'] })}
-              render={(e) => <Avatar spec={character.spec} mode="face" expression={e} size={48} />}
+              render={(e) => <Avatar spec={look} mode="face" expression={e} size={48} />}
             />
-            <Picker
+            <ThumbPicker
               label={`${character.name}'s pose`}
               options={POSES.map((p) => ({ id: p, label: POSE_LABEL[p] }))}
               selected={pc.pose}
               onSelect={(pose) => setCharacter(pc.id, { pose: pose as PanelCharacter['pose'] })}
-              render={(p) => <Avatar spec={character.spec} pose={p} expression={pc.expression} size={48} />}
+              render={(p) => <Avatar spec={look} pose={p} expression={pc.expression} size={48} />}
             />
             <div role="group" aria-label={`Where ${character.name} stands`} className="flex flex-wrap gap-1.5">
               {POSITIONS.map((position) => (
@@ -254,42 +260,6 @@ function BubbleEditor({
         <p className="m-0 text-label font-bold text-muted">Short bubbles are easier to read: try {MAX_BUBBLE_WORDS} words or fewer.</p>
       )}
       <FieldMessage message={error} />
-    </div>
-  )
-}
-
-function Picker({
-  label,
-  options,
-  selected,
-  onSelect,
-  render,
-}: {
-  label: string
-  options: { id: string; label: string }[]
-  selected: string
-  onSelect: (id: string) => void
-  render: (id: string) => ReactNode
-}) {
-  return (
-    <div role="group" aria-label={label} className="flex gap-1.5 overflow-x-auto pb-1.5">
-      {options.map((o) => (
-        <button
-          key={o.id}
-          type="button"
-          aria-pressed={selected === o.id}
-          aria-label={o.label}
-          title={o.label}
-          onClick={() => onSelect(o.id)}
-          className={cn(
-            'flex w-[62px] flex-none flex-col items-center rounded-tile border-3 border-ink p-1 text-[11px] font-extrabold',
-            selected === o.id ? 'bg-sun' : 'bg-surface',
-          )}
-        >
-          {render(o.id)}
-          <span className="w-full truncate">{o.label}</span>
-        </button>
-      ))}
     </div>
   )
 }

@@ -16,13 +16,14 @@ from typing import Any, ParamSpec, TypeVar
 from sqlalchemy import Engine
 from sqlmodel import Session, col, select
 
-from app.models import Background, Character, Job
+from app.models import Background, Character, Job, Panel
 from app.models.base import utcnow
 
 log = logging.getLogger(__name__)
 
 FAILED_MESSAGE = "Oops, the drawing didn't work. Tap Lock to try again!"
 INTERRUPTED_MESSAGE = "Oops, the drawing got interrupted. Tap Lock to try again!"
+PANEL_INTERRUPTED = "Oops, this panel got interrupted. Tap Try again!"
 KEEPALIVE_SECONDS = 15.0
 FINAL_EVENTS = ("done", "error")
 
@@ -201,6 +202,9 @@ def fail_interrupted_jobs(engine: Engine) -> int:
             job.error = INTERRUPTED_MESSAGE
             job.updated_at = utcnow()
             session.add(job)
+            if job.kind == "comic":
+                fail_rendering_panels(session, job.target_id, PANEL_INTERRUPTED)
+                continue
             target = (
                 session.get(Character, job.target_id)
                 if job.kind == "character_sheet"
@@ -211,3 +215,11 @@ def fail_interrupted_jobs(engine: Engine) -> int:
                 session.add(target)
         session.commit()
         return len(stuck)
+
+
+def fail_rendering_panels(session: Session, comic_id: str, message: str) -> None:
+    """Panels a comic job left mid-drawing (restart or crash) become failed, so Try again shows."""
+    stmt = select(Panel).where(Panel.comic_id == comic_id, Panel.status == "rendering")
+    for panel in session.exec(stmt):
+        panel.status, panel.error = "failed", message
+        session.add(panel)

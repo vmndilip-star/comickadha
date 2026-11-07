@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     sheet_provider: Literal["builder", "image"] = "builder"
     # Pause per builder cell, so the sheet visibly fills in (22 cells, about 2 seconds).
     builder_reveal_seconds: float = 0.08
+    # Pause after each panel of "Make my comic!", so the Reader visibly fills in. Tests use 0.
+    panel_reveal_seconds: float = 0.4
+    # How often story text that is "not yet AI-checked" is re-checked (decision 55). 0: never.
+    recheck_seconds: float = 60.0
 
     # Meta's model API (OpenAI-compatible). The model names come from .env, never from code.
     meta_api_key: str = ""

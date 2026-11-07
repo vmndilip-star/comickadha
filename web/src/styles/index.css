@@ -67,9 +67,26 @@
   animation: ck-wiggle 900ms ease-in-out infinite;
 }
 
+@keyframes ck-confetti {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(105vh) rotate(540deg);
+    opacity: 0.9;
+  }
+}
+
+/* Finish my comic!: paper falling once (the Confetti component skips it for reduced motion). */
+@utility animate-confetti {
+  animation: ck-confetti 2.6s cubic-bezier(0.3, 0.6, 0.5, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-pop,
-  .animate-wiggle {
+  .animate-wiggle,
+  .animate-confetti {
     animation: none;
   }
 }

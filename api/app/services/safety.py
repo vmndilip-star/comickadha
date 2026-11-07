@@ -3,6 +3,10 @@
 First a local word list; then, when a real LLM is set (LLM_PROVIDER=meta), a model-based
 classifier. It fails closed: a hit blocks, and if the classifier can't answer, SafetyUnavailable is
 raised so the caller never uses unchecked text. Every verdict is logged in moderation_log.
+
+Story text is the exception (decision 55): during a Meta outage, words that pass the local checks
+are allowed but `pending` ("not yet AI-checked"). They are drawn by the offline planner only, never
+sent to Meta, re-checked in the background (services/recheck.py), and PDF export waits for that.
 """
 
 import logging
@@ -61,6 +65,9 @@ class Verdict:
     categories: list[str] = field(default_factory=list)
     # A message about this kind of block (personal info, safety helper resting), if any.
     kid_message: str | None = None
+    # Story text that passed the local checks while the classifier couldn't answer (decision 55):
+    # allowed for drawing, "not yet AI-checked", re-checked in the background.
+    pending: bool = False
 
     def message(self, labels: dict[str, str]) -> str:
         if self.kid_message:
@@ -79,9 +86,6 @@ SECRET_EMAIL = "Let's keep email addresses secret! Please take it out of your st
 SECRET_SCHOOL = 'Let\'s keep school names secret! Call it "the school" or "Class 3B" instead.'
 SECRET_NAME = "Let's keep real full names secret! First names or made-up names are great."
 SECRET_DETAILS = "Let's keep personal details secret! Please take them out and try again."
-CHECKER_RESTING = (
-    "Our safety helper is resting, so we can't check this right now. Please try again in a minute!"
-)
 
 _EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 # Runs of digits with spaces, dots, dashes or brackets between them; 7+ digits is a phone number.
@@ -223,7 +227,7 @@ def log_verdict(session: Session, user_id: str, target: str, verdict: Verdict, k
             user_id=user_id,
             kind=kind,
             target=target[:120],
-            verdict="allow" if verdict.allowed else "block",
+            verdict="pending" if verdict.pending else ("allow" if verdict.allowed else "block"),
             categories=verdict.categories,
         )
     )
@@ -254,10 +258,28 @@ def check_story(
     fields: dict[str, str],
     llm: LLMProvider | None = None,
 ) -> Verdict:
-    """For story text: check_and_log, but a classifier outage is a block too (fails closed), with
-    a "safety helper is resting" message on the first field that has words."""
+    """For story text: the local checks, then the classifier when an LLM is set, logged.
+    A classifier outage doesn't block (decision 55): text that passed the local checks comes back
+    allowed but `pending` ("not yet AI-checked"), and must not be sent to Meta until re-checked."""
     try:
-        return check_and_log(session, user_id, target, fields, llm)
+        verdict = check_text(fields, llm)
     except SafetyUnavailable:
-        first = next((name for name, text in fields.items() if text.strip()), None)
-        return Verdict(False, first, ["unavailable"], CHECKER_RESTING)
+        verdict = Verdict(True, None, ["unavailable"], pending=True)
+    log_verdict(session, user_id, target, verdict, "text")
+    return verdict
+
+
+PNG_SIGNATURE = bytes.fromhex("89504e470d0a1a0a")
+IMAGE_UNCHECKED = "That picture couldn't be checked. Try painting the place again!"
+
+
+def check_image(session: Session, user_id: str, target: str, png: bytes | None) -> Verdict:
+    """Every place image that goes into a panel. Places are drawn by the image provider from words
+    that already passed the checks, so the mock allows them; a real image classifier plugs in
+    here (Phase 6). Logged like text verdicts."""
+    if png is None or png.startswith(PNG_SIGNATURE):
+        verdict = Verdict(allowed=True)
+    else:
+        verdict = Verdict(False, None, ["not_png"], IMAGE_UNCHECKED)
+    log_verdict(session, user_id, target, verdict, "image")
+    return verdict

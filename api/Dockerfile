@@ -16,6 +16,8 @@ RUN uv sync --frozen --no-dev
 # --build-context shared=../shared.
 COPY --from=shared avatar/catalog.json ./shared/avatar/catalog.json
 COPY app ./app
+# Bubble and PDF lettering fonts (Bangers, Nunito; SIL Open Font License).
+COPY assets ./assets
 
 EXPOSE 8000
 CMD ["uv", "run", "--no-dev", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

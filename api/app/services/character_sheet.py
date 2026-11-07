@@ -25,7 +25,7 @@ from app.prompts import render
 from app.providers.image import ImageProvider, KnowsHeadBoxes
 from app.schemas.common import EXPRESSIONS, POSES
 from app.schemas.manifest import BodySheet, Box, CharacterManifest, FaceSheet, HeadBox
-from app.services import imaging
+from app.services import imaging, looks
 from app.services.jobs import JobContext, JobFailed
 from app.services.storage import Storage
 
@@ -368,6 +368,8 @@ async def run_sheet_job(
         character.status = "locked"
         character.updated_at = utcnow()
         session.add(character)
+        # Freeze the look this version was locked with: comics drawn with it never change.
+        looks.freeze(session, spec.id, spec.version, spec.spec)
         session.commit()
     return {"target_id": spec.id, "version": spec.version}
 

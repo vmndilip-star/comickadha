@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useParams, useSearchParams } from 'react-router'
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoading } from '@/components/layout/PageLoading'
 import { BackgroundLibrary } from '@/components/story/BackgroundLibrary'
@@ -11,17 +11,18 @@ import { Stepper } from '@/components/story/Stepper'
 import { SafetyNote, StoryBuddy } from '@/components/story/StoryBuddy'
 import { LockedNudge, PlanningLoader, PlanNoteBox } from '@/components/story/StudioNotes'
 import { SynopsisForm } from '@/components/story/SynopsisForm'
-import { Button } from '@/components/ui/Button'
+import { Button, ButtonLink } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptySlot } from '@/components/ui/EmptySlot'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { SaveStatus } from '@/components/ui/SaveStatus'
-import { byRecent, castFor, placesFor } from '@/lib/comic'
+import { allDrawn, byRecent, castFor, placesFor } from '@/lib/comic'
 import { MAX_SCENES, moveScene, readyToPlan } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore, useStartComic } from '@/store/comics'
 import { useFieldErrors } from '@/store/fieldErrors'
 import { useDataStatus } from '@/store/load'
+import { useMakingStore } from '@/store/making'
 import { usePlacesStore } from '@/store/places'
 import { useStudioStore, type PlanKind } from '@/store/studio'
 import type { Comic, Scene, StudioStep } from '@/types'
@@ -106,6 +107,9 @@ function Studio({ comic }: { comic: Comic }) {
   const [editingScene, setEditingScene] = useState<string | null>(null)
   const [editingPanel, setEditingPanel] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<PlanKind | null>(null)
+  const make = useMakingStore((s) => s.make)
+  const [starting, setStarting] = useState(false)
+  const navigate = useNavigate()
 
   const ready = readyToPlan(comic, characters, places)
   const requested = parseStep(params.get('step'), comic.studio_step)
@@ -116,6 +120,24 @@ function Studio({ comic }: { comic: Comic }) {
   const allPlaces = placesFor(comic, places)
   const editing = comic.scenes.find((s) => s.id === editingScene)
   const notes = Object.fromEntries(comic.safety_notes.map((n) => [n.field, n.message]))
+  // Decision 14: Make my comic! needs every panel planned and everyone in them locked.
+  const notLocked = [...new Set(comic.panels.flatMap((p) => p.characters.map((pc) => pc.id)))]
+    .map((cid) => allCast.find((c) => c.id === cid))
+    .filter((c) => c !== undefined && c.status !== 'locked')
+  const planned = comic.panels.length > 0 && comic.panels.length === comic.panel_count
+  const canMake = planned && notLocked.length === 0 && planning === null
+  const makeHint = !planned
+    ? 'Plan your panels first.'
+    : notLocked.length
+      ? `Lock ${notLocked.map((c) => c?.name).join(' and ')} in the Character Lab first.`
+      : null
+
+  const startMaking = async () => {
+    setStarting(true)
+    const ok = await make(comic.id)
+    setStarting(false)
+    if (ok) void navigate(`/comics/${comic.id}`)
+  }
 
   const goTo = (next: StudioStep) => {
     if (next > 1 && !ready.ok) return
@@ -261,6 +283,7 @@ function Studio({ comic }: { comic: Comic }) {
                       key={panel.id}
                       number={i + 1}
                       panel={panel}
+                      looks={comic.looks}
                       place={allPlaces.find((p) => p.id === panel.background_id)}
                       cast={allCast}
                       editing={editingPanel === panel.id}
@@ -275,14 +298,24 @@ function Studio({ comic }: { comic: Comic }) {
                 </EmptySlot>
               )}
               <div className="flex flex-wrap items-center gap-3">
-                <span title="Coming in the next update">
-                  <Button variant="make" disabled aria-describedby="make-soon">
-                    Make my comic!
-                  </Button>
-                </span>
-                <span id="make-soon" className="font-bold text-muted">
-                  Coming in the next update
-                </span>
+                <Button
+                  variant="make"
+                  disabled={!canMake || starting}
+                  aria-describedby={makeHint ? 'make-hint' : undefined}
+                  onClick={() => void startMaking()}
+                >
+                  {starting ? 'Starting…' : allDrawn(comic) ? 'Make it again!' : 'Make my comic!'}
+                </Button>
+                {allDrawn(comic) && (
+                  <ButtonLink to={`/comics/${comic.id}`} variant="primary">
+                    Read my comic
+                  </ButtonLink>
+                )}
+                {makeHint && (
+                  <span id="make-hint" className="font-bold text-muted">
+                    {makeHint}
+                  </span>
+                )}
               </div>
             </div>
           )}
