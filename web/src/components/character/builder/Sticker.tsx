@@ -1,5 +1,6 @@
-import type { KeyboardEvent, ReactNode } from 'react'
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 import { cn } from '@/lib/cn'
+import type { DragHandle } from './dnd/context'
 
 interface StickerProps {
   label: string
@@ -8,19 +9,47 @@ interface StickerProps {
   dimmed?: boolean
   disabled?: boolean
   onApply: () => void
+  /** Drag-and-drop: the whole sticker is the handle; Space picks it up, Enter still applies. */
+  handle?: DragHandle
   children: ReactNode
 }
 
-/** One option in a builder tray: a 64px+ thumbnail; tap, Enter or Space applies it. */
-export function Sticker({ label, selected, dimmed, disabled, onApply, children }: StickerProps) {
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+function keyHandler(onApply: () => void, handle: DragHandle | undefined) {
+  return (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || (e.key === ' ' && !handle)) {
       e.preventDefault()
       onApply()
+      return
     }
+    handle?.listeners?.onKeyDown?.(e)
   }
+}
+
+/** Pointer listeners (mouse and touch) from the drag handle; keyboard is merged in keyHandler. */
+function pointerListeners(handle: DragHandle | undefined) {
+  if (!handle?.listeners) return {}
+  const { onKeyDown: _keys, ...rest } = handle.listeners
+  void _keys
+  return rest
+}
+
+/**
+ * In one-column layouts the preview is stuck to the top: scrolling a sticker into view (Tab focus,
+ * scrollIntoView) must land it below the preview, not hidden underneath it.
+ */
+const UNDER_STICKY = 'scroll-mt-[400px] sm:scroll-mt-[480px] @min-[700px]:scroll-mt-6'
+
+const dragStyle = (handle: DragHandle | undefined): CSSProperties | undefined =>
+  // manipulation (not none): a quick swipe still scrolls the tray; a 150 ms press starts a drag.
+  handle ? { touchAction: 'manipulation', WebkitTouchCallout: 'none' } : undefined
+
+/** One option in a builder tray: a 64px+ thumbnail; tap or Enter applies it, or drag it on. */
+export function Sticker({ label, selected, dimmed, disabled, onApply, handle, children }: StickerProps) {
   return (
     <div
+      ref={handle?.setNodeRef}
+      {...handle?.attributes}
+      {...pointerListeners(handle)}
       role="button"
       tabIndex={0}
       aria-label={dimmed ? `${label} (doesn't fit)` : label}
@@ -28,13 +57,17 @@ export function Sticker({ label, selected, dimmed, disabled, onApply, children }
       aria-disabled={disabled || undefined}
       title={label}
       onClick={onApply}
-      onKeyDown={onKeyDown}
+      onKeyDown={keyHandler(onApply, handle)}
+      style={dragStyle(handle)}
       className={cn(
         'relative flex w-[76px] flex-none cursor-pointer snap-start flex-col items-center gap-1 rounded-tile border-3 border-ink bg-surface p-1.5 select-none',
+        UNDER_STICKY,
         'focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-pow-blue',
+        handle && !disabled && 'cursor-grab active:cursor-grabbing',
         selected && 'bg-sun shadow-sm',
         dimmed && 'opacity-45',
         disabled && 'cursor-not-allowed opacity-60',
+        handle?.isDragging && 'opacity-30',
       )}
     >
       <span className="flex size-16 items-center justify-center overflow-hidden rounded-button bg-paper">{children}</span>
@@ -54,12 +87,16 @@ interface PaintBlobProps {
   selected: boolean
   disabled?: boolean
   onApply: () => void
+  handle?: DragHandle
 }
 
-/** A paint pot: tap paints its colour slot. */
-export function PaintBlob({ label, color, selected, disabled, onApply }: PaintBlobProps) {
+/** A paint pot: tap paints its colour slot; drag it onto the character to paint whatever it lands on. */
+export function PaintBlob({ label, color, selected, disabled, onApply, handle }: PaintBlobProps) {
   return (
     <div
+      ref={handle?.setNodeRef}
+      {...handle?.attributes}
+      {...pointerListeners(handle)}
       role="button"
       tabIndex={0}
       aria-label={label}
@@ -67,16 +104,15 @@ export function PaintBlob({ label, color, selected, disabled, onApply }: PaintBl
       aria-disabled={disabled || undefined}
       title={label}
       onClick={onApply}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onApply()
-        }
-      }}
+      onKeyDown={keyHandler(onApply, handle)}
+      style={dragStyle(handle)}
       className={cn(
         'flex size-16 flex-none cursor-pointer snap-start items-center justify-center rounded-full select-none',
+        UNDER_STICKY,
         'focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-pow-blue',
+        handle && !disabled && 'cursor-grab active:cursor-grabbing',
         disabled && 'cursor-not-allowed opacity-60',
+        handle?.isDragging && 'opacity-30',
       )}
     >
       <span

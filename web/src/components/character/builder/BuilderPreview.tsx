@@ -60,7 +60,7 @@ export function BuilderPreview(props: BuilderPreviewProps) {
         style={{ backgroundColor: card }}
       >
         {/* Smaller on phones, so the sticky preview leaves room for the tabs below it. */}
-        <div ref={stageRef} className="relative aspect-square w-full max-w-[210px] sm:max-w-[300px]" data-testid="builder-stage">
+        <div ref={stageRef} className="relative aspect-square w-full max-w-[210px] sm:max-w-[300px]" data-builder-stage>
           <Avatar
             spec={spec}
             pose={VIEW_POSE[view]}

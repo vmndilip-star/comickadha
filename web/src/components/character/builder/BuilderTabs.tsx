@@ -4,24 +4,25 @@ import { catalog } from '@/avatar/catalog'
 import { fits, normalize, palette, BODY_TYPES } from '@/avatar/spec'
 import { cn } from '@/lib/cn'
 import { Avatar } from '../Avatar'
+import type { DragItem } from '@/avatar/zones'
+import type { DragHandle } from './dnd/context'
 import { PaintBlob, Sticker } from './Sticker'
 import { HEAD_CATEGORIES, TABS, THREE_QUARTER_EXTRAS, type Section } from './tabs'
 import type { Builder } from './useBuilder'
 
+/** Renders a sticker, given a drag handle when drag-and-drop is on. */
+export type RenderSticker = (item: DragItem, render: (handle?: DragHandle) => ReactNode) => ReactNode
+
 interface BuilderTabsProps {
   builder: Builder
   name: string
-  /** Wraps each sticker and paint blob (drag-and-drop adds itself here). */
-  renderSticker?: (item: StickerItem, node: ReactNode) => ReactNode
+  /** Drag-and-drop wraps each sticker and paint blob here; without it they are tap-only. */
+  renderSticker?: RenderSticker
 }
 
-/** What a sticker or paint blob is, for taps and for drag-and-drop. */
-export type StickerItem =
-  | { kind: 'part'; category: string; option: string; label: string }
-  | { kind: 'extra'; extra: string; label: string }
-  | { kind: 'paint'; slot: string; hex: string; label: string }
+const tapOnly: RenderSticker = (_item, render) => render()
 
-export function BuilderTabs({ builder, name, renderSticker = (_item, node) => node }: BuilderTabsProps) {
+export function BuilderTabs({ builder, name, renderSticker = tapOnly }: BuilderTabsProps) {
   const [tabId, setTabId] = useState(TABS[1]!.id)
   const tab = TABS.find((t) => t.id === tabId) ?? TABS[0]!
   const { spec, disabled } = builder
@@ -67,21 +68,21 @@ export function BuilderTabs({ builder, name, renderSticker = (_item, node) => no
             const shown = result.ok
               ? result.spec
               : normalize({ body_type: bodyThatFits('part', s.category, option), parts: { [s.category]: option } })
-            const item: StickerItem = { kind: 'part', category: s.category, option, label }
+            const item: DragItem = { kind: 'part', category: s.category, option, label }
             return (
               <StickerSlot key={option}>
-                {renderSticker(
-                  item,
+                {renderSticker(item, (handle) => (
                   <Sticker
                     label={label}
                     selected={spec.parts[s.category] === option}
                     dimmed={!ok}
                     disabled={disabled}
+                    handle={handle}
                     onApply={() => builder.part(s.category, option)}
                   >
                     <Avatar spec={shown} mode={HEAD_CATEGORIES.has(s.category) ? 'face' : 'pose'} size={64} />
-                  </Sticker>,
-                )}
+                  </Sticker>
+                ))}
               </StickerSlot>
             )
           })}
@@ -97,21 +98,21 @@ export function BuilderTabs({ builder, name, renderSticker = (_item, node) => no
             const label = extraLabel(extra)
             const result = addExtra(spec, extra)
             const shown = result.ok ? result.spec : normalize({ body_type: bodyThatFits('extra', extra), extras: [extra] })
-            const item: StickerItem = { kind: 'extra', extra, label }
+            const item: DragItem = { kind: 'extra', extra, label }
             return (
               <StickerSlot key={extra}>
-                {renderSticker(
-                  item,
+                {renderSticker(item, (handle) => (
                   <Sticker
                     label={label}
                     selected={spec.extras.includes(extra)}
                     dimmed={!ok}
                     disabled={disabled}
+                    handle={handle}
                     onApply={() => builder.toggleExtra(extra)}
                   >
                     <Avatar spec={shown} pose={THREE_QUARTER_EXTRAS.has(extra) ? 'three_quarter_right' : 'front'} size={64} />
-                  </Sticker>,
-                )}
+                  </Sticker>
+                ))}
               </StickerSlot>
             )
           })}
@@ -123,18 +124,19 @@ export function BuilderTabs({ builder, name, renderSticker = (_item, node) => no
     return (
       <Tray key={`paint-${s.slot}`} title={s.title}>
         {entries.map((entry) => {
-          const item: StickerItem = { kind: 'paint', slot: s.slot, hex: entry.hex, label: entry.label }
-          const blob = (
+          const item: DragItem = { kind: 'paint', slot: s.slot, hex: entry.hex, label: entry.label }
+          const blob = (handle?: DragHandle) => (
             <PaintBlob
               label={`${entry.label} ${s.title.toLowerCase()}`}
               color={entry.hex}
               selected={spec.colors[s.slot] === entry.hex}
               disabled={disabled}
+              handle={handle}
               onApply={() => builder.paint(s.slot, entry.hex)}
             />
           )
           // The card colour is the background, not part of the character: tap only.
-          return <StickerSlot key={entry.id}>{s.slot === 'card' ? blob : renderSticker(item, blob)}</StickerSlot>
+          return <StickerSlot key={entry.id}>{s.slot === 'card' ? blob() : renderSticker(item, blob)}</StickerSlot>
         })}
       </Tray>
     )
@@ -178,7 +180,9 @@ function Tray({ title, children }: { title: string; children: ReactNode }) {
     <div className="flex min-w-0 flex-col gap-1.5">
       <h3 className="m-0 text-label font-extrabold">{title}</h3>
       {/* A swipeable tray on phones; wraps into a grid on wider screens. */}
-      <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pt-2 pb-2 md:flex-wrap md:overflow-visible">{children}</div>
+      <div data-tray className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pt-2 pb-2 md:flex-wrap md:overflow-visible">
+        {children}
+      </div>
     </div>
   )
 }
