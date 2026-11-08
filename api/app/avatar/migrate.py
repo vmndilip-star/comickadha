@@ -1,4 +1,5 @@
-"""Startup migration: Phase 2/3 character specs become builder (avatar) specs.
+"""Startup migrations: Phase 2/3 character specs become builder (avatar) specs, and traits move
+to the fixed list (docs/character-safety.md).
 
 Old specs were {skin, hair_style, hair_color, outfit, traits, catchphrase, tint}. Colours snap to
 the nearest palette entry, the outfit text is read for garments and colour words, and the tint
@@ -6,15 +7,17 @@ becomes the card colour. Idempotent: specs that already have a body_type are lef
 versions keep their own manifest (and its old spec), so comics drawn with them don't change.
 """
 
+import json
 import re
 from typing import Any
 
-from sqlalchemy import Engine
+from sqlalchemy import Engine, inspect, text
 from sqlmodel import Session, select
 
 from app.avatar.spec import KIND_OF_BODY, nearest, normalize, palette
 from app.avatar.words import COLOR_WORDS, EXTRA_WORDS, PART_WORDS
-from app.models import Character
+from app.models import Character, CharacterVersion
+from app.schemas.common import TRAITS
 
 OLD_KINDS = {"kid": "kid", "grown_up": "grown_up", "robot": "robot", "animal": "cat"}
 _WORD = re.compile(r"[a-z\-]+")
@@ -66,7 +69,7 @@ def migrate_spec(old: dict[str, Any], kind: str, role: str) -> dict[str, Any]:
             "colors": colors,
             "extras": extras,
             "personality": {
-                "traits": list(old.get("traits", []))[:3],
+                "traits": [t for t in old.get("traits", []) if t in TRAITS][:3],
                 "catchphrase": str(old.get("catchphrase", ""))[:60],
             },
             "role": role if role in ("hero", "sidekick", "friend") else "friend",
@@ -85,6 +88,44 @@ def migrate_characters(engine: Engine) -> int:
             character.spec = spec
             character.kind = KIND_OF_BODY[spec["body_type"]]
             session.add(character)
+            changed += 1
+        session.commit()
+    return changed
+
+
+def _off_list(spec: dict[str, Any]) -> bool:
+    traits = (spec.get("personality") or {}).get("traits") or []
+    return any(t not in TRAITS for t in traits)
+
+
+def has_off_list_traits(engine: Engine) -> bool:
+    """Any character or frozen look with a trait that isn't on the list (checked before backup)."""
+    tables = [t for t in ("character", "character_version") if inspect(engine).has_table(t)]
+    with engine.connect() as conn:
+        for table in tables:
+            for raw in conn.execute(text(f"SELECT spec FROM {table}")).scalars():  # noqa: S608
+                spec = json.loads(raw) if isinstance(raw, str) else raw or {}
+                if _off_list(spec):
+                    return True
+    return False
+
+
+def migrate_traits(engine: Engine) -> int:
+    """Keeps the traits that are on the list and drops the rest, on characters and their frozen
+    looks (traits never change a drawing). Returns how many specs changed."""
+    changed = 0
+    with Session(engine) as session:
+        rows: list[Character | CharacterVersion] = [
+            *session.exec(select(Character)),
+            *session.exec(select(CharacterVersion)),
+        ]
+        for row in rows:
+            if not _off_list(row.spec):
+                continue
+            personality = dict(row.spec.get("personality") or {})
+            personality["traits"] = [t for t in personality.get("traits", []) if t in TRAITS][:3]
+            row.spec = {**row.spec, "personality": personality}
+            session.add(row)
             changed += 1
         session.commit()
     return changed

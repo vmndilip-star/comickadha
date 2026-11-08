@@ -86,6 +86,7 @@ SECRET_EMAIL = "Let's keep email addresses secret! Please take it out of your st
 SECRET_SCHOOL = 'Let\'s keep school names secret! Call it "the school" or "Class 3B" instead.'
 SECRET_NAME = "Let's keep real full names secret! First names or made-up names are great."
 SECRET_DETAILS = "Let's keep personal details secret! Please take them out and try again."
+REAL_PERSON = "Let's make up a brand-new character instead!"
 
 _EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 # Runs of digits with spaces, dots, dashes or brackets between them; 7+ digits is a phone number.
@@ -138,9 +139,11 @@ CLASSIFIER_CATEGORIES = [
     "hate",
     "bullying",
     "personal_info",
+    "real_person",
     "scary",
     "other",
 ]
+KID_MESSAGES = {"personal_info": SECRET_DETAILS, "real_person": REAL_PERSON}
 
 
 class SafetyUnavailable(Exception):
@@ -159,9 +162,18 @@ def check_words(fields: dict[str, str]) -> Verdict:
 
 def classify(llm: LLMProvider, fields: dict[str, str]) -> Verdict:
     """The model-based check. Raises SafetyUnavailable if the model doesn't answer properly."""
+    for verdict in classify_each(llm, fields).values():
+        if not verdict.allowed:
+            return verdict
+    return Verdict(allowed=True)
+
+
+def classify_each(llm: LLMProvider, fields: dict[str, str]) -> dict[str, Verdict]:
+    """One classifier call for every field; a verdict per (non-empty) field, in order.
+    Raises SafetyUnavailable if the model doesn't answer properly."""
     names = [name for name, text in fields.items() if text.strip()]
     if not names:
-        return Verdict(allowed=True)
+        return {}
     schema = {
         "type": "object",
         "properties": {
@@ -185,6 +197,7 @@ def classify(llm: LLMProvider, fields: dict[str, str]) -> Verdict:
         "additionalProperties": False,
     }
     prompt = "\n".join(f"{i}. {fields[name]!r}" for i, name in enumerate(names, start=1))
+    out: dict[str, Verdict] = {}
     try:
         reply = llm.complete_json(
             render("safety_classifier"),
@@ -197,14 +210,16 @@ def classify(llm: LLMProvider, fields: dict[str, str]) -> Verdict:
         if not isinstance(verdicts, list) or len(verdicts) != len(names):
             raise LLMError("The safety reply didn't cover every text.")
         for name, verdict in zip(names, verdicts, strict=True):
-            if verdict.get("safe") is not True:
-                categories = sorted({str(c) for c in verdict.get("categories") or ["other"]})
-                message = SECRET_DETAILS if "personal_info" in categories else None
-                return Verdict(False, name, categories, message)
+            if verdict.get("safe") is True:
+                out[name] = Verdict(allowed=True)
+                continue
+            categories = sorted({str(c) for c in verdict.get("categories") or ["other"]})
+            message = next((KID_MESSAGES[c] for c in categories if c in KID_MESSAGES), None)
+            out[name] = Verdict(False, name, categories, message)
     except (LLMError, KeyError, TypeError, AttributeError) as error:
         log.warning("safety classifier unavailable: %s", type(error).__name__)
         raise SafetyUnavailable() from error
-    return Verdict(allowed=True)
+    return out
 
 
 def check_local(fields: dict[str, str]) -> Verdict:

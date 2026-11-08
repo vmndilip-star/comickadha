@@ -105,7 +105,8 @@ class Guard:
                     continue
                 except LLMError:
                     break
-                if self.output_ok(target, texts(raw)):
+                fields = texts(raw)  # empty: the caller checks each text itself
+                if not fields or self.output_ok(target, fields):
                     return raw, "meta", False
                 break
         return offline(), "mock", self.llm is not None

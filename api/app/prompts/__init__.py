@@ -15,6 +15,7 @@ REQUIRED: dict[str, set[str] | None] = {
     "background": {"name", "description", "aspect", "tint"},
     "character_sheet": None,  # many fields; checked by the sheet tests
     "builder_helper": {"catalog"},
+    "builder_create": {"catalog"},
     "safety_classifier": set(),
     "planner_scenes": {"scene_count"},
     "planner_panels": {"panel_count"},

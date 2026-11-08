@@ -204,6 +204,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/builder/create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create
+         * @description A brand-new character from a few choices and an optional description. The rules are in
+         *     docs/character-safety.md: everything is checked before Meta sees it, every answer is checked
+         *     field by field, and anything unusable is replaced with a safe default.
+         */
+        post: operations["create_api_builder_create_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/builder/describe": {
         parameters: {
             query?: never;
@@ -863,6 +885,17 @@ export interface components {
             /** Comic Id */
             comic_id: string;
         };
+        /**
+         * CatalogChoice
+         * @description One catalog choice: a part category ("hair") or a colour slot ("colors.hair"), and the id
+         *     of a part or palette colour. Never free text.
+         */
+        CatalogChoice: {
+            /** Target */
+            target: string;
+            /** Value */
+            value: string;
+        };
         /** CharacterCreate */
         CharacterCreate: {
             /**
@@ -1053,6 +1086,61 @@ export interface components {
             /** Status */
             status?: ("draft" | "finished") | null;
         };
+        /** CreateRequest */
+        CreateRequest: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "person" | "robot" | "cat" | "dog" | "bear";
+            /** Age */
+            age?: ("little_kid" | "big_kid" | "grown_up" | "grandparent") | null;
+            /** Face Shape */
+            face_shape?: ("round" | "oval" | "square" | "heart" | "box" | "dome" | "screen" | "cat" | "dog" | "bear") | null;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            follow_up_answer?: components["schemas"]["CatalogChoice"] | null;
+            /**
+             * Name
+             * @default
+             */
+            name: string;
+            /**
+             * Role
+             * @default hero
+             * @enum {string}
+             */
+            role: "hero" | "sidekick" | "friend";
+        };
+        /** Created */
+        Created: {
+            spec: components["schemas"]["AvatarSpec"];
+            /** Name Ideas */
+            name_ideas: string[];
+            /** Catchphrase */
+            catchphrase: string;
+            /** Intro Line */
+            intro_line: string;
+            follow_up: components["schemas"]["FollowUp"] | null;
+            /** Notes */
+            notes: string[];
+            /** Reply */
+            reply: string;
+            /** Unmatched */
+            unmatched: string[];
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "meta" | "mock";
+            /** Fallback */
+            fallback: boolean;
+            /** Label */
+            label: string;
+        };
         /** DescribeRequest */
         DescribeRequest: {
             /** Text */
@@ -1135,6 +1223,25 @@ export interface components {
             /** Message */
             message: string;
         };
+        /**
+         * FollowUp
+         * @description One question about the character's looks or personality, with 2-4 catalog choices.
+         */
+        FollowUp: {
+            /** Question */
+            question: string;
+            /** Options */
+            options: components["schemas"]["FollowUpOption"][];
+        };
+        /** FollowUpOption */
+        FollowUpOption: {
+            /** Target */
+            target: string;
+            /** Value */
+            value: string;
+            /** Label */
+            label: string;
+        };
         /** HeadBox */
         HeadBox: {
             /** Box */
@@ -1214,7 +1321,7 @@ export interface components {
             /** Name Ideas */
             name_ideas: string[];
             /** Traits */
-            traits: ("brave" | "curious" | "shy" | "funny" | "grumpy" | "loud" | "clever" | "kind")[];
+            traits: ("brave" | "curious" | "funny" | "kind" | "clever" | "creative" | "calm" | "cheerful" | "helpful" | "honest" | "adventurous" | "caring" | "energetic" | "gentle" | "patient" | "playful" | "shy" | "silly" | "sporty" | "thoughtful")[];
             /** Catchphrase */
             catchphrase: string;
             /** Reply */
@@ -1394,7 +1501,7 @@ export interface components {
              * Traits
              * @default []
              */
-            traits: ("brave" | "curious" | "shy" | "funny" | "grumpy" | "loud" | "clever" | "kind")[];
+            traits: ("brave" | "curious" | "funny" | "kind" | "clever" | "creative" | "calm" | "cheerful" | "helpful" | "honest" | "adventurous" | "caring" | "energetic" | "gentle" | "patient" | "playful" | "shy" | "silly" | "sporty" | "thoughtful")[];
             /**
              * Catchphrase
              * @default
@@ -2149,6 +2256,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HelperInfo"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    create_api_builder_create_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Created"];
                 };
             };
             /** @description Forbidden */

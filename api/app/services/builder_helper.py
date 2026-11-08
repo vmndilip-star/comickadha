@@ -15,11 +15,11 @@ from PIL import Image
 from sqlmodel import Session
 
 from app.avatar.catalog import load_catalog
-from app.avatar.spec import nearest, normalize, palette
+from app.avatar.spec import nearest, normalize, palette, with_leggings
 from app.errors import ApiError
 from app.providers.llm import LLMError, LLMProvider
 from app.schemas.builder import Ideas, Suggestion
-from app.services import helper_meta, helper_offline, safety
+from app.services import character_safety, helper_meta, helper_offline, safety
 from app.services.ai_guard import (
     META_LABEL,
     OFFLINE_LABEL,
@@ -78,6 +78,8 @@ def build_spec(spec: dict[str, Any], raw: Raw) -> tuple[dict[str, Any], list[str
             "role": spec["role"],
         }
     )
+    if new["parts"].get("top") == "dress" and spec["parts"].get("top") != "dress":
+        new = with_leggings(new)
     changed = []
     if new["body_type"] != spec["body_type"]:
         changed.append("body_type")
@@ -88,6 +90,14 @@ def build_spec(spec: dict[str, Any], raw: Raw) -> tuple[dict[str, Any], list[str
     if new["personality"] != spec["personality"]:
         changed.append("personality")
     return new, changed
+
+
+def _respectful(raw: Raw) -> Raw:
+    """Surprise me never pairs cultural or religious headwear with silly items."""
+    parts, extras = raw.get("parts"), raw.get("extras")
+    if isinstance(parts, dict) and isinstance(extras, list):
+        raw["extras"] = character_safety.respectful_extras(parts, [str(e) for e in extras])
+    return raw
 
 
 def _texts(raw: Raw) -> tuple[list[str], str, str, list[str]]:
@@ -121,19 +131,28 @@ class Helper:
 
     def describe(self, text: str, spec: dict[str, Any]) -> Suggestion:
         spec = normalize(spec)
-        self._check_input("builder:describe", {"description": text})
-        return self._suggest(
+        # The character-safety description checks (docs/character-safety.md), then the classifier.
+        checked = character_safety.check_description(
+            self.guard.session, self.guard.user_id, "builder:describe", text
+        )
+        text = checked.text
+        if text:
+            self._check_input("builder:describe", {"description": text})
+        suggestion = self._suggest(
             spec,
             lambda llm: helper_meta.describe(llm, text, spec),
             lambda: helper_offline.describe(text, spec),
         )
+        if checked.notes:
+            suggestion.reply = " ".join([*checked.notes, suggestion.reply]).strip()
+        return suggestion
 
     def surprise(self, body_type: str | None, spec: dict[str, Any]) -> Suggestion:
         spec = normalize(spec)
         seed = random.randrange(2**31)
         return self._suggest(
             spec,
-            lambda llm: helper_meta.surprise(llm, body_type, spec),
+            lambda llm: _respectful(helper_meta.surprise(llm, body_type, spec)),
             lambda: helper_offline.surprise(body_type, seed),
         )
 

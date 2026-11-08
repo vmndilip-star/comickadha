@@ -1,4 +1,4 @@
-"""The builder helper: describe a character, surprise me, name ideas, and make it from a drawing.
+"""The builder helper: create a character, describe it, surprise me, name ideas, from a drawing.
 
 Answers come from Meta's model API (LLM_PROVIDER=meta) or the offline helper, and are always a full
 spec the parts library can draw. The browser applies them, so the kid can still tweak or undo.
@@ -11,6 +11,8 @@ from fastapi import APIRouter
 from app.deps import LLMDep, SessionDep, UserDep
 from app.errors import ERROR_RESPONSES
 from app.schemas.builder import (
+    Created,
+    CreateRequest,
     DescribeRequest,
     DrawingRequest,
     HelperInfo,
@@ -21,6 +23,7 @@ from app.schemas.builder import (
 )
 from app.schemas.common import ErrorBody
 from app.services import drawing
+from app.services.builder_create import Creator
 from app.services.builder_helper import Helper, label
 
 RESPONSES: dict[int | str, dict[str, Any]] = {
@@ -40,6 +43,14 @@ def helper_info(llm: LLMDep, user: UserDep) -> HelperInfo:
         drawing_needs_consent=llm is not None,
         drawing_consent=user.drawing_consent_at is not None,
     )
+
+
+@router.post("/create")
+def create(body: CreateRequest, llm: LLMDep, session: SessionDep, user: UserDep) -> Created:
+    """A brand-new character from a few choices and an optional description. The rules are in
+    docs/character-safety.md: everything is checked before Meta sees it, every answer is checked
+    field by field, and anything unusable is replaced with a safe default."""
+    return Creator(llm, session, user.id).create(body)
 
 
 @router.post("/describe")

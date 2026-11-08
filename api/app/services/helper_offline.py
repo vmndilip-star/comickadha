@@ -9,7 +9,7 @@ import random
 import re
 import zlib
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, get_args
 
 from PIL import Image
 
@@ -25,10 +25,11 @@ from app.avatar.words import (
     TRAIT_WORDS,
 )
 from app.schemas.common import Trait
+from app.services.character_safety import respectful_extras
 
 Raw = dict[str, Any]
 
-TRAITS: list[Trait] = ["brave", "curious", "shy", "funny", "grumpy", "loud", "clever", "kind"]
+TRAITS: list[Trait] = list(get_args(Trait))
 NAMES = {
     "kid": ["Zara", "Kiran", "Milo", "Asha", "Leo", "Noor", "Ravi", "Ivy", "Tomi", "Sana"],
     "grown_up": ["Auntie Meera", "Mr Okafor", "Coach Lin", "Grandpa Joe", "Ms Rosa", "Uncle Dev"],
@@ -40,12 +41,24 @@ NAMES = {
 CATCHPHRASES: dict[str, str] = {
     "brave": "Let's do this!",
     "curious": "Ooh, what's that?",
-    "shy": "Um... hi there!",
     "funny": "Knock knock!",
-    "grumpy": "Hmph. Fine.",
-    "loud": "LET'S GOOO!",
-    "clever": "I have a plan!",
     "kind": "Need a hand?",
+    "clever": "I have a plan!",
+    "creative": "Let's make something amazing!",
+    "calm": "No worries, we've got this.",
+    "cheerful": "What a great day!",
+    "helpful": "I can help with that!",
+    "honest": "Here's the truth!",
+    "adventurous": "Adventure time!",
+    "caring": "Is everyone okay?",
+    "energetic": "Let's goooo!",
+    "gentle": "Slowly does it.",
+    "patient": "Good things take time.",
+    "playful": "Tag, you're it!",
+    "shy": "Um... hi there!",
+    "silly": "Wiggle wiggle!",
+    "sporty": "Race you there!",
+    "thoughtful": "Hmm, let me think...",
 }
 STOPWORDS = {
     *("a", "an", "the", "with", "and", "has", "have", "who", "is", "are", "very", "really"),
@@ -167,6 +180,64 @@ def describe(text: str, spec: dict[str, Any]) -> Raw:
     }
 
 
+FOLLOW_UP = {
+    "hair": "What colour should their hair be?",
+    "robot": "What colour should this robot be?",
+    "animal": "What colour should their fur be?",
+}
+AGE_LABEL = {"little_kid": "little kid", "big_kid": "kid", "grandparent": "grandparent"}
+GRANDPARENT_HAIR = ("grey", "white")
+
+
+def create(
+    body: str,
+    age: str | None,
+    description: str,
+    base: dict[str, Any],
+    *,
+    name: str,
+    answered: bool,
+    seed: int,
+) -> Raw:
+    """A new character: matched to the description's words, or a seeded surprise without one.
+    Adds an intro line and (until it's answered) a follow-up question about colours."""
+    rng = random.Random(seed)
+    cat = load_catalog()
+    if description:
+        raw = describe(description, base)
+    else:
+        raw = surprise(body, seed)
+        if age == "grandparent":
+            hair = rng.choice(GRANDPARENT_HAIR)
+            raw["colors"]["hair"] = next(e["hex"] for e in palette("hair", body) if e["id"] == hair)
+    raw["body_type"] = body
+    traits = list(raw.get("traits") or []) or rng.sample(TRAITS, k=2)
+    raw["traits"] = traits[:3]
+    names = list(raw.get("name_ideas") or []) or _names(body, seed)
+    raw["name_ideas"] = names
+    who = name or names[0]
+    label = AGE_LABEL.get(age or "", cat["body_types"][body]["label"].lower())
+    raw["intro_line"] = f"Meet {who}, a {traits[0]} {label} ready for adventure!"
+    raw["catchphrase"] = raw.get("catchphrase") or _catchphrase(traits, body)
+    raw["follow_up"] = None if answered else _follow_up(body, rng)
+    if not description:
+        raw["reply"] = f"Here's {who}! Change anything you like."
+    return raw
+
+
+def _follow_up(body: str, rng: random.Random) -> Raw:
+    kind = load_catalog()["body_types"][body]["kind"]
+    slot = "hair" if kind in ("kid", "grown_up") else "skin"
+    question = FOLLOW_UP["hair" if slot == "hair" else ("robot" if kind == "robot" else "animal")]
+    entries = rng.sample(palette(slot, body), k=3)
+    return {
+        "question": question,
+        "options": [
+            {"label": e["label"], "target": f"colors.{slot}", "value": e["id"]} for e in entries
+        ],
+    }
+
+
 def surprise(body_type: str | None, seed: int) -> Raw:
     rng = random.Random(seed)
     cat = load_catalog()
@@ -182,6 +253,8 @@ def surprise(body_type: str | None, seed: int) -> Raw:
         if group and any(cat["extras"][e].get("group") == group for e in extras):
             continue
         extras.append(extra_id)
+    # Cultural or religious headwear is never paired with silly items (docs/character-safety.md).
+    extras = respectful_extras(parts, extras)
     traits = rng.sample(TRAITS, k=2)
     label = cat["body_types"][body]["label"].lower()
     return {
@@ -286,3 +359,13 @@ def from_drawing(image: Image.Image, spec: dict[str, Any]) -> Raw:
         "reply": reply,
         "unmatched": [],
     }
+
+
+def offline_names(body_type: str, seed: int, count: int = 3) -> list[str]:
+    """Made-up names from the offline list (the safe default for unusable name ideas)."""
+    return _names(body_type, seed, count)
+
+
+def catchphrase_for(traits: Sequence[str], body_type: str) -> str:
+    """A friendly catchphrase for the first trait (the safe default for an unusable one)."""
+    return _catchphrase(traits, body_type)

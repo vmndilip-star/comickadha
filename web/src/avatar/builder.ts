@@ -71,7 +71,27 @@ export function applyPart(spec: FullSpec, category: string, option: string): Res
   if (!fits(spec.body_type, 'part', category, option)) {
     return { ok: false, reason: whyNot(spec.body_type, 'part', category, option) }
   }
-  return { ok: true, spec: normalize({ ...spec, parts: { ...spec.parts, [category]: option } }) }
+  const next = normalize({ ...spec, parts: { ...spec.parts, [category]: option } })
+  return { ok: true, spec: category === 'top' && option === 'dress' ? withLeggings(next) : next }
+}
+
+/**
+ * A dress comes with leggings in a matching, darker colour, so it looks intentional
+ * (docs/character-safety.md; the API's with_leggings does the same).
+ */
+export function withLeggings(spec: FullSpec, cat: Catalog = catalog): FullSpec {
+  if (spec.parts.top !== 'dress' || !spec.parts.bottom) return spec
+  if (!cat.categories.bottom?.options.leggings?.body_types.includes(spec.body_type)) return spec
+  const top = spec.colors.top ?? ''
+  const entries = palette('bottom', spec.body_type).filter((e) => e.hex !== top)
+  const bottom = nearest(darker(top), entries).hex
+  return { ...spec, parts: { ...spec.parts, bottom: 'leggings' }, colors: { ...spec.colors, bottom } }
+}
+
+function darker(hex: string, factor = 0.65): string {
+  const v = parseInt(hex.replace('#', '').slice(0, 6), 16)
+  const channel = (shift: number) => Math.round(((v >> shift) & 255) * factor).toString(16).padStart(2, '0')
+  return `#${channel(16)}${channel(8)}${channel(0)}`.toUpperCase()
 }
 
 /** Puts an extra on (swapping glasses for glasses); wearing it already is fine. */

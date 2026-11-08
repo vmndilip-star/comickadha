@@ -76,7 +76,9 @@ export const POSES = [
 ] as const satisfies readonly Pose[]
 export const BODY_TYPES = ['kid', 'grown_up', 'robot', 'cat', 'dog', 'bear'] as const satisfies readonly BodyType[]
 export const ROLES = ['hero', 'sidekick', 'friend'] as const satisfies readonly Role[]
-export const TRAITS = ['brave', 'curious', 'shy', 'funny', 'grumpy', 'loud', 'clever', 'kind'] as const satisfies readonly Trait[]
+export const TRAITS = [
+  'brave', 'curious', 'funny', 'kind', 'clever', 'creative', 'calm', 'cheerful', 'helpful', 'honest', 'adventurous', 'caring', 'energetic', 'gentle', 'patient', 'playful', 'shy', 'silly', 'sporty', 'thoughtful',
+] as const satisfies readonly Trait[]
 export const MOODS = ['mystery', 'funny', 'adventure', 'spooky'] as const satisfies readonly Mood[]
 export const PANEL_COUNTS = [4, 6, 8] as const satisfies readonly PanelCount[]
 export const BUBBLE_TYPES = ['talk', 'think', 'shout', 'narrator'] as const satisfies readonly BubbleType[]

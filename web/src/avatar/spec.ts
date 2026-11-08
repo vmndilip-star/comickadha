@@ -7,7 +7,10 @@ import { catalog as defaultCatalog, type Catalog, type PaletteEntry } from './ca
 export const BODY_TYPES = ['kid', 'grown_up', 'robot', 'cat', 'dog', 'bear'] as const
 export type BodyTypeId = (typeof BODY_TYPES)[number]
 export const ROLE_IDS = ['hero', 'sidekick', 'friend'] as const
-export const TRAIT_IDS = ['brave', 'curious', 'shy', 'funny', 'grumpy', 'loud', 'clever', 'kind'] as const
+/** Positive or neutral traits only (docs/character-safety.md). */
+export const TRAIT_IDS = [
+  'brave', 'curious', 'funny', 'kind', 'clever', 'creative', 'calm', 'cheerful', 'helpful', 'honest', 'adventurous', 'caring', 'energetic', 'gentle', 'patient', 'playful', 'shy', 'silly', 'sporty', 'thoughtful',
+] as const
 
 export interface FullSpec {
   body_type: BodyTypeId
@@ -95,14 +98,10 @@ function looseFields(spec: Record<string, unknown>) {
   if (isRecord(p) && Object.keys(p).every((k) => k === 'traits' || k === 'catchphrase')) {
     const traits = p.traits ?? []
     const catchphrase = p.catchphrase ?? ''
-    if (
-      Array.isArray(traits) &&
-      traits.length <= 3 &&
-      traits.every((t) => (TRAIT_IDS as readonly unknown[]).includes(t)) &&
-      typeof catchphrase === 'string' &&
-      catchphrase.length <= 60
-    ) {
-      out.personality = { traits: traits as string[], catchphrase }
+    if (Array.isArray(traits) && typeof catchphrase === 'string' && catchphrase.length <= 60) {
+      // Only traits on the list, once each, at most 3 (as the Python twin does).
+      const listed = traits.filter((t): t is string => (TRAIT_IDS as readonly unknown[]).includes(t))
+      out.personality = { traits: [...new Set(listed)].slice(0, 3), catchphrase }
     }
   }
   if (typeof spec.role === 'string' && (ROLE_IDS as readonly string[]).includes(spec.role)) out.role = spec.role

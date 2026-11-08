@@ -66,6 +66,19 @@ NORMALIZE_INPUTS: list[Spec] = [
     },
     {"body_type": "bear", "parts": {"headwear": "turban", "top": "none"}, "extras": ["blush"]},
     {"body_type": "grown_up", "colors": {"hair": "#123456", "top": "#ffffff"}},
+    # Traits: only those on the list, once each, at most 3; the catchphrase is kept.
+    {
+        "body_type": "kid",
+        "personality": {
+            "traits": ["grumpy", "brave", "brave", "kind", "calm", "shy"],
+            "catchphrase": "Hi!",
+        },
+    },
+    {"body_type": "dog", "personality": {"traits": ["loud"], "catchphrase": "x" * 61}},
+    {
+        "body_type": "cat",
+        "personality": {"traits": ["brave"], "catchphrase": "Yo", "mood": "happy"},
+    },
 ]
 
 GOLDEN_PATH = catalog_path().parent / "golden.json"

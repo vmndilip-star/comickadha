@@ -12,6 +12,7 @@ from typing import Any
 
 from app.avatar.catalog import Catalog, load_catalog
 from app.schemas.avatar import AvatarSpec
+from app.schemas.common import TRAITS
 
 KIND_OF_BODY = {
     "kid": "kid",
@@ -178,6 +179,16 @@ def _loose_fields(spec: Mapping[str, Any]) -> dict[str, Any]:
     colors = spec.get("colors")
     if isinstance(colors, Mapping):  # keep good colours even if one is malformed
         out["colors"] = {k: v for k, v in colors.items() if isinstance(v, str) and _is_hex(v)}
+    personality = spec.get("personality")
+    out.pop("personality", None)
+    if isinstance(personality, Mapping) and set(personality) <= {"traits", "catchphrase"}:
+        # Keep the catchphrase and the traits on the list (once each, at most 3); the web twin
+        # (web/src/avatar/spec.ts) does the same.
+        traits = personality.get("traits", [])
+        catchphrase = personality.get("catchphrase", "")
+        if isinstance(traits, list) and isinstance(catchphrase, str) and len(catchphrase) <= 60:
+            kept = list(dict.fromkeys(t for t in traits if t in TRAITS))[:3]
+            out["personality"] = {"traits": kept, "catchphrase": catchphrase}
     return out
 
 
@@ -244,3 +255,25 @@ def describe(spec: Mapping[str, Any], catalog: Catalog | None = None) -> str:
 
 def _join(items: list[str]) -> str:
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+
+
+def darker(hex_color: str, factor: float = 0.65) -> str:
+    r, g, b = _rgb(hex_color)
+    return f"#{round(r * factor):02X}{round(g * factor):02X}{round(b * factor):02X}"
+
+
+def with_leggings(spec: Spec, catalog: Catalog | None = None) -> Spec:
+    """A dress comes with leggings in a matching, darker colour, so it looks intentional
+    (docs/character-safety.md). The web builder's applyPart does the same."""
+    cat = catalog or load_catalog()
+    if spec["parts"].get("top") != "dress" or "bottom" not in spec["parts"]:
+        return spec
+    if spec["body_type"] not in cat["categories"]["bottom"]["options"]["leggings"]["body_types"]:
+        return spec
+    top = spec["colors"]["top"]
+    entries = [e for e in palette("bottom", spec["body_type"], cat) if e["hex"] != top]
+    return {
+        **spec,
+        "parts": {**spec["parts"], "bottom": "leggings"},
+        "colors": {**spec["colors"], "bottom": nearest(darker(top), entries)["hex"]},
+    }

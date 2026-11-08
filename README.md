@@ -39,6 +39,7 @@ The PDF uses one page size, 8.27 × 11 in (A4's width, Letter's height). **Print
 | `api/` | FastAPI service (Python 3.11, managed by uv) |
 | `docker-compose.yml` | Runs both for local development |
 | `CLAUDE.md` | Conventions, architecture decisions and the phase plan |
+| `docs/character-safety.md` | The character safety policy: what kids can ask for, what the helpers may answer, and the checks |
 
 ## Checks
 

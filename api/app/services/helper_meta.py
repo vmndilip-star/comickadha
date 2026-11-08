@@ -190,3 +190,91 @@ def from_drawing(llm: LLMProvider, png: bytes, spec: dict[str, Any]) -> Raw:
         schema_name="drawing_suggestion",
         image_png=png,
     )
+
+
+def create_schema(cat: Catalog | None = None) -> dict[str, Any]:
+    cat = cat or load_catalog()
+    strings = {"type": "array", "items": {"type": "string"}}
+    targets = list(cat["categories"]) + [f"colors.{slot}" for slot in cat["color_slots"]]
+    option = _object(
+        {
+            "label": {"type": "string"},
+            "target": {"type": "string", "enum": targets},
+            "value": {"type": "string"},
+        }
+    )
+    return _object(
+        {
+            "parts": _object(
+                {
+                    c: {"type": "string", "enum": list(info["options"])}
+                    for c, info in cat["categories"].items()
+                }
+            ),
+            "colors": _object(
+                {
+                    slot: {"type": "string", "enum": colour_ids(slot, cat)}
+                    for slot in cat["color_slots"]
+                }
+            ),
+            "extras": {"type": "array", "items": {"type": "string", "enum": list(cat["extras"])}},
+            "traits": {"type": "array", "items": {"type": "string", "enum": TRAITS}},
+            "name_ideas": strings,
+            "catchphrase": {"type": "string"},
+            "intro_line": {"type": "string"},
+            "follow_up": _object(
+                {"question": {"type": "string"}, "options": {"type": "array", "items": option}}
+            ),
+            "reply": {"type": "string"},
+            "unmatched": strings,
+        }
+    )
+
+
+AGE_WORDS = {
+    "little_kid": "a little kid (about 5-7)",
+    "big_kid": "a kid (about 8-12)",
+    "grown_up": "a grown-up",
+    "grandparent": "a grandparent",
+}
+
+
+def create(
+    llm: LLMProvider,
+    *,
+    body_type: str,
+    age: str | None,
+    face_shape: str | None,
+    description: str,
+    answer: str | None,
+    name: str,
+    role: str,
+    base: dict[str, Any],
+) -> Raw:
+    """A brand-new character from the kid's choices (all already checked)."""
+    who = AGE_WORDS.get(age or "", "") if body_type in ("kid", "grown_up") else ""
+    lines = [
+        f"Body type: {body_type}" + (f" ({who})" if who else ""),
+        f"Role in the story: {role}",
+        f"Starting point (keep what the child chose): {current(base)}",
+    ]
+    if face_shape:
+        lines.append(f"The child picked face_shape={face_shape}; keep it.")
+    if name:
+        lines.append(f"The child named the character {name!r}.")
+    if description:
+        lines.append(f"The child describes the character: {description!r}")
+    else:
+        lines.append("The child didn't describe the character: invent a fun, friendly one.")
+    if answer:
+        lines.append(f"The child answered the last question with {answer}; use that choice.")
+        lines.append(
+            "Ask no more questions: return follow_up with an empty question and no options."
+        )
+    return llm.complete_json(
+        render("builder_create", catalog=catalog_brief()),
+        "\n".join(lines),
+        create_schema(),
+        schema_name="character_create",
+        max_tokens=900,
+    )

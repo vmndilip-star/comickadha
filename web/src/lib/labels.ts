@@ -44,12 +44,24 @@ export const ROLE_LABEL: Record<Role, string> = {
 export const TRAIT_LABEL: Record<Trait, string> = {
   brave: 'Brave',
   curious: 'Curious',
-  shy: 'Shy',
   funny: 'Funny',
-  grumpy: 'Grumpy',
-  loud: 'Loud',
-  clever: 'Clever',
   kind: 'Kind',
+  clever: 'Clever',
+  creative: 'Creative',
+  calm: 'Calm',
+  cheerful: 'Cheerful',
+  helpful: 'Helpful',
+  honest: 'Honest',
+  adventurous: 'Adventurous',
+  caring: 'Caring',
+  energetic: 'Energetic',
+  gentle: 'Gentle',
+  patient: 'Patient',
+  playful: 'Playful',
+  shy: 'Shy',
+  silly: 'Silly',
+  sporty: 'Sporty',
+  thoughtful: 'Thoughtful',
 }
 
 export const MOOD_LABEL: Record<Mood, string> = {

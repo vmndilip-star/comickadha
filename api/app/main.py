@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sqlmodel import Session
 
 from app import __version__
-from app.avatar.migrate import migrate_characters
+from app.avatar.migrate import has_off_list_traits, migrate_characters, migrate_traits
 from app.config import Settings, get_settings
 from app.db import has_old_character_specs, init_db, make_engine, missing_columns
 from app.errors import install_error_handlers
@@ -89,6 +89,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             missing_columns(engine)
             or has_old_character_specs(engine)
             or looks.needs_backfill(engine)
+            or has_off_list_traits(engine)
         )
         if migrating and not settings.database_url:
             backup_storage(settings.storage_dir, reason="before-migration")
@@ -97,6 +98,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             log.warning("marked %d interrupted job(s) as failed", interrupted)
         if migrated := migrate_characters(engine):
             log.info("moved %d character(s) to builder specs", migrated)
+        if retraited := migrate_traits(engine):
+            log.info("moved %d spec(s) to the trait list", retraited)
         app.state.engine = engine
         app.state.storage = LocalStorage(settings.media_dir)
         if frozen := looks.backfill_versions(engine, app.state.storage):

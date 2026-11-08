@@ -9,7 +9,13 @@ MAX_CAST = 3
 
 Role = Literal["hero", "sidekick", "friend"]
 CharacterKind = Literal["kid", "grown_up", "animal", "robot"]
-Trait = Literal["brave", "curious", "shy", "funny", "grumpy", "loud", "clever", "kind"]
+# Positive or neutral traits only (docs/character-safety.md); a kid picks up to 3.
+Trait = Literal[
+    "brave", "curious", "funny", "kind", "clever", "creative", "calm", "cheerful", "helpful",
+    "honest", "adventurous", "caring", "energetic", "gentle", "patient", "playful", "shy",
+    "silly", "sporty", "thoughtful",
+]  # fmt: skip
+TRAITS: tuple[str, ...] = get_args(Trait)
 LockStatus = Literal["draft", "generating", "locked", "failed"]
 
 Mood = Literal["mystery", "funny", "adventure", "spooky"]

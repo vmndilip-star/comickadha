@@ -8294,6 +8294,138 @@
     },
     "role": "friend"
    }
+  },
+  {
+   "input": {
+    "body_type": "kid",
+    "personality": {
+     "traits": [
+      "grumpy",
+      "brave",
+      "brave",
+      "kind",
+      "calm",
+      "shy"
+     ],
+     "catchphrase": "Hi!"
+    }
+   },
+   "output": {
+    "body_type": "kid",
+    "parts": {
+     "face_shape": "round",
+     "eyes": "round",
+     "brows": "arched",
+     "nose": "button",
+     "hair": "crop",
+     "headwear": "none",
+     "top": "tshirt",
+     "bottom": "shorts",
+     "shoes": "sneakers"
+    },
+    "colors": {
+     "skin": "#EFC29B",
+     "hair": "#3B2314",
+     "top": "#FFD23F",
+     "bottom": "#1F5BD1",
+     "shoes": "#FF6B4A",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D",
+     "card": "#FFE9A8"
+    },
+    "extras": [],
+    "personality": {
+     "traits": [
+      "brave",
+      "kind",
+      "calm"
+     ],
+     "catchphrase": "Hi!"
+    },
+    "role": "friend"
+   }
+  },
+  {
+   "input": {
+    "body_type": "dog",
+    "personality": {
+     "traits": [
+      "loud"
+     ],
+     "catchphrase": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+   },
+   "output": {
+    "body_type": "dog",
+    "parts": {
+     "face_shape": "dog",
+     "eyes": "button",
+     "brows": "arched",
+     "headwear": "none",
+     "top": "none",
+     "bottom": "none",
+     "shoes": "none"
+    },
+    "colors": {
+     "skin": "#F3E2C3",
+     "hair": "#3B2314",
+     "top": "#FFD23F",
+     "bottom": "#1F5BD1",
+     "shoes": "#FF6B4A",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D",
+     "card": "#FFE9A8"
+    },
+    "extras": [],
+    "personality": {
+     "traits": [],
+     "catchphrase": ""
+    },
+    "role": "friend"
+   }
+  },
+  {
+   "input": {
+    "body_type": "cat",
+    "personality": {
+     "traits": [
+      "brave"
+     ],
+     "catchphrase": "Yo",
+     "mood": "happy"
+    }
+   },
+   "output": {
+    "body_type": "cat",
+    "parts": {
+     "face_shape": "cat",
+     "eyes": "almond",
+     "brows": "thin",
+     "headwear": "none",
+     "top": "none",
+     "bottom": "none",
+     "shoes": "none"
+    },
+    "colors": {
+     "skin": "#E8954F",
+     "hair": "#3B2314",
+     "top": "#FFD23F",
+     "bottom": "#1F5BD1",
+     "shoes": "#FF6B4A",
+     "hat": "#FF6B4A",
+     "cape": "#E53935",
+     "backpack": "#3FA34D",
+     "card": "#FFD0C2"
+    },
+    "extras": [],
+    "personality": {
+     "traits": [],
+     "catchphrase": ""
+    },
+    "role": "friend"
+   }
   }
  ]
 }

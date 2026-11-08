@@ -233,6 +233,8 @@ PALETTES = {
         entry("ginger", "Ginger", "#C8552B"),
         entry("blonde", "Blonde", "#E8C15A"),
         entry("platinum", "Platinum", "#EDE3C8"),
+        entry("grey", "Grey", "#9A9A9A"),
+        entry("white", "White", "#F2F2EE"),
         entry("blue", "Blue", "#3F6FD8"),
         entry("pink", "Pink", "#FF7FB0"),
         entry("purple", "Purple", "#7A4FC9"),
@@ -2009,6 +2011,7 @@ def build() -> dict:
     }
     extras = build_extras()
     extras.pop("_none")
+    review(categories, extras)
 
     body_types = {}
     for bt, b in BODIES.items():
@@ -2044,6 +2047,48 @@ def build() -> dict:
         "head_box": HEAD_BOX,
         "face_cell": {"translate": [100, 112], "scale": 2.55},
     }
+
+
+# ---- safety review (docs/character-safety.md) ------------------------------------------------
+#
+# Every option a kid can pick is listed here once a person has checked its art: people stay
+# covered, no text, brand names or logos, no weapons (the magic wand is the only hand-held power
+# item), and cultural or religious items are drawn and labelled respectfully. A new option is
+# written with "reviewed": false until it is added here, and the catalog audit test fails.
+
+REVIEWED: dict[str, set[str]] = {
+    "face_shape": {"round", "oval", "square", "heart", "box", "dome", "screen", "cat", "dog", "bear"},
+    "eyes": {"round", "oval", "almond", "sleepy", "sparkle", "button"},
+    "brows": {"straight", "arched", "bushy", "thin"},
+    "nose": {"button", "round", "pointy", "dot"},
+    "hair": {
+        "none", "crop", "buzz", "spiky", "side_part", "bob", "curly", "afro", "ponytail",
+        "two_puffs", "braids", "long_straight", "bun",
+    },
+    "headwear": {"none", "cap", "beanie", "hijab", "turban", "space_helmet"},
+    "top": {"tshirt", "hoodie", "raincoat", "sweater", "jersey", "dress", "dungarees", "superhero", "none"},
+    "bottom": {"shorts", "trousers", "jeans", "skirt", "leggings", "cargo", "none"},
+    "shoes": {"sneakers", "boots", "sandals", "rain_boots", "none"},
+    "extras": {
+        "glasses_round", "glasses_square", "glasses_star", "cape", "backpack", "wand",
+        "headphones", "freckles", "blush",
+    },
+}  # fmt: skip
+# Cultural and religious items: for every human body, never mixed with silly items at random.
+CULTURAL = {("headwear", "hijab"), ("headwear", "turban")}
+# Joke items "Surprise me" never pairs with a cultural item.
+SILLY = {("extras", "glasses_star")}
+
+
+def review(categories: dict[str, dict], extras: dict[str, dict]) -> None:
+    """Writes "reviewed" and "tags" on every option from the tables above."""
+    groups = [(name, info["options"]) for name, info in categories.items()] + [("extras", extras)]
+    for group_name, options in groups:
+        for option_id, option in options.items():
+            option["reviewed"] = option_id in REVIEWED.get(group_name, set())
+            option["tags"] = [
+                tag for tag, members in (("cultural", CULTURAL), ("silly", SILLY)) if (group_name, option_id) in members
+            ]
 
 
 if __name__ == "__main__":

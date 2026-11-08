@@ -101,7 +101,7 @@ CHARACTERS: list[dict[str, Any]] = [
                 "card": "#FFD0C2",
             },
             "personality": {
-                "traits": ["funny", "loud"],
+                "traits": ["funny", "energetic"],
                 "catchphrase": "Snack break? Snack break!",
             },
             "role": "sidekick",
