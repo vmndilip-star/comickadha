@@ -222,6 +222,7 @@ def create_schema(cat: Catalog | None = None) -> dict[str, Any]:
             "name_ideas": strings,
             "catchphrase": {"type": "string"},
             "intro_line": {"type": "string"},
+            "role_suggestion": {"type": "string", "enum": ["hero", "sidekick", "friend"]},
             "follow_up": _object(
                 {"question": {"type": "string"}, "options": {"type": "array", "items": option}}
             ),
@@ -250,13 +251,20 @@ def create(
     name: str,
     role: str,
     base: dict[str, Any],
+    keep: bool = False,
 ) -> Raw:
-    """A brand-new character from the kid's choices (all already checked)."""
+    """A brand-new character from the kid's choices (all already checked). With `keep`, `base`
+    is the character so far (personality removed) and only the answered choice may change."""
     who = AGE_WORDS.get(age or "", "") if body_type in ("kid", "grown_up") else ""
     lines = [
         f"Body type: {body_type}" + (f" ({who})" if who else ""),
         f"Role in the story: {role}",
-        f"Starting point (keep what the child chose): {current(base)}",
+        (
+            f"The character so far: {current(base)}. Change ONLY what the child's answer is about. "
+            "Keep every other part, colour and extra exactly as it is."
+            if keep
+            else f"Starting point (keep what the child chose): {current(base)}"
+        ),
     ]
     if face_shape:
         lines.append(f"The child picked face_shape={face_shape}; keep it.")
@@ -276,5 +284,7 @@ def create(
         "\n".join(lines),
         create_schema(),
         schema_name="character_create",
-        max_tokens=900,
+        # This model thinks before answering: a design took 2,000-2,500 tokens and ~15 s.
+        max_tokens=6000,
+        timeout=60,
     )

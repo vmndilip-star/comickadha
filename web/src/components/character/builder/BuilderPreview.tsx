@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode, type Ref } from 'react'
 import { cn } from '@/lib/cn'
-import { useCanRedo, useCanUndo, useLabStore } from '@/store/lab'
+import { useLabStore } from '@/store/lab'
 import type { Expression } from '@/types'
 import { Avatar } from '../Avatar'
 import { BuddyBubble } from './BuddyBubble'
@@ -30,8 +30,6 @@ export function BuilderPreview(props: BuilderPreviewProps) {
   const { characterId, name, spec, card, view, expression, disabled, overlay, footer, stageRef, onView, className } = props
   const undo = useLabStore((s) => s.undo)
   const redo = useLabStore((s) => s.redo)
-  const canUndo = useCanUndo(characterId) && !disabled
-  const canRedo = useCanRedo(characterId) && !disabled
 
   // Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z (or Ctrl+Y), except while typing.
   useEffect(() => {
@@ -90,26 +88,6 @@ export function BuilderPreview(props: BuilderPreviewProps) {
               {VIEW_LABEL[v]}
             </button>
           ))}
-        </div>
-        <div className="flex gap-1.5">
-          <button
-            type="button"
-            aria-label="Undo"
-            disabled={!canUndo}
-            onClick={() => undo(characterId)}
-            className="min-h-touch min-w-touch rounded-button border-3 border-ink bg-surface px-2.5 font-extrabold disabled:opacity-40"
-          >
-            ↶<span className="hidden sm:inline"> Undo</span>
-          </button>
-          <button
-            type="button"
-            aria-label="Redo"
-            disabled={!canRedo}
-            onClick={() => redo(characterId)}
-            className="min-h-touch min-w-touch rounded-button border-3 border-ink bg-surface px-2.5 font-extrabold disabled:opacity-40"
-          >
-            <span className="hidden sm:inline">Redo </span>↷
-          </button>
         </div>
       </div>
     </div>

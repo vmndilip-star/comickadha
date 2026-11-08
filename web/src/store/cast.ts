@@ -25,6 +25,8 @@ interface CastState {
   load: (force?: boolean) => Promise<void>
   /** Returns the new id, or null if it failed (e.g. the cast is full). */
   add: () => Promise<string | null>
+  /** Adds a character the API already made (the Create character flow). */
+  insert: (character: Character) => void
   /** Updates the character on screen now and autosaves it after a 600ms pause. */
   update: (id: string, patch: CharacterPatch) => void
   /** Locking starts the sheet-drawing job; unlocking goes back to editing. */
@@ -94,12 +96,19 @@ export const useCastStore = create<CastState>()((set, get) => {
       }
     },
 
+    insert: (character) =>
+      set((s) => ({
+        characters: s.characters.some((c) => c.id === character.id) ? s.characters : [...s.characters, character],
+      })),
+
     update: (id, patch) => {
       set((s) => ({
         characters: s.characters.map((c) => {
           if (c.id !== id) return c
           const spec = patch.spec ?? c.spec
-          return { ...c, name: patch.name ?? c.name, spec, role: spec.role, kind: KIND_OF_BODY[spec.body_type] }
+          // Editing the look makes it the kid's own: the "Designed by" badge goes (as on the API).
+          const designed_by = patch.spec && JSON.stringify(patch.spec) !== JSON.stringify(c.spec) ? null : c.designed_by
+          return { ...c, name: patch.name ?? c.name, spec, role: spec.role, kind: KIND_OF_BODY[spec.body_type], designed_by }
         }),
       }))
       edits.mark(id)

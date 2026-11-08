@@ -5,7 +5,6 @@ import { lockedManifest } from '@/lib/sheet'
 import type { Character, Expression, Pose } from '@/types'
 import { ExpressionGrid } from './ExpressionGrid'
 import { HeadPositionEditor } from './HeadPositionEditor'
-import { LockToggle } from './LockToggle'
 import { PoseGrid } from './PoseGrid'
 import { SheetProgress } from './SheetProgress'
 import { SheetStage } from './SheetStage'
@@ -15,18 +14,16 @@ interface CharacterStageProps {
   expression: Expression
   pose: Pose
   editingHead: boolean
-  locking: boolean
   onExpression: (expression: Expression) => void
   onPose: (pose: Pose) => void
   onToggleHeadEditor: () => void
   onRename: (name: string) => void
-  onToggleLock: () => void
   /** The builder (live preview + tabs). It gets the locked sheet view to show instead of the preview. */
   renderBuilder: (lockedView: ReactNode | null) => ReactNode
 }
 
 export function CharacterStage(props: CharacterStageProps) {
-  const { character, expression, pose, editingHead, locking } = props
+  const { character, expression, pose, editingHead } = props
   const manifest = lockedManifest(character)
   const editable = character.status === 'draft' || character.status === 'failed'
 
@@ -70,12 +67,6 @@ export function CharacterStage(props: CharacterStageProps) {
           disabled={!editable}
           onChange={(e) => props.onRename(e.target.value)}
           labelClassName="flex-[1_1_200px] gap-1"
-        />
-        <LockToggle
-          status={character.status}
-          busy={locking}
-          disabled={!character.name.trim()}
-          onToggle={props.onToggleLock}
         />
       </div>
       {!character.name.trim() && (

@@ -19,11 +19,13 @@ from sqlmodel import Session
 
 from app.avatar.catalog import Catalog, load_catalog
 from app.avatar.spec import (
+    SpecError,
     categories_for,
     default_spec,
     normalize,
     options_for,
     palette,
+    validate,
     with_leggings,
 )
 from app.errors import ApiError, invalid
@@ -58,6 +60,9 @@ SAFE_REPLY = "Here's your new character!"
 NO_AGE = "Only people have an age. Leave the age out for robots and animals."
 WRONG_FACE = "That face doesn't fit this kind of character. Pick another one!"
 WRONG_CHOICE = "That choice isn't in our parts box. Pick one of the options!"
+LOOK_NEEDS_ANSWER = "The look can only come with an answer to a question."
+LOOK_WRONG_BODY = "That look is for a different kind of character."
+ROLES = ("hero", "sidekick", "friend")
 
 
 def body_type_for(kind: str, age: str | None) -> str:
@@ -109,13 +114,17 @@ class Creator:
             self.guard.check_input(TARGET, {"description": description}, field_name="description")
 
         age = (req.age or DEFAULT_AGE) if req.kind == "person" else None
-        base = self._base(body, age, req)
-        answer = req.follow_up_answer
-        seed = zlib.crc32(
-            json.dumps(
-                [body, age, req.face_shape, description, answer and answer.model_dump(), req.name]
-            ).encode()
+        look = self._look(req, body)
+        # With a look, that's the character so far, minus its personality (never sent to Meta).
+        base = (
+            normalize({**look, "personality": {"traits": [], "catchphrase": ""}, "role": req.role})
+            if look
+            else self._base(body, age, req)
         )
+        answer = req.follow_up_answer
+        # The answer isn't part of the seed: answering a question keeps the same character.
+        inputs = [body, age, req.face_shape, description, req.name]
+        seed = zlib.crc32(json.dumps(inputs).encode())
         raw, source, fallback = self.guard.ask(
             lambda llm: helper_meta.create(
                 llm,
@@ -127,6 +136,7 @@ class Creator:
                 name=req.name,
                 role=req.role,
                 base=base,
+                keep=look is not None,
             ),
             lambda: helper_offline.create(
                 body, age, description, base, name=req.name, answered=answer is not None, seed=seed
@@ -135,7 +145,7 @@ class Creator:
             texts=lambda _r: {},  # every text is checked field by field in _finish
             target=TARGET,
         )
-        return self._finish(req, body, base, raw, source, fallback, notes, seed)
+        return self._finish(req, body, base, raw, source, fallback, notes, seed, look)
 
     # ---- request ----------------------------------------------------------------------------
 
@@ -147,6 +157,20 @@ class Creator:
         answer = req.follow_up_answer
         if answer and not choice_ok(answer.target, answer.value, body, cat):
             raise ApiError(422, "unknown_part", WRONG_CHOICE, "follow_up_answer")
+
+    def _look(self, req: CreateRequest, body: str) -> Spec | None:
+        """The character so far (only with an answer), checked like a saved look."""
+        if req.look is None:
+            return None
+        if req.follow_up_answer is None:
+            raise invalid(LOOK_NEEDS_ANSWER, "look")
+        try:
+            look = validate(req.look.model_dump())
+        except SpecError as error:
+            raise ApiError(422, "unknown_part", str(error), "look") from error
+        if look["body_type"] != body:
+            raise invalid(LOOK_WRONG_BODY, "look")
+        return look
 
     def _base(self, body: str, age: str | None, req: CreateRequest) -> Spec:
         spec = default_spec(body)
@@ -174,6 +198,7 @@ class Creator:
         fallback: bool,
         notes: list[str],
         seed: int,
+        look: Spec | None = None,
     ) -> Created:
         raw = {**raw, "body_type": body}
         given = raw.get("parts")
@@ -195,6 +220,16 @@ class Creator:
             spec = normalize({**spec, "parts": {**spec["parts"], "face_shape": req.face_shape}})
         if req.follow_up_answer:
             spec = apply_choice(spec, req.follow_up_answer)
+        if look is not None and req.follow_up_answer is not None:
+            # No drift, whatever the model did: the look as sent, with only the answered choice
+            # applied. Traits stay too (they're from the list); words come from this answer.
+            kept = apply_choice({**look, "role": req.role}, req.follow_up_answer)
+            traits = look["personality"]["traits"] or spec["personality"]["traits"]
+            spec = {**kept, "personality": {**spec["personality"], "traits": traits}}
+        role = str(raw.get("role_suggestion") or "")
+        role_suggestion = (
+            role if role in ROLES else helper_offline.role_for(spec["personality"]["traits"])
+        )
 
         texts = self._texts(raw, body, source, seed, req.name, spec["personality"]["traits"])
         spec["personality"] = {**spec["personality"], "catchphrase": texts["catchphrase"]}
@@ -208,6 +243,7 @@ class Creator:
                 "catchphrase": texts["catchphrase"],
                 "intro_line": texts["intro_line"],
                 "follow_up": texts["follow_up"],
+                "role_suggestion": role_suggestion,
                 "notes": notes,
                 "reply": reply,
                 "unmatched": texts["unmatched"],

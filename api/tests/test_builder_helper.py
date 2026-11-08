@@ -60,6 +60,7 @@ def test_info_reports_the_offline_helper(client: TestClient) -> None:
         "label": OFFLINE_LABEL,
         "drawing_needs_consent": False,
         "drawing_consent": False,
+        "last_call": None,  # offline: no Meta calls to report
     }
 
 

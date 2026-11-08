@@ -220,6 +220,7 @@ def create(
     raw["intro_line"] = f"Meet {who}, a {traits[0]} {label} ready for adventure!"
     raw["catchphrase"] = raw.get("catchphrase") or _catchphrase(traits, body)
     raw["follow_up"] = None if answered else _follow_up(body, rng)
+    raw["role_suggestion"] = role_for(traits)
     if not description:
         raw["reply"] = f"Here's {who}! Change anything you like."
     return raw
@@ -369,3 +370,16 @@ def offline_names(body_type: str, seed: int, count: int = 3) -> list[str]:
 def catchphrase_for(traits: Sequence[str], body_type: str) -> str:
     """A friendly catchphrase for the first trait (the safe default for an unusable one)."""
     return _catchphrase(traits, body_type)
+
+
+HERO_TRAITS = {"brave", "adventurous"}
+SIDEKICK_TRAITS = {"helpful", "caring"}
+
+
+def role_for(traits: Sequence[str]) -> str:
+    """A role that suits the traits: brave or adventurous heroes, helpful or caring sidekicks."""
+    if HERO_TRAITS & set(traits):
+        return "hero"
+    if SIDEKICK_TRAITS & set(traits):
+        return "sidekick"
+    return "friend"

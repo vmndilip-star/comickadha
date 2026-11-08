@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CreateCharacterButton } from '@/components/character/CreateCharacterButton'
 import { ComicCard } from '@/components/comic/ComicCard'
 import { CastCard } from '@/components/home/CastCard'
 import { ContinueCard } from '@/components/home/ContinueCard'
@@ -45,11 +46,7 @@ export function HomePage() {
           {cast.map((c) => (
             <CastCard key={c.id} character={c} />
           ))}
-          {cast.length < MAX_CAST && (
-            <EmptySlot to="/characters" className="min-h-[132px] rounded-card">
-              + New character
-            </EmptySlot>
-          )}
+          {cast.length < MAX_CAST && <CreateCharacterButton className="min-h-[132px] rounded-card" />}
         </div>
       </section>
 

@@ -144,6 +144,8 @@ CLASSIFIER_CATEGORIES = [
     "other",
 ]
 KID_MESSAGES = {"personal_info": SECRET_DETAILS, "real_person": REAL_PERSON}
+# Room for a model that thinks before answering (300 was used up before any verdict).
+CLASSIFIER_MAX_TOKENS = 1500
 
 
 class SafetyUnavailable(Exception):
@@ -204,7 +206,7 @@ def classify_each(llm: LLMProvider, fields: dict[str, str]) -> dict[str, Verdict
             prompt,
             schema,
             schema_name="safety_verdicts",
-            max_tokens=300,
+            max_tokens=CLASSIFIER_MAX_TOKENS,
         )
         verdicts = reply["verdicts"]
         if not isinstance(verdicts, list) or len(verdicts) != len(names):

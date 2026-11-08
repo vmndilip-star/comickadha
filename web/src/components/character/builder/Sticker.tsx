@@ -37,7 +37,8 @@ function pointerListeners(handle: DragHandle | undefined) {
  * In one-column layouts the preview is stuck to the top: scrolling a sticker into view (Tab focus,
  * scrollIntoView) must land it below the preview, not hidden underneath it.
  */
-const UNDER_STICKY = 'scroll-mt-[400px] sm:scroll-mt-[480px] @min-[700px]:scroll-mt-6'
+// Clear of the stuck preview above and the sticky Lock bar below (until it stops sticking at lg).
+const UNDER_STICKY = 'scroll-mt-[400px] sm:scroll-mt-[480px] @min-[700px]:scroll-mt-6 scroll-mb-28 lg:scroll-mb-6'
 
 const dragStyle = (handle: DragHandle | undefined): CSSProperties | undefined =>
   // manipulation (not none): a quick swipe still scrolls the tray; a 150 ms press starts a drag.

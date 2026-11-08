@@ -1,4 +1,6 @@
 import type {
+  Created,
+  CreateRequest,
   DescribeRequest,
   DrawingRequest,
   HelperInfo,
@@ -11,6 +13,8 @@ import { request } from './client'
 
 /** Which helper answers (Meta AI or the offline helper) and whether drawings need a grown-up's OK. */
 export const getHelperInfo = () => request<HelperInfo>('GET', '/builder/info')
+/** The guided Create character flow: a brand-new character from the answers so far. */
+export const createFromAnswers = (body: CreateRequest) => request<Created>('POST', '/builder/create', body)
 /** "A brave girl with curly red hair and a cape" -> a full spec with those parts. */
 export const describe = (body: DescribeRequest) => request<Suggestion>('POST', '/builder/describe', body)
 export const surprise = (body: SurpriseRequest) => request<Suggestion>('POST', '/builder/surprise', body)

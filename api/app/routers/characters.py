@@ -13,7 +13,7 @@ from app.schemas.character import CharacterCreate, CharacterRead, CharacterUpdat
 from app.schemas.common import MAX_CAST, Pose
 from app.schemas.job import JobStarted
 from app.schemas.manifest import CharacterManifest, HeadOffset
-from app.services import character_sheet, safety
+from app.services import character_safety, character_sheet, safety
 from app.services.storage import Storage
 
 router = APIRouter(prefix="/api/characters", tags=["characters"], responses=ERROR_RESPONSES)
@@ -98,9 +98,13 @@ def create_character(body: CharacterCreate, session: SessionDep, user: UserDep) 
             f"Your cast is full! You can have {MAX_CAST} characters. "
             "Delete one to make room for someone new.",
         )
+    # The same name rules as /builder/create: word list, personal info, famous and real people.
+    character_safety.check_name(session, user.id, "character:new", body.name)
     card = avatar_spec.SLOT_CARDS[len(cast) % len(avatar_spec.SLOT_CARDS)]
     spec = checked_spec(body.spec) if body.spec else avatar_spec.default_spec("kid", card=card)
-    character = Character(user_id=user.id, name=body.name, role="friend", kind="kid")
+    character = Character(
+        user_id=user.id, name=body.name, role="friend", kind="kid", designed_by=body.designed_by
+    )
     _apply_spec(character, spec)
     return _save(session, character)
 
@@ -128,7 +132,10 @@ def update_character(
     if body.name is not None:
         character.name = body.name
     if body.spec is not None:
-        _apply_spec(character, checked_spec(body.spec))
+        spec = checked_spec(body.spec)
+        if spec != character.spec:
+            character.designed_by = None  # the kid made it their own: no more "Designed by" badge
+        _apply_spec(character, spec)
     return _save(session, character)
 
 

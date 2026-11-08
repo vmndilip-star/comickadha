@@ -3,6 +3,8 @@ import { Navigate, useNavigate, useParams } from 'react-router'
 import { BuddyHelper } from '@/components/character/builder/BuddyHelper'
 import { LabBuilder } from '@/components/character/builder/LabBuilder'
 import { useBuilder } from '@/components/character/builder/useBuilder'
+import { CreateCharacterButton } from '@/components/character/CreateCharacterButton'
+import { LabActionBar } from '@/components/character/LabActionBar'
 import { CastSlotList } from '@/components/character/CastSlotList'
 import { CharacterStage } from '@/components/character/CharacterStage'
 import { PersonalityPanel } from '@/components/character/PersonalityPanel'
@@ -10,7 +12,6 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoading } from '@/components/layout/PageLoading'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { SaveStatus } from '@/components/ui/SaveStatus'
 import { characterSaveKey, useCastStore } from '@/store/cast'
 import { useStartComic } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
@@ -21,8 +22,6 @@ export function CharacterLabPage() {
   const { id } = useParams()
   const status = useDataStatus()
   const characters = useCastStore((s) => s.characters)
-  const add = useCastStore((s) => s.add)
-  const navigate = useNavigate()
 
   if (status !== 'ready') return <PageLoading status={status} layout="split" />
 
@@ -35,15 +34,7 @@ export function CharacterLabPage() {
         <PageHeader title="Character Lab" subtitle={`Design up to ${MAX_CAST} characters.`} />
         <div className="flex flex-col items-start gap-4 rounded-hero border-3 border-ink bg-surface p-7 shadow-hero">
           <p className="m-0 text-lg font-semibold">Your cast is empty. Who's your first hero?</p>
-          <Button
-            variant="accent"
-            onClick={async () => {
-              const newId = await add()
-              if (newId) navigate(`/characters/${newId}`)
-            }}
-          >
-            + New character
-          </Button>
+          <CreateCharacterButton variant="button" />
         </div>
       </>
     )
@@ -102,12 +93,10 @@ function CharacterLab({ character, characters }: { character: Character; charact
           expression={expression}
           pose={pose}
           editingHead={editingHead}
-          locking={locking}
           onExpression={setExpression}
           onPose={setPose}
           onToggleHeadEditor={() => setEditingHead(!editingHead)}
           onRename={(name) => update(character.id, { name })}
-          onToggleLock={() => void toggleLock()}
           renderBuilder={(lockedView) => (
             <LabBuilder
               character={character}
@@ -141,14 +130,21 @@ function CharacterLab({ character, characters }: { character: Character; charact
               Use in a story →
             </Button>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <SaveStatus />
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Button size="sm" onClick={() => setConfirmingDelete(true)}>
               Delete {character.name || 'character'}
             </Button>
           </div>
         </aside>
       </div>
+
+      <LabActionBar
+        characterId={character.id}
+        name={character.name}
+        status={character.status}
+        busy={locking}
+        onToggleLock={() => void toggleLock()}
+      />
 
       <ConfirmDialog
         open={confirmingDelete}

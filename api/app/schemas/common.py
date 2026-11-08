@@ -22,6 +22,8 @@ Mood = Literal["mystery", "funny", "adventure", "spooky"]
 PanelCount = Literal[4, 6, 8]
 StudioStep = Literal[1, 2, 3]
 ComicStatus = Literal["draft", "finished"]
+# Who designed a character in the Create character flow (the badge on its card).
+DesignedBy = Literal["meta", "offline"]
 
 Expression = Literal["happy", "sad", "angry", "surprised", "scared", "laughing"]
 # Body sheet cells in 4x4 grid order.

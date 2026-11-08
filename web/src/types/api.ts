@@ -904,6 +904,8 @@ export interface components {
              */
             name: string;
             spec?: components["schemas"]["AvatarSpec"] | null;
+            /** Designed By */
+            designed_by?: ("meta" | "offline") | null;
         };
         /**
          * CharacterManifest
@@ -959,6 +961,8 @@ export interface components {
              * @enum {string}
              */
             status: "draft" | "generating" | "locked" | "failed";
+            /** Designed By */
+            designed_by?: ("meta" | "offline") | null;
             /** Seed */
             seed: number;
             /** Style */
@@ -1103,6 +1107,7 @@ export interface components {
              */
             description: string;
             follow_up_answer?: components["schemas"]["CatalogChoice"] | null;
+            look?: components["schemas"]["AvatarSpec"] | null;
             /**
              * Name
              * @default
@@ -1125,6 +1130,11 @@ export interface components {
             /** Intro Line */
             intro_line: string;
             follow_up: components["schemas"]["FollowUp"] | null;
+            /**
+             * Role Suggestion
+             * @enum {string}
+             */
+            role_suggestion: "hero" | "sidekick" | "friend";
             /** Notes */
             notes: string[];
             /** Reply */
@@ -1311,6 +1321,7 @@ export interface components {
             source: "meta" | "mock";
             /** Label */
             label: string;
+            last_call?: components["schemas"]["LastCall"] | null;
             /** Drawing Needs Consent */
             drawing_needs_consent: boolean;
             /** Drawing Consent */
@@ -1389,6 +1400,21 @@ export interface components {
             kind: "character_sheet" | "background_image" | "comic";
             /** Target Id */
             target_id: string;
+        };
+        /**
+         * LastCall
+         * @description The last call to Meta's API (dev-only indicator): when, whether it worked, the error type.
+         */
+        LastCall: {
+            /** Ok */
+            ok: boolean;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Error */
+            error: string | null;
         };
         /** PanelCharacter */
         PanelCharacter: {

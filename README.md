@@ -2,7 +2,7 @@
 
 Comickatha lets kids under 16 make their own comics. They design up to three characters and a few places, lock them so they look the same everywhere, write a short story, and Comickatha turns it into comic panels they can edit and export as a PDF.
 
-**Status:** Phase 5 of 6. Kids build characters Bitmoji-style in the Character Lab, then write a story in the Story Studio: the planner turns it into scenes and a panel plan with their real characters in every pose. "Make my comic!" draws every panel live (place, characters facing each other, speech bubbles pointing at the speaker), and the Reader lets them drag bubbles, change words, faces, poses and places to stand, finish the comic and download a PDF. A Story Buddy asks questions to help them think, and story text is safety-checked (personal details stay secret). Everything runs offline by default, so no API keys are needed. Real image models arrive in Phase 6.
+**Status:** Phase 5 of 6. Kids create characters in a guided, step-by-step flow (or build them Bitmoji-style in the Character Lab), then write a story in the Story Studio: the planner turns it into scenes and a panel plan with their real characters in every pose. "Make my comic!" draws every panel live (place, characters facing each other, speech bubbles pointing at the speaker), and the Reader lets them drag bubbles, change words, faces, poses and places to stand, finish the comic and download a PDF. A Story Buddy asks questions to help them think, and story text is safety-checked (personal details stay secret). Everything runs offline by default, so no API keys are needed. Real image models arrive in Phase 6.
 
 ## Quick start
 
@@ -25,6 +25,23 @@ Reset to the demo data (one kid, 3 characters, 3 places, 3 comics): `uv run pyth
 Or with Docker Desktop running: `docker compose up --build`.
 
 To change settings, copy `.env.example` to `.env`.
+
+### The demo runs with Meta AI
+
+The default is `LLM_PROVIDER=mock`: the offline helpers answer, no keys are needed, and the tests
+always run that way. For the demo, switch the character helper, Story Buddy, planner and safety
+classifier to Meta's model API in `.env` (never commit it):
+
+```powershell
+Copy-Item .env.example .env
+# then edit .env:
+#   LLM_PROVIDER=meta
+#   META_API_KEY=<your key>
+#   META_MODEL=<the model name you were given>
+```
+
+Restart the API afterwards. In development builds, the profile button (top right) shows which
+helper is active and whether the last Meta call worked.
 
 ### Printing a comic
 

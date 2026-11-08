@@ -1,6 +1,7 @@
 """LLM_PROVIDER=meta: settings are checked at startup, and calls go out the way we expect."""
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -9,6 +10,7 @@ from app.config import Settings
 from app.main import create_app
 from app.providers.llm import LLMError
 from app.providers.meta import MetaLLMProvider
+from app.services import safety
 from tests.conftest import make_settings
 from tests.fakes import FakeMeta, server_error
 
@@ -87,3 +89,60 @@ def test_errors_and_unusable_replies_become_llm_errors() -> None:
         fake.replies["thing"] = reply
         with pytest.raises(LLMError):
             llm.complete_json("sys", "hi", {}, schema_name="thing")
+
+
+def test_a_reply_cut_off_before_any_answer_is_named_out_of_tokens() -> None:
+    """A model that thinks first can spend the whole budget; the dev menu says so plainly."""
+    cut_off = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content=""), finish_reason="length")],
+        usage=None,
+    )
+    fake = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **_: cut_off))
+    )
+    llm = MetaLLMProvider(
+        api_key="k", model="m", vision_model="v", base_url="http://x", client=fake
+    )
+
+    with pytest.raises(LLMError):
+        llm.complete("system", "prompt")
+
+    assert llm.last_call is not None and llm.last_call["error"] == "OutOfTokens"
+
+
+def test_the_classifier_leaves_room_to_think() -> None:
+    fake = FakeMeta()
+    llm = provider(fake)
+    safety.classify(llm, {"text": "A kind robot"})
+    assert fake.calls[0]["max_tokens"] >= 1500
+
+
+def test_half_a_reply_cut_off_at_the_limit_is_out_of_tokens_too() -> None:
+    cut_off = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(content='{"parts": {"ha'), finish_reason="length"
+            )
+        ],
+        usage=None,
+    )
+    fake = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **_: cut_off))
+    )
+    llm = MetaLLMProvider(
+        api_key="k", model="m", vision_model="v", base_url="http://x", client=fake
+    )
+
+    with pytest.raises(LLMError):
+        llm.complete_json("system", "prompt", {"type": "object"}, schema_name="thing")
+
+    assert llm.last_call is not None and llm.last_call["error"] == "OutOfTokens"
+
+
+def test_a_long_call_can_have_its_own_timeout() -> None:
+    fake = FakeMeta()
+    fake.replies["thing"] = {"ok": True}
+    provider(fake).complete_json(
+        "system", "prompt", {"type": "object"}, schema_name="thing", timeout=60
+    )
+    assert fake.calls[0]["timeout"] == 60

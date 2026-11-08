@@ -18,10 +18,11 @@ can't run, the safe choice is taken. Every decision is written to `moderation_lo
 | `face_shape` | a face shape from the parts library that fits that body (`round`, `oval`, `square`, `heart` for people; `box`, `dome`, `screen` for robots; `cat`, `dog`, `bear` for animals) |
 | `description` | optional free text, up to 300 characters, checked as in section 4 |
 | `follow_up_answer` | the answer to the helper's follow-up question: one catalog choice (a part, or a colour from the palette) that fits the body type. It can never be free text. |
+| `look` | only together with `follow_up_answer`: the character so far, checked exactly like a saved look (unknown or ill-fitting parts and off-palette colours are refused, and it must match the kind and age). Its personality is removed before anything is sent to Meta. Meta is told to change only what the answer is about, and the server enforces it: the answer keeps every part, colour and extra of the look except the choice the answer maps to (a dress also brings its leggings). |
 | `name` | optional, up to 24 characters, checked like any text, and against famous names and real people |
 | `role` | `hero`, `sidekick`, `friend` |
 
-Any other field is refused (422). A part or colour that doesn't exist or doesn't fit the body is
+Saving the character (`POST /api/characters`) checks the name again with the same rules. Any other field is refused (422). A part or colour that doesn't exist or doesn't fit the body is
 refused with a message under that field.
 
 ## 2. What the helper answers
@@ -31,6 +32,7 @@ refused with a message under that field.
 - **Traits:** up to 3 from this fixed list of positive or neutral traits: brave, curious, funny,
   kind, clever, creative, calm, cheerful, helpful, honest, adventurous, caring, energetic, gentle,
   patient, playful, shy, silly, sporty, thoughtful. Anything else is dropped.
+- **Role suggestion:** `hero`, `sidekick` or `friend` (anything else is replaced by one that suits the traits). The child picks the final role.
 - **Words:** up to 3 name ideas (made-up and kind, never famous or real people), a catchphrase
   (at most 12 words), an intro line (at most 15 words), a short reply.
 - **Follow-up:** at most one question about the character's looks or personality (never about the

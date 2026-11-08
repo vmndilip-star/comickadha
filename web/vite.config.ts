@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
       fs: { allow: [searchForWorkspaceRoot(process.cwd()), sharedDir] },
     },
     test: {
-      include: ['src/**/*.test.ts'],
+      include: ['src/**/*.test.{ts,tsx}'],
       environment: 'node',
     },
   }

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 from app.schemas.avatar import AvatarSpec
-from app.schemas.common import CharacterKind, LockStatus, Name, Role, UtcDatetime
+from app.schemas.common import CharacterKind, DesignedBy, LockStatus, Name, Role, UtcDatetime
 from app.schemas.manifest import CharacterManifest
 
 
@@ -9,6 +9,8 @@ class CharacterCreate(BaseModel):
     name: Name = "New hero"
     # Omitted: a default kid, with a card colour for the cast slot.
     spec: AvatarSpec | None = None
+    # Set by the Create character flow: which helper designed it (shown as a badge).
+    designed_by: DesignedBy | None = None
 
 
 class CharacterUpdate(BaseModel):
@@ -27,6 +29,8 @@ class CharacterRead(BaseModel):
     kind: CharacterKind
     spec: AvatarSpec
     status: LockStatus
+    # "meta" until the kid edits the look: the "Designed by Meta AI" badge.
+    designed_by: DesignedBy | None = None
     seed: int
     style: str
     sheet_version: int

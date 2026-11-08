@@ -5,7 +5,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from app.schemas.avatar import AvatarSpec, BodyType
-from app.schemas.common import Role, Trait
+from app.schemas.common import Role, Trait, UtcDatetime
 
 HelperSource = Literal["meta", "mock"]
 Description = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]
@@ -61,9 +61,19 @@ class Ideas(BaseModel):
     label: str
 
 
+class LastCall(BaseModel):
+    """The last call to Meta's API (dev-only indicator): when, whether it worked, the error type."""
+
+    ok: bool
+    at: UtcDatetime
+    error: str | None
+
+
 class HelperInfo(BaseModel):
     source: HelperSource
     label: str
+    # Meta only: the last call's outcome (None before the first call, and offline).
+    last_call: LastCall | None = None
     # Drawings go to Meta's API, so a grown-up says OK once per profile first.
     drawing_needs_consent: bool
     drawing_consent: bool
@@ -97,6 +107,9 @@ class CreateRequest(BaseModel):
     description: Annotated[str, StringConstraints(strip_whitespace=True, max_length=300)] = ""
     # The answer to the last follow-up question: any catalog choice that fits the body type.
     follow_up_answer: CatalogChoice | None = None
+    # Only with follow_up_answer: the character so far, so the answer changes just that choice.
+    # Checked like a saved look; its personality never reaches Meta.
+    look: AvatarSpec | None = None
     name: Annotated[str, StringConstraints(strip_whitespace=True, max_length=24)] = ""
     role: Role = "hero"
 
@@ -118,6 +131,8 @@ class Created(BaseModel):
     catchphrase: str
     intro_line: str
     follow_up: FollowUp | None
+    # The role the helper thinks fits (the kid picks the final one).
+    role_suggestion: Role
     # Kind notes about the description (e.g. body words that were left out).
     notes: list[str]
     reply: str

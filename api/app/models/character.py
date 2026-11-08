@@ -28,6 +28,8 @@ class Character(SQLModel, table=True):
     manifest: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
     # The latest lock job, so the Lab can reconnect to it after a refresh.
     last_job_id: str | None = None
+    # "meta" or "offline" when the Create character flow made it; cleared by the first look edit.
+    designed_by: str | None = Field(default=None, max_length=8)
     deleted_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

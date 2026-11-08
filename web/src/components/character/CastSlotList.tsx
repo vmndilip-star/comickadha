@@ -1,5 +1,5 @@
-import { Link, useNavigate } from 'react-router'
-import { EmptySlot } from '@/components/ui/EmptySlot'
+import { Link } from 'react-router'
+import { CreateCharacterButton } from './CreateCharacterButton'
 import { cn } from '@/lib/cn'
 import { characterTagline } from '@/lib/format'
 import { useCastStore } from '@/store/cast'
@@ -14,16 +14,10 @@ const STATUS_LABEL: Record<LockStatus, string> = {
 
 export function CastSlotList({ selectedId }: { selectedId: string }) {
   const characters = useCastStore((s) => s.characters)
-  const addCharacter = useCastStore((s) => s.add)
-  const navigate = useNavigate()
-
-  const add = async () => {
-    const id = await addCharacter()
-    if (id) navigate(`/characters/${id}`)
-  }
 
   return (
     <aside aria-label="Cast slots" className="flex max-w-full flex-[1_1_220px] flex-col gap-3.5">
+      <CreateCharacterButton className="min-h-14 rounded-2xl" />
       {characters.map((c) => {
         const selected = c.id === selectedId
         return (
@@ -46,15 +40,15 @@ export function CastSlotList({ selectedId }: { selectedId: string }) {
               <span className="text-lg font-extrabold">{c.name}</span>
               <span className="text-label font-semibold text-muted">{characterTagline(c)}</span>
               <span className="text-[13px] font-extrabold">{STATUS_LABEL[c.status]}</span>
+              {c.designed_by === 'meta' && (
+                <span className="rounded-pill border-2 border-ink bg-sky-tint px-2 py-0.5 text-[12px] font-extrabold">
+                  Designed by Meta AI
+                </span>
+              )}
             </span>
           </Link>
         )
       })}
-      {characters.length < MAX_CAST && (
-        <EmptySlot onClick={() => void add()} className="min-h-20 rounded-2xl">
-          + New character
-        </EmptySlot>
-      )}
       <p className="mt-1 mb-0 text-label font-semibold text-muted">
         You can have {MAX_CAST} characters. Delete one to free a slot.
       </p>

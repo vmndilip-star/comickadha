@@ -42,6 +42,7 @@ def helper_info(llm: LLMDep, user: UserDep) -> HelperInfo:
         label=label(source),
         drawing_needs_consent=llm is not None,
         drawing_consent=user.drawing_consent_at is not None,
+        last_call=getattr(llm, "last_call", None),
     )
 
 

@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router'
 import { AppRoot } from '@/components/layout/AppRoot'
 import { PageShell } from '@/components/layout/PageShell'
 import { CharacterLabPage } from '@/pages/CharacterLabPage'
+import { CreateCharacterPage } from '@/pages/CreateCharacterPage'
 import { HomePage } from '@/pages/HomePage'
 import { MyComicsPage } from '@/pages/MyComicsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -16,6 +17,8 @@ export const router = createBrowserRouter([
         element: <PageShell />,
         children: [
           { index: true, element: <HomePage /> },
+          // Before characters/:id, so "new" is never read as an id.
+          { path: 'characters/new', element: <CreateCharacterPage /> },
           { path: 'characters/:id?', element: <CharacterLabPage /> },
           { path: 'studio/:comicId?', element: <StoryStudioPage /> },
           { path: 'comics', element: <MyComicsPage /> },
