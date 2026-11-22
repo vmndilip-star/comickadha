@@ -2,13 +2,14 @@ import asyncio
 from pathlib import Path
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
 from app.config import Settings
 from app.db import init_db, make_engine
 from app.main import create_app
-from app.models import Character, Job
+from app.models import Background, Character, Job
 from app.services.jobs import JobContext, JobEvent, JobRunner
 from tests.conftest import IDS, sse_events, wait_for_job
 
@@ -68,18 +69,28 @@ def test_sse_replays_from_after_or_last_event_id(client: TestClient) -> None:
     assert everything[-1][1] == from_after[-1][1] == reconnect[-1][1] == "done"
 
 
-def test_restart_marks_running_jobs_failed(settings: Settings) -> None:
+@pytest.mark.parametrize(
+    ("kind", "target", "message"),
+    [
+        ("character_sheet", "robo", "Oops, the drawing got interrupted. Tap Lock to try again!"),
+        ("background_image", "kitchen", "Oops, the painting got interrupted. Tap Paint it again!"),
+    ],
+)
+def test_restart_marks_running_jobs_failed(
+    settings: Settings, kind: str, target: str, message: str
+) -> None:
+    model = Character if kind == "character_sheet" else Background
     with (
         TestClient(create_app(settings)) as client,
         Session(client.app.state.engine) as session,  # type: ignore[attr-defined]
     ):
-        job = Job(kind="character_sheet", target_id=IDS["robo"], status="running")
+        job = Job(kind=kind, target_id=IDS[target], status="running")
         session.add(job)
-        robo = session.get(Character, IDS["robo"])
-        assert robo is not None
-        robo.status = "generating"
-        robo.last_job_id = job.id
-        session.add(robo)
+        row = session.get(model, IDS[target])
+        assert row is not None
+        row.status = "generating"
+        row.last_job_id = job.id
+        session.add(row)
         session.commit()
         job_id = job.id
 
@@ -87,6 +98,8 @@ def test_restart_marks_running_jobs_failed(settings: Settings) -> None:
     with TestClient(create_app(settings)) as client:
         job_read = client.get(f"/api/jobs/{job_id}").json()
         assert job_read["status"] == "failed"
-        assert job_read["error"] == "Oops, the drawing got interrupted. Tap Lock to try again!"
-        assert client.get(f"/api/characters/{IDS['robo']}").json()["status"] == "failed"
-        assert sse_events(client, job_id)[-1][1] == "error"
+        assert job_read["error"] == message  # places have Paint it again, characters Lock
+        path = "characters" if kind == "character_sheet" else "backgrounds"
+        assert client.get(f"/api/{path}/{IDS[target]}").json()["status"] == "failed"
+        last = sse_events(client, job_id)[-1]
+        assert last[1] == "error" and last[2]["message"] == message

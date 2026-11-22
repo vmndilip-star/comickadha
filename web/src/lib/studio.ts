@@ -25,6 +25,24 @@ export function moveCharacter(characters: PanelCharacter[], id: string, position
   })
 }
 
+/**
+ * Whether the Studio shows an API error's field under that field. Safety blocks can also name a
+ * character's name or catchphrase ("cast.<id>.catchphrase"): nothing on the page shows those, so
+ * their message goes above the step (or in a toast) instead. (Places never block: they are left
+ * out of the plan with a note, see leftOutNote.)
+ */
+export function shownInStudio(field: string): boolean {
+  return ['title', 'synopsis', 'cast', 'buddy'].includes(field) || field.startsWith('scenes.') || field.startsWith('bubbles.')
+}
+
+/** The plan note for locked places the safety check left out (their words can't be edited). */
+export function leftOutNote(names: string[]): string | null {
+  if (!names.length) return null
+  const quoted = names.map((n) => `“${n}”`).join(' and ')
+  const one = names.length === 1
+  return `We left out ${quoted}: our safety helper didn't like ${one ? 'its' : 'their'} words. Delete ${one ? 'it' : 'them'} and describe a new place.`
+}
+
 export function wordCount(text: string): number {
   return text.trim() ? text.trim().split(/\s+/).length : 0
 }

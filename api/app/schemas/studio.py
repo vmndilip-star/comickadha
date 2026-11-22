@@ -59,6 +59,9 @@ class ScenesPlanned(BaseModel):
     scenes: list[SceneRead]
     # Cast members left out because they aren't locked yet (names, for a friendly note).
     skipped: list[str]
+    # Locked places left out because their words didn't pass the safety check (names, for a note
+    # that says to delete them and describe new ones).
+    left_out_places: list[str]
     source: PlanSource
     # True when Meta was set up but couldn't help, so the offline planner made this plan.
     fallback: bool
@@ -69,6 +72,7 @@ class PanelsPlanned(BaseModel):
     panels: list[PanelRead]
     # How many edited or drawn panels were kept as they were.
     kept: int
+    left_out_places: list[str]
     source: PlanSource
     fallback: bool
     label: str

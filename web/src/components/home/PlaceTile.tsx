@@ -1,6 +1,10 @@
+import { useState } from 'react'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/cn'
 import { useJob } from '@/store/jobs'
+import { usePlacesStore } from '@/store/places'
 import type { Background } from '@/types'
+import { PlaceActions } from './PlaceActions'
 
 interface PlaceTileProps {
   place: Background
@@ -10,6 +14,7 @@ interface PlaceTileProps {
 }
 
 const STATUS_LABEL: Partial<Record<Background['status'], string>> = {
+  draft: 'Not painted yet',
   locked: 'Locked',
   generating: 'Painting…',
   failed: "Couldn't paint",
@@ -17,6 +22,10 @@ const STATUS_LABEL: Partial<Record<Background['status'], string>> = {
 
 export function PlaceTile({ place, onSelect, selected = false }: PlaceTileProps) {
   const job = useJob(place.status === 'generating' ? place.last_job_id : null)
+  const repaint = usePlacesStore((s) => s.repaint)
+  const remove = usePlacesStore((s) => s.remove)
+  const [busy, setBusy] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const thumb = job?.cells['place/reference'] ?? place.thumb_url ?? place.image_url
   const body = (
     <>
@@ -40,14 +49,37 @@ export function PlaceTile({ place, onSelect, selected = false }: PlaceTileProps)
     </>
   )
   const classes = cn(
-    'overflow-hidden rounded-tile border-3 border-ink bg-surface p-0 text-ink',
+    'flex flex-col overflow-hidden rounded-tile border-3 border-ink bg-surface p-0 text-ink',
     selected && 'shadow-tile-selected',
   )
 
-  if (!onSelect) return <div className={classes}>{body}</div>
   return (
-    <button type="button" aria-pressed={selected} onClick={onSelect} className={cn(classes, 'font-[inherit]')}>
-      {body}
-    </button>
+    <div className={classes}>
+      {onSelect ? (
+        <button type="button" aria-pressed={selected} onClick={onSelect} className="flex w-full flex-col bg-transparent p-0 font-[inherit] text-ink">
+          {body}
+        </button>
+      ) : (
+        body
+      )}
+      <PlaceActions
+        name={place.name}
+        status={place.status}
+        busy={busy}
+        onRepaint={() => {
+          setBusy(true)
+          void repaint(place.id).finally(() => setBusy(false))
+        }}
+        onDelete={() => setConfirming(true)}
+      />
+      <ConfirmDialog
+        open={confirming}
+        title={`Delete ${place.name}?`}
+        message="It goes from your places. Comics that already use it keep it."
+        confirmLabel={`Delete ${place.name}`}
+        onConfirm={() => remove(place.id)}
+        onClose={() => setConfirming(false)}
+      />
+    </div>
   )
 }

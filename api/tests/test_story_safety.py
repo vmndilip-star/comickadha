@@ -10,7 +10,7 @@ from sqlmodel import Session, col, select
 from app.models import ModerationLog
 from app.services import recheck, safety
 from tests.conftest import IDS, app_state
-from tests.fakes import server_error, use_meta
+from tests.fakes import flag, server_error, use_meta
 
 GOOD = "Mira and Raju follow sticky footprints to the school garden and find the mango."
 
@@ -128,9 +128,7 @@ def test_personal_info_blocks_planning_with_its_message(client: TestClient) -> N
 
 def test_the_classifier_blocks_unsafe_story_text(client: TestClient) -> None:
     fake = use_meta(client)
-    fake.replies["safety_verdicts"] = {
-        "verdicts": [{"safe": True, "categories": []}, {"safe": False, "categories": ["bullying"]}]
-    }
+    fake.replies["safety_verdicts"] = flag("mean to", "bullying")
     comic_id = new_comic(client, synopsis="Mira is mean to Raju all day long.")
 
     res = plan(client, comic_id, "scenes")

@@ -35,6 +35,22 @@ def fit_size(
     return image.resize(size, Image.Resampling.LANCZOS)
 
 
+def cover_crop(image: Image.Image, aspect: tuple[int, int], tolerance: float = 0.01) -> Image.Image:
+    """The centre of the image cut to the aspect of `aspect` (width, height), keeping as many
+    pixels as possible; unchanged if it is already within `tolerance` of that aspect."""
+    want = aspect[0] / aspect[1]
+    got = image.width / image.height
+    if abs(got - want) / want <= tolerance:
+        return image
+    if got > want:  # too wide: trim the sides
+        width = max(1, round(image.height * want))
+        left = (image.width - width) // 2
+        return image.crop((left, 0, left + width, image.height))
+    height = max(1, round(image.width / want))
+    top = (image.height - height) // 2
+    return image.crop((0, top, image.width, top + height))
+
+
 def key_magenta(image: Image.Image, tolerance: int = KEY_TOLERANCE) -> Image.Image:
     """Makes the magenta background transparent, then trims a 1px edge to drop the pink fringe."""
     rgb = image.convert("RGB")

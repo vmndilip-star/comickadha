@@ -40,6 +40,7 @@ Raw = dict[str, Any]
 Spec = dict[str, Any]
 
 TARGET = "builder:create"
+LABELS = {"description": "your description", "name": "the name"}
 HUMAN = ("kid", "grown_up")
 AGE_BODY = {
     "little_kid": "kid",
@@ -110,8 +111,11 @@ class Creator:
                 self.session, self.user_id, TARGET, req.description
             )
             description, notes = checked.text, checked.notes
-        if description:
-            self.guard.check_input(TARGET, {"description": description}, field_name="description")
+        # Every kid-written word the Meta prompt carries (helper_meta.create): the description and
+        # the name. The base spec's personality is never sent.
+        kid_words = {k: v for k, v in {"description": description, "name": req.name}.items() if v}
+        if kid_words:
+            self.guard.check_input(TARGET, kid_words, labels=LABELS)
 
         age = (req.age or DEFAULT_AGE) if req.kind == "person" else None
         look = self._look(req, body)

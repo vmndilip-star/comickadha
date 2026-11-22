@@ -39,6 +39,18 @@ NOT_A_DRAWING = "That looks like a photo. Please upload a drawing, not a photo o
 UNSAFE_DRAWING = "Let's keep Comickatha friendly for everyone! Please try a different drawing."
 NEEDS_CONSENT = "Drawings are sent to Meta AI, so a grown-up needs to say OK first."
 TRAITS = set(helper_offline.TRAITS)
+# How a kid would call each field the Lab helper checks before asking Meta.
+LABELS = {
+    "description": "your description",
+    "name": "the name",
+    "catchphrase": "your character's catchphrase",
+}
+
+
+def _kid_words(spec: dict[str, Any]) -> dict[str, str]:
+    """The kid-written words in a spec that helper_meta.current() puts in the prompt."""
+    return {"catchphrase": str(spec.get("personality", {}).get("catchphrase", ""))}
+
 
 Raw = dict[str, Any]
 
@@ -136,8 +148,8 @@ class Helper:
             self.guard.session, self.guard.user_id, "builder:describe", text
         )
         text = checked.text
-        if text:
-            self._check_input("builder:describe", {"description": text})
+        # The prompt also carries the current catchphrase (helper_meta.current): check it too.
+        self._check_input("builder:describe", {"description": text, **_kid_words(spec)})
         suggestion = self._suggest(
             spec,
             lambda llm: helper_meta.describe(llm, text, spec),
@@ -150,6 +162,7 @@ class Helper:
     def surprise(self, body_type: str | None, spec: dict[str, Any]) -> Suggestion:
         spec = normalize(spec)
         seed = random.randrange(2**31)
+        self._check_input("builder:surprise", _kid_words(spec))
         return self._suggest(
             spec,
             lambda llm: _respectful(helper_meta.surprise(llm, body_type, spec)),
@@ -158,8 +171,7 @@ class Helper:
 
     def ideas(self, spec: dict[str, Any], name: str) -> Ideas:
         spec = normalize(spec)
-        if name.strip():
-            self._check_input("builder:ideas", {"name": name})
+        self._check_input("builder:ideas", {"name": name, **_kid_words(spec)})
         seed = random.randrange(2**31)
         raw, source, fallback = self._ask(
             lambda llm: helper_meta.ideas(llm, spec, name),
@@ -187,6 +199,8 @@ class Helper:
         if self.llm is not None:
             if not consent:
                 raise ApiError(403, "consent_needed", NEEDS_CONSENT)
+            self._check_input("builder:drawing", _kid_words(spec))
+        if self.guard.may_ask_meta and self.llm is not None:
             try:
                 raw = helper_meta.from_drawing(self.llm, png, spec)
                 self._check_drawing_verdict(raw)
@@ -206,7 +220,10 @@ class Helper:
         self.guard.log(target, verdict, kind)
 
     def _check_input(self, target: str, fields: dict[str, str]) -> None:
-        self.guard.check_input(target, fields)
+        """Every kid-written word the Meta prompt will carry; nothing to check, no call."""
+        fields = {k: v for k, v in fields.items() if v.strip()}
+        if fields:
+            self.guard.check_input(target, fields, labels=LABELS)
 
     def _output_ok(self, raw: Raw) -> bool:
         return self.guard.output_ok("builder:reply", _reply_texts(raw))

@@ -22,6 +22,8 @@ REQUIRED: dict[str, set[str] | None] = {
     "buddy_idea": set(),
     "buddy_spelling": set(),
     "buddy_name_scene": set(),
+    "image_safety": set(),
+    "background_no_text": set(),
 }
 
 _cache: dict[str, str] = {}

@@ -23,6 +23,9 @@ log = logging.getLogger(__name__)
 
 FAILED_MESSAGE = "Oops, the drawing didn't work. Tap Lock to try again!"
 INTERRUPTED_MESSAGE = "Oops, the drawing got interrupted. Tap Lock to try again!"
+# Places have "Paint it again", not Lock (decision 90).
+PLACE_INTERRUPTED = "Oops, the painting got interrupted. Tap Paint it again!"
+INTERRUPTED_BY_KIND = {"background_image": PLACE_INTERRUPTED}
 PANEL_INTERRUPTED = "Oops, this panel got interrupted. Tap Try again!"
 KEEPALIVE_SECONDS = 15.0
 FINAL_EVENTS = ("done", "error")
@@ -192,14 +195,11 @@ def fail_interrupted_jobs(engine: Engine) -> int:
     with Session(engine) as session:
         stuck = list(session.exec(select(Job).where(col(Job.status).in_(("queued", "running")))))
         for job in stuck:
-            event = {
-                "id": len(job.events) + 1,
-                "type": "error",
-                "data": {"message": INTERRUPTED_MESSAGE},
-            }
+            message = INTERRUPTED_BY_KIND.get(job.kind, INTERRUPTED_MESSAGE)
+            event = {"id": len(job.events) + 1, "type": "error", "data": {"message": message}}
             job.events = [*job.events, event]
             job.status = "failed"
-            job.error = INTERRUPTED_MESSAGE
+            job.error = message
             job.updated_at = utcnow()
             session.add(job)
             if job.kind == "comic":

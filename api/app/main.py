@@ -78,8 +78,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        # First, so a bad Meta setting (missing key or model, a -contributor model) stops startup.
+        # First, so a bad Meta setting (missing key or model, a -contributor model, Muse Image
+        # without LLM_PROVIDER=meta) stops startup before anything is touched.
         app.state.llm = get_llm_provider(settings)
+        app.state.image_provider = get_image_provider(settings)
         # Every prompt is read and checked now, so a missing or broken one stops startup.
         load_prompts()
         settings.storage_dir.mkdir(parents=True, exist_ok=True)
@@ -104,7 +106,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.storage = LocalStorage(settings.media_dir)
         if frozen := looks.backfill_versions(engine, app.state.storage):
             log.info("froze the looks of %d locked sheet version(s)", frozen)
-        app.state.image_provider = get_image_provider(settings)
         app.state.sheet_provider = make_sheet_provider(settings, app.state.image_provider)
         app.state.jobs = JobRunner(engine, asyncio.get_running_loop())
         if settings.seed_on_startup:

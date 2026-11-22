@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { ApiError } from '@/api/client'
 import * as api from '@/api/studio'
 import type { BuddyAction, BuddyReply, Spark } from '@/types'
+import { shownInStudio } from '@/lib/studio'
 import { useComicsStore } from './comics'
 import { showOnField, useFieldErrors } from './fieldErrors'
 import { toast } from './toast'
@@ -17,6 +18,8 @@ export interface PlanNote {
   label: string
   kept: number
   skipped: string[]
+  /** Locked places left out because their words didn't pass the safety check. */
+  leftOut: string[]
 }
 
 interface StudioState {
@@ -51,13 +54,13 @@ export const useStudioStore = create<StudioState>()((set, get) => ({
         const out = await api.planScenes(comicId, startOver)
         comics.applyScenes(comicId, out.scenes)
         useFieldErrors.getState().clearPrefix('scenes.')
-        const note = { kind, fallback: out.fallback, label: out.label, kept: 0, skipped: out.skipped }
+        const note = { kind, fallback: out.fallback, label: out.label, kept: 0, skipped: out.skipped, leftOut: out.left_out_places }
         set((s) => ({ notes: { ...s.notes, [comicId]: note } }))
       } else {
         const out = await api.planPanels(comicId, startOver)
         comics.applyPanels(comicId, out.panels)
         useFieldErrors.getState().clearPrefix('bubbles.')
-        const note = { kind, fallback: out.fallback, label: out.label, kept: out.kept, skipped: [] }
+        const note = { kind, fallback: out.fallback, label: out.label, kept: out.kept, skipped: [], leftOut: out.left_out_places }
         set((s) => ({ notes: { ...s.notes, [comicId]: note } }))
       }
       return 'ok'
@@ -68,6 +71,11 @@ export const useStudioStore = create<StudioState>()((set, get) => ({
         if (!(error.field?.startsWith('scenes.') && showOnField(error))) {
           set((s) => ({ stepMessage: { ...s.stepMessage, [comicId]: error.message } }))
         }
+        return 'error'
+      }
+      // A block on a character's or a place's words: there's no field for it on this page.
+      if (error instanceof ApiError && error.field && !shownInStudio(error.field)) {
+        set((s) => ({ stepMessage: { ...s.stepMessage, [comicId]: error.message } }))
         return 'error'
       }
       if (!showOnField(error)) toast.error(error)
@@ -83,7 +91,8 @@ export const useStudioStore = create<StudioState>()((set, get) => ({
     try {
       set({ buddy: await api.askBuddy({ action, text, comic_id: comicId }) })
     } catch (error) {
-      if (!showOnField(error)) toast.error(error)
+      const onPage = error instanceof ApiError && !!error.field && shownInStudio(error.field)
+      if (!(onPage && showOnField(error))) toast.error(error)
     } finally {
       set({ buddyBusy: null })
     }

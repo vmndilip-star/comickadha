@@ -352,6 +352,11 @@ export interface paths {
         /**
          * Lock Background
          * @description Checks the description is kid-safe, then paints the reference image as an SSE-tracked job.
+         *
+         *     The mock paints on this machine, so its words get the local checks only (decision 31: an
+         *     outage mustn't block every Lock). A real image model (IMAGE_PROVIDER=muse) gets the words, so
+         *     they must also pass the classifier first: an outage sends nothing (503 not_checked, the place
+         *     stays a draft), and the job checks the picture before anyone sees it.
          */
         post: operations["lock_background_api_backgrounds__background_id__lock_post"];
         delete?: never;
@@ -1511,6 +1516,8 @@ export interface components {
             panels: components["schemas"]["PanelRead"][];
             /** Kept */
             kept: number;
+            /** Left Out Places */
+            left_out_places: string[];
             /**
              * Source
              * @enum {string}
@@ -1588,6 +1595,8 @@ export interface components {
             scenes: components["schemas"]["SceneRead"][];
             /** Skipped */
             skipped: string[];
+            /** Left Out Places */
+            left_out_places: string[];
             /**
              * Source
              * @enum {string}
@@ -2963,6 +2972,15 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

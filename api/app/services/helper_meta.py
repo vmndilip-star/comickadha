@@ -11,6 +11,7 @@ from app.avatar.catalog import Catalog, load_catalog
 from app.avatar.spec import palette
 from app.prompts import render
 from app.providers.llm import LLMProvider
+from app.services.ai_limits import LIMITS
 from app.services.helper_offline import TRAITS
 
 Raw = dict[str, Any]
@@ -139,6 +140,11 @@ def current(spec: dict[str, Any], cat: Catalog | None = None) -> str:
     )
 
 
+def _limit(call: str) -> dict[str, Any]:
+    limit = LIMITS[call]
+    return {"max_tokens": limit.max_tokens, "timeout": limit.timeout}
+
+
 def _system() -> str:
     return render("builder_helper", catalog=catalog_brief())
 
@@ -150,7 +156,11 @@ def describe(llm: LLMProvider, text: str, spec: dict[str, Any]) -> Raw:
         "Update the character to match the description."
     )
     return llm.complete_json(
-        _system(), prompt, suggestion_schema(), schema_name="avatar_suggestion"
+        _system(),
+        prompt,
+        suggestion_schema(),
+        schema_name="avatar_suggestion",
+        **_limit("describe"),
     )
 
 
@@ -162,7 +172,11 @@ def surprise(llm: LLMProvider, body_type: str | None, spec: dict[str, Any]) -> R
         f"ignoring the current look. {keep} Make the colours and outfit go well together."
     )
     return llm.complete_json(
-        _system(), prompt, suggestion_schema(), schema_name="avatar_suggestion"
+        _system(),
+        prompt,
+        suggestion_schema(),
+        schema_name="avatar_suggestion",
+        **_limit("surprise"),
     )
 
 
@@ -172,7 +186,9 @@ def ideas(llm: LLMProvider, spec: dict[str, Any], name: str) -> Raw:
         "Suggest three new names, up to three personality traits and a catchphrase that suit "
         "this character's look. Reply with one short sentence."
     )
-    return llm.complete_json(_system(), prompt, ideas_schema(), schema_name="character_ideas")
+    return llm.complete_json(
+        _system(), prompt, ideas_schema(), schema_name="character_ideas", **_limit("ideas")
+    )
 
 
 def from_drawing(llm: LLMProvider, png: bytes, spec: dict[str, Any]) -> Raw:
@@ -189,6 +205,7 @@ def from_drawing(llm: LLMProvider, png: bytes, spec: dict[str, Any]) -> Raw:
         suggestion_schema(drawing=True),
         schema_name="drawing_suggestion",
         image_png=png,
+        **_limit("from_drawing"),
     )
 
 
@@ -284,7 +301,5 @@ def create(
         "\n".join(lines),
         create_schema(),
         schema_name="character_create",
-        # This model thinks before answering: a design took 2,000-2,500 tokens and ~15 s.
-        max_tokens=6000,
-        timeout=60,
+        **_limit("create"),
     )

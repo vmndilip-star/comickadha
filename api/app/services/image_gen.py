@@ -1,4 +1,10 @@
-"""Place (background) images: one locked reference image per place, at the panel aspect ratio."""
+"""Place (background) images: one locked reference image per place, at the panel aspect ratio.
+
+A picture from a real image model (anything but the mock) goes through the image check before it
+is saved or announced (Phase 6a). A blocked picture gets one more try (told "no signs, letters or
+logos" when the block was for writing); a checker outage fails the job at once. Nothing is saved
+unless a picture passes.
+"""
 
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -11,9 +17,11 @@ from sqlmodel import Session
 from app.models import Background
 from app.models.base import utcnow
 from app.prompts import render
-from app.providers.image import ImageProvider
-from app.services import imaging
+from app.providers.image import ImageError, ImageProvider
+from app.providers.llm import LLMProvider
+from app.services import imaging, safety
 from app.services.jobs import JobContext, JobFailed
+from app.services.safety import Verdict
 from app.services.storage import Storage
 
 PLACE_SIZE = (1024, 768)  # 4:3, the same shape as a comic panel
@@ -21,6 +29,19 @@ THUMB_SIDE = 320
 ATTEMPTS = 2
 
 Emit = Callable[[str, dict[str, Any], float | None], None]
+Check = Callable[[bytes], Verdict]
+
+# Places have a "Paint it again" button (and Delete) on their tile.
+CANT_PAINT = "We couldn't paint {name}. Tap Paint it again!"
+CHECKER_RESTING = (
+    "Our picture checker is taking a break, so {name} isn't painted yet. "
+    "Tap Paint it again in a minute!"
+)
+
+
+def needs_image_check(provider: ImageProvider) -> bool:
+    """Pictures from any real image model are checked; the mock's are drawn on this machine."""
+    return provider.name != "mock"
 
 
 @dataclass(frozen=True)
@@ -53,8 +74,13 @@ def _valid_place(png: bytes) -> Image.Image | None:
 
 
 def build_place(
-    spec: PlaceSpec, provider: ImageProvider, storage: Storage, emit: Emit
+    spec: PlaceSpec,
+    provider: ImageProvider,
+    storage: Storage,
+    emit: Emit,
+    check: Check | None = None,
 ) -> dict[str, str]:
+    """Paints, validates and (with `check`) checks the picture, then saves it. Blocking."""
     prompt = render(
         "background",
         name=spec.name,
@@ -63,20 +89,36 @@ def build_place(
         tint=spec.tint,
     )
     emit("progress", {"stage": "painting"}, 0.1)
+    png: bytes | None = None
     for attempt in range(ATTEMPTS):
-        image = _valid_place(
-            provider.generate(prompt, PLACE_SIZE, spec.seed + attempt * 7919, None)
-        )
-        if image is not None:
+        try:
+            image = _valid_place(
+                provider.generate(prompt, PLACE_SIZE, spec.seed + attempt * 7919, None)
+            )
+        except ImageError:
+            image = None
+        if image is None:
+            continue
+        candidate = imaging.to_png(image)
+        if check is None:
+            png = candidate
             break
-    else:
-        raise JobFailed(f"We couldn't paint {spec.name}. Tap Lock to try again!")
+        emit("progress", {"stage": "checking"}, 0.6)
+        verdict = check(candidate)
+        if "unavailable" in verdict.categories:
+            raise JobFailed(CHECKER_RESTING.format(name=spec.name))
+        if verdict.allowed:
+            png = candidate
+            break
+        if "text" in verdict.categories:
+            prompt = prompt + "\n\n" + render("background_no_text")
+    if png is None:
+        raise JobFailed(CANT_PAINT.format(name=spec.name))
 
     prefix = place_prefix(spec.id, spec.version)
-    image_key = storage.save(f"{prefix}/reference.png", imaging.to_png(image))
-    thumb_key = storage.save(
-        f"{prefix}/thumb.png", imaging.to_png(imaging.thumbnail(image, THUMB_SIDE))
-    )
+    image_key = storage.save(f"{prefix}/reference.png", png)
+    thumb = imaging.thumbnail(imaging.load(png), THUMB_SIDE)
+    thumb_key = storage.save(f"{prefix}/thumb.png", imaging.to_png(thumb))
     emit(
         "cell_ready",
         {"sheet": "place", "cell": "reference", "row": 0, "col": 0, "url": storage.url(thumb_key)},
@@ -86,10 +128,28 @@ def build_place(
 
 
 async def run_place_job(
-    ctx: JobContext, *, spec: PlaceSpec, engine: Engine, provider: ImageProvider, storage: Storage
+    ctx: JobContext,
+    *,
+    spec: PlaceSpec,
+    engine: Engine,
+    provider: ImageProvider,
+    storage: Storage,
+    llm: LLMProvider | None = None,
+    user_id: str = "",
 ) -> dict[str, Any]:
     """Job work for POST /backgrounds/{id}/lock."""
-    keys = await ctx.run(build_place, spec, provider, storage, ctx.emit_threadsafe)
+    check: Check | None = None
+    if needs_image_check(provider):
+        if llm is None:  # startup refuses this; fail closed anyway
+            raise JobFailed(CHECKER_RESTING.format(name=spec.name))
+        checker = llm
+
+        def check(png: bytes) -> Verdict:
+            with Session(engine) as session:
+                target = f"background:{spec.id}:v{spec.version}"
+                return safety.check_image(session, user_id, target, png, checker)
+
+    keys = await ctx.run(build_place, spec, provider, storage, ctx.emit_threadsafe, check)
     with Session(engine) as session:
         bg = session.get(Background, spec.id)
         if bg is None:

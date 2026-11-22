@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/Button'
+import { leftOutNote } from '@/lib/studio'
 import type { PlanNote } from '@/store/studio'
 import { PlaceDialog } from './PlaceDialog'
 
@@ -74,6 +75,8 @@ export function PlanNoteBox({
   if (note.skipped.length) {
     lines.push(`${note.skipped.join(' and ')} ${note.skipped.length === 1 ? "isn't" : "aren't"} locked yet, so they sit this one out.`)
   }
+  const leftOut = leftOutNote(note.leftOut)
+  if (leftOut) lines.push(leftOut)
   if (note.kept) {
     const one = note.kept === 1
     lines.push(`We kept ${note.kept} panel${one ? '' : 's'} you changed or that ${one ? 'is' : 'are'} already drawn.`)

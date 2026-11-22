@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { PanelCharacter, Scene } from '@/types'
-import { moveCharacter, moveScene, wordCount } from './studio'
+import { leftOutNote, moveCharacter, moveScene, shownInStudio, wordCount } from './studio'
 
 const scene = (id: string, idx: number): Scene => ({ id, idx, background_id: 'b', character_ids: [], summary: id })
 const pc = (id: string, position: PanelCharacter['position']): PanelCharacter => ({
@@ -41,4 +41,25 @@ describe('moveCharacter', () => {
 it('counts words the way the planner does', () => {
   expect(wordCount('  Look what I   found! ')).toBe(4)
   expect(wordCount('')).toBe(0)
+})
+
+describe('shownInStudio', () => {
+  it('knows which safety blocks have a field on the page', () => {
+    for (const field of ['title', 'synopsis', 'buddy', 'cast', 'scenes.s1.summary', 'bubbles.b1.text']) {
+      expect(shownInStudio(field)).toBe(true)
+    }
+    for (const field of ['cast.c1.catchphrase', 'cast.c1.name', 'places.p1.description', 'places.p1.name']) {
+      expect(shownInStudio(field)).toBe(false)
+    }
+  })
+})
+
+describe('leftOutNote', () => {
+  it('names the places and says to delete them and describe new ones', () => {
+    expect(leftOutNote([])).toBeNull()
+    expect(leftOutNote(["Grandma's kitchen"])).toBe(
+      "We left out “Grandma's kitchen”: our safety helper didn't like its words. Delete it and describe a new place.",
+    )
+    expect(leftOutNote(['Cave', 'Lair'])).toContain("“Cave” and “Lair”: our safety helper didn't like their words. Delete them")
+  })
 })

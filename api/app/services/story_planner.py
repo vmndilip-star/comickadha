@@ -33,6 +33,8 @@ from app.schemas.studio import (
     ScenePlan,
 )
 from app.services.ai_guard import Guard
+from app.services.ai_limits import LIMITS
+from app.services.kid_fields import KidFields
 
 T = TypeVar("T")
 
@@ -428,8 +430,22 @@ def panels_schema(ctx: StoryContext) -> dict[str, Any]:
     return _object({"panels": {"type": "array", "items": panel}})
 
 
+def planner_fields(ctx: StoryContext) -> KidFields:
+    """Every kid-written field story_lines() and ask_panels() put in the prompt, for one classifier
+    call before Meta sees any of it (services/kid_fields.py)."""
+    fields = KidFields()
+    fields.add_title_and_story(ctx.title, ctx.synopsis)
+    for i, s in enumerate(ctx.scenes, start=1):
+        fields.add(f"scenes.{s.id}.summary", s.summary, f"the summary of scene {i}")
+    for i, c in enumerate(ctx.cast):
+        fields.add_character(i, c.id, c.name, c.catchphrase)
+    for i, p in enumerate(ctx.places):
+        fields.add_place(i, p.id, p.name, p.description)
+    return fields
+
+
 def story_lines(ctx: StoryContext) -> list[str]:
-    """The checked story facts for the prompt (titles and synopses were safety-checked)."""
+    """The story facts for the prompt; every kid-written one is in planner_fields()."""
     lines = [f"Title: {ctx.title or '(no title yet)'}", f"Mood: {ctx.mood}"]
     lines.append(f"Synopsis: {ctx.synopsis}")
     lines.append("Cast:")
@@ -456,7 +472,8 @@ def ask_scenes(llm: LLMProvider, ctx: StoryContext, problems: list[str]) -> dict
         prompt,
         scenes_schema(ctx),
         schema_name="scene_plan",
-        max_tokens=1200,
+        max_tokens=LIMITS["plan_scenes"].max_tokens,
+        timeout=LIMITS["plan_scenes"].timeout,
     )
 
 
@@ -475,7 +492,8 @@ def ask_panels(llm: LLMProvider, ctx: StoryContext, problems: list[str]) -> dict
         prompt,
         panels_schema(ctx),
         schema_name="panel_plan",
-        max_tokens=3000,
+        max_tokens=LIMITS["plan_panels"].max_tokens,
+        timeout=LIMITS["plan_panels"].timeout,
     )
 
 

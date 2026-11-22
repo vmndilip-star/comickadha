@@ -16,10 +16,11 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # "meta" uses Meta's model API for the builder helper and safety; "mock" works offline.
+    # "meta" uses Meta's model API for every AI helper and the safety checks; "mock" works offline.
     llm_provider: Literal["mock", "meta"] = "mock"
-    # Real image providers are added in Phase 6.
-    image_provider: Literal["mock"] = "mock"
+    # "muse" paints places with Meta's Muse Image model (needs LLM_PROVIDER=meta, so the words and
+    # the pictures can be checked); "mock" paints placeholder art offline.
+    image_provider: Literal["mock", "muse"] = "mock"
     # "builder" draws character sheets from the avatar parts; "image" asks the image provider.
     sheet_provider: Literal["builder", "image"] = "builder"
     # Pause per builder cell, so the sheet visibly fills in (22 cells, about 2 seconds).
@@ -36,6 +37,10 @@ class Settings(BaseSettings):
     meta_vision_model: str = ""
     meta_base_url: str = "https://api.meta.ai/v1"
     meta_timeout_seconds: float = 20.0
+    # IMAGE_PROVIDER=muse: the image model (from .env, e.g. muse-image-1.0) and its own timeout
+    # (a picture took 10-19 s in Phase 6a; decision 82).
+    meta_image_model: str = ""
+    meta_image_timeout_seconds: float = 60.0
 
     # Holds the SQLite file and the media/ folder.
     storage_dir: Path = API_DIR / "storage"

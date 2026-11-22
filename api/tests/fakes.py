@@ -17,10 +17,12 @@ from PIL import Image, ImageDraw
 from app.avatar.catalog import load_catalog
 from app.avatar.spec import palette
 from app.providers.meta import MetaLLMProvider
+from app.providers.muse_image import MuseImageProvider
 from tests.conftest import app_state
 
 TEXT_MODEL = "muse-test"
 VISION_MODEL = "muse-vision-test"
+IMAGE_MODEL = "muse-image-test"
 
 Reply = dict[str, Any] | str | Exception | Callable[[dict[str, Any]], Any]
 
@@ -55,7 +57,7 @@ class FakeMeta:
     def _create(self, **kwargs: Any) -> Any:
         self.calls.append(kwargs)
         name = schema_of(kwargs)["name"]
-        reply = self.replies.get(name, all_safe if name == "safety_verdicts" else None)
+        reply = self.replies.get(name, DEFAULTS.get(name))
         if isinstance(reply, list):
             reply = reply.pop(0) if len(reply) > 1 else reply[0]
         if reply is None:
@@ -85,6 +87,100 @@ def user_text(call: dict[str, Any]) -> str:
 def all_safe(call: dict[str, Any]) -> dict[str, Any]:
     count = len(re.findall(r"^\d+\. ", user_text(call), re.MULTILINE))
     return {"verdicts": [{"safe": True, "categories": []} for _ in range(count)]}
+
+
+SAFE_PICTURE = {
+    "safe_for_kids": True,
+    "shows_real_person": False,
+    "has_text_or_logos": False,
+    "is_scary": False,
+}
+# The safety checks say "safe" unless a test says otherwise.
+DEFAULTS: dict[str, Reply] = {"safety_verdicts": all_safe, "image_safety": SAFE_PICTURE}
+
+
+def picture(**flags: bool) -> dict[str, bool]:
+    """An image-check reply: safe, except the flags given."""
+    return SAFE_PICTURE | flags
+
+
+def scene_png(
+    size: tuple[int, int] = (1024, 768), colour: tuple[int, int, int] = (120, 200, 255)
+) -> bytes:
+    """A full scene (no magenta), as an image model would paint a place."""
+    image = Image.new("RGB", size, colour)
+    ImageDraw.Draw(image).ellipse(
+        (size[0] // 4, size[1] // 4, size[0] // 2, size[1] // 2), fill="yellow"
+    )
+    buf = io.BytesIO()
+    image.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+ImageReply = bytes | Exception
+
+
+class FakeImages:
+    """Stands in for openai.OpenAI for Muse Image: `client.images.generate(**kwargs)`, and
+    `client.post("/images/edits", body=..., files=...)` for edits. Each call uses the next reply
+    (the last one repeats): bytes come back as b64_json, an exception is raised. Edits record the
+    multipart field names and each reference's bytes as read at call time (a used-up file object
+    would read as b"")."""
+
+    def __init__(self, *replies: ImageReply) -> None:
+        self.replies: list[ImageReply] = list(replies) or [scene_png()]
+        self.calls: list[dict[str, Any]] = []
+        self.images = SimpleNamespace(generate=self._generate)
+
+    def _generate(self, **kwargs: Any) -> Any:
+        return self._reply({"kind": "generate", **kwargs})
+
+    def post(self, path: str, *, body: dict[str, Any], files: list[Any], **kwargs: Any) -> Any:
+        assert path == "/images/edits"
+        call = {"kind": "edit", **body, "options": kwargs.get("options", {})}
+        call["fields"] = [field for field, _ in files]
+        call["filenames"] = [file[0] for _, file in files]
+        call["references"] = [file[1].read() for _, file in files]
+        return self._reply(call)
+
+    def _reply(self, call: dict[str, Any]) -> Any:
+        self.calls.append(call)
+        reply = self.replies.pop(0) if len(self.replies) > 1 else self.replies[0]
+        if isinstance(reply, Exception):
+            raise reply
+        item = SimpleNamespace(b64_json=base64.b64encode(reply).decode("ascii"), url=None)
+        return SimpleNamespace(data=[item])
+
+
+def muse(fake: FakeImages) -> MuseImageProvider:
+    return MuseImageProvider(
+        api_key="test-key", model=IMAGE_MODEL, base_url="http://meta.invalid/v1", client=fake
+    )
+
+
+def use_muse(client: TestClient, fake: FakeImages | None = None) -> FakeImages:
+    """Switches the running app to IMAGE_PROVIDER=muse, talking to a fake client."""
+    fake = fake or FakeImages()
+    app_state(client).image_provider = muse(fake)
+    return fake
+
+
+def flag(match: str, *categories: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
+    """A classifier reply that marks unsafe each numbered text containing `match` (and every other
+    text safe), however many texts the call checks."""
+
+    def reply(call: dict[str, Any]) -> dict[str, Any]:
+        texts = re.findall(r"^\d+\. (.*)$", user_text(call), re.MULTILINE)
+        return {
+            "verdicts": [
+                {"safe": False, "categories": list(categories) or ["other"]}
+                if match in text
+                else {"safe": True, "categories": []}
+                for text in texts
+            ]
+        }
+
+    return reply
 
 
 def use_meta(client: TestClient, fake: FakeMeta | None = None) -> FakeMeta:

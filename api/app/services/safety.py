@@ -18,6 +18,7 @@ from sqlmodel import Session
 from app.models import ModerationLog
 from app.prompts import render
 from app.providers.llm import LLMError, LLMProvider
+from app.services.ai_limits import LIMITS
 
 log = logging.getLogger(__name__)
 
@@ -144,8 +145,6 @@ CLASSIFIER_CATEGORIES = [
     "other",
 ]
 KID_MESSAGES = {"personal_info": SECRET_DETAILS, "real_person": REAL_PERSON}
-# Room for a model that thinks before answering (300 was used up before any verdict).
-CLASSIFIER_MAX_TOKENS = 1500
 
 
 class SafetyUnavailable(Exception):
@@ -206,7 +205,8 @@ def classify_each(llm: LLMProvider, fields: dict[str, str]) -> dict[str, Verdict
             prompt,
             schema,
             schema_name="safety_verdicts",
-            max_tokens=CLASSIFIER_MAX_TOKENS,
+            max_tokens=LIMITS["classifier"].max_tokens,
+            timeout=LIMITS["classifier"].timeout,
         )
         verdicts = reply["verdicts"]
         if not isinstance(verdicts, list) or len(verdicts) != len(names):
@@ -288,15 +288,70 @@ def check_story(
 
 PNG_SIGNATURE = bytes.fromhex("89504e470d0a1a0a")
 IMAGE_UNCHECKED = "That picture couldn't be checked. Try painting the place again!"
+IMAGE_FLAGS = ("safe_for_kids", "shows_real_person", "has_text_or_logos", "is_scary")
+IMAGE_SCHEMA: dict[str, object] = {
+    "type": "object",
+    "properties": {flag: {"type": "boolean"} for flag in IMAGE_FLAGS},
+    "required": list(IMAGE_FLAGS),
+    "additionalProperties": False,
+}
 
 
-def check_image(session: Session, user_id: str, target: str, png: bytes | None) -> Verdict:
-    """Every place image that goes into a panel. Places are drawn by the image provider from words
-    that already passed the checks, so the mock allows them; a real image classifier plugs in
-    here (Phase 6). Logged like text verdicts."""
-    if png is None or png.startswith(PNG_SIGNATURE):
+def classify_image(llm: LLMProvider, png: bytes) -> Verdict:
+    """One vision call (META_VISION_MODEL). A block lists why: "unsafe", "real_person", "text",
+    "scary". Raises SafetyUnavailable if the model doesn't answer properly."""
+    limit = LIMITS["image_check"]
+    try:
+        reply = llm.complete_json(
+            render("image_safety"),
+            "Check this picture.",
+            IMAGE_SCHEMA,
+            schema_name="image_safety",
+            image_png=png,
+            max_tokens=limit.max_tokens,
+            timeout=limit.timeout,
+        )
+        flags = {flag: reply[flag] for flag in IMAGE_FLAGS}
+    except (LLMError, KeyError, TypeError) as error:
+        log.warning("image check unavailable: %s", type(error).__name__)
+        raise SafetyUnavailable() from error
+    if not all(isinstance(value, bool) for value in flags.values()):
+        raise SafetyUnavailable()
+    # Each flag must be exactly the safe answer, so anything unexpected blocks.
+    categories = [
+        name
+        for name, bad in (
+            ("unsafe", not flags["safe_for_kids"]),
+            ("real_person", flags["shows_real_person"]),
+            ("text", flags["has_text_or_logos"]),
+            ("scary", flags["is_scary"]),
+        )
+        if bad
+    ]
+    return Verdict(allowed=not categories, categories=categories)
+
+
+def check_image(
+    session: Session,
+    user_id: str,
+    target: str,
+    png: bytes | None,
+    llm: LLMProvider | None = None,
+) -> Verdict:
+    """A picture before a kid sees it, logged like text verdicts (kind "image").
+
+    With an LLM: one vision call that fails closed (a block or an outage is not allowed; an outage
+    is the category "unavailable"). Without one: only "is it a PNG?". Pictures from the mock image
+    provider are drawn on this machine from words that already passed the checks, so callers pass
+    an LLM only for pictures from a real image model (Phase 6a)."""
+    if png is not None and not png.startswith(PNG_SIGNATURE):
+        verdict = Verdict(False, None, ["not_png"], IMAGE_UNCHECKED)
+    elif png is None or llm is None:
         verdict = Verdict(allowed=True)
     else:
-        verdict = Verdict(False, None, ["not_png"], IMAGE_UNCHECKED)
+        try:
+            verdict = classify_image(llm, png)
+        except SafetyUnavailable:
+            verdict = Verdict(False, None, ["unavailable"], IMAGE_UNCHECKED)
     log_verdict(session, user_id, target, verdict, "image")
     return verdict

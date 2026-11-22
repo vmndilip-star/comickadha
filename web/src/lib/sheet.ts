@@ -21,7 +21,9 @@ export function applyOffset(box: Box, offset: HeadOffset): Box {
 /**
  * Where to draw an expression face over a pose so its head lands on the pose's head box.
  * Returns the face image's box in body-cell fractions, or null if the pose hides the face.
- * The Phase 5 compositor uses the same maths.
+ * Only the Lab uses it, and only for image-model sheets (SheetStage): builder sheets already draw
+ * each pose with its own face, and the compositor never pastes faces (it draws every panel
+ * character from the pinned avatar spec).
  */
 export function faceOverlay(manifest: CharacterManifest, pose: Pose): Box | null {
   const head = manifest.body_sheet.heads[pose]

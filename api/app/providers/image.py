@@ -3,6 +3,11 @@
 from typing import Protocol, runtime_checkable
 
 
+class ImageError(Exception):
+    """The image model couldn't paint: network down, quota used up, a refusal, or a picture we
+    can't read. Jobs treat it like a picture that came out wrong (a failed attempt)."""
+
+
 class ImageProvider(Protocol):
     name: str
 

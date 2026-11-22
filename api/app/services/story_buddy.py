@@ -13,7 +13,7 @@ Home page are hand-written here.
 import random
 import re
 import zlib
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from sqlmodel import Session
@@ -22,6 +22,8 @@ from app.prompts import render
 from app.providers.llm import LLMProvider
 from app.schemas.studio import BuddyAction, BuddyReply, Spark, SpellingChange
 from app.services.ai_guard import RESTING, Guard, InvalidReply, label
+from app.services.ai_limits import LIMITS
+from app.services.kid_fields import KidFields, check_before_meta
 
 Raw = dict[str, Any]
 
@@ -90,6 +92,9 @@ class BuddyContext:
     mood: str
     cast_names: list[str]
     place_names: list[str]
+    # Ids in the same order as the names (for field names in safety blocks).
+    cast_ids: list[str] = field(default_factory=list)
+    place_ids: list[str] = field(default_factory=list)
 
 
 def spark(after: int | None = None) -> Spark:
@@ -243,6 +248,19 @@ def _texts(raw: Raw) -> dict[str, str]:
     }
 
 
+def buddy_fields(text: str, ctx: BuddyContext) -> KidFields:
+    """Every kid-written field _prompt() puts in the prompt (the synopsis isn't in it), for one
+    classifier call before Meta sees any of it (services/kid_fields.py)."""
+    fields = KidFields()
+    fields.add("buddy", text, "your words")
+    fields.add_title_and_story(ctx.title)
+    for i, name in enumerate(ctx.cast_names):
+        fields.add_character(i, ctx.cast_ids[i] if i < len(ctx.cast_ids) else str(i), name)
+    for i, name in enumerate(ctx.place_names):
+        fields.add_place(i, ctx.place_ids[i] if i < len(ctx.place_ids) else str(i), name)
+    return fields
+
+
 def _prompt(text: str, ctx: BuddyContext) -> str:
     return "\n".join(
         [
@@ -261,11 +279,23 @@ class Buddy:
 
     def answer(self, action: BuddyAction, text: str, ctx: BuddyContext) -> BuddyReply:
         text = text.strip()
-        if text:
-            self.guard.check_input(f"buddy:{action}", {"buddy": text}, field_name="buddy")
         if action == "spelling" and not text:
             return self._reply(
                 action, {"corrected": "", "changes": [], "reply": NOTHING}, "mock", False
+            )
+        # The kid's words and every story word the prompt carries, in one classifier call. The
+        # title may still be "pending" from autosave (decision 55): it's checked here, before Meta.
+        guard = self.guard
+        checked = check_before_meta(
+            guard.session, guard.user_id, f"buddy:{action}", buddy_fields(text, ctx), guard.llm
+        )
+        guard.offline_only = checked.pending
+        if checked.left_out:  # places whose words didn't pass stay out of the prompt (decision 89)
+            keep = [i for i, pid in enumerate(ctx.place_ids) if pid not in checked.left_out]
+            ctx = replace(
+                ctx,
+                place_names=[ctx.place_names[i] for i in keep],
+                place_ids=[ctx.place_ids[i] for i in keep],
             )
 
         def offline() -> Raw:
@@ -281,7 +311,8 @@ class Buddy:
                 _prompt(text, ctx),
                 SCHEMAS[action],
                 schema_name=f"buddy_{action}",
-                max_tokens=600,
+                max_tokens=LIMITS[f"buddy_{action}"].max_tokens,
+                timeout=LIMITS[f"buddy_{action}"].timeout,
             ),
             offline,
             check=_check(action, text),

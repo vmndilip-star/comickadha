@@ -1,10 +1,11 @@
 """Story Studio: plan scenes (step 1->2), plan panels (step 2->3), the Story Buddy and sparks.
 
-The planner reads the comic as saved (the web app flushes its autosave first). Story text is
-fully safety-checked (classifier included) before anything reaches Meta, and a block names the
-exact field. If the classifier can't answer, text that passed the local checks is planned by the
-offline planner only and marked "not yet AI-checked" (decision 55). Only locked characters and
-places go into a plan.
+The planner reads the comic as saved (the web app flushes its autosave first). Every kid-written
+word a Meta prompt carries (the story, scene summaries, cast names and catchphrases, place names
+and descriptions) is fully safety-checked (classifier included) before anything reaches Meta, and
+a block names the exact field (services/kid_fields.py). If the classifier can't answer, text
+that passed the local checks is planned by the offline planner only and marked "not yet
+AI-checked" (decision 55). Only locked characters and places go into a plan.
 """
 
 from fastapi import APIRouter, Query
@@ -27,9 +28,10 @@ from app.schemas.studio import (
     ScenesPlanned,
     Spark,
 )
-from app.services import looks, safety, story_buddy, story_planner
+from app.services import looks, story_buddy, story_planner
 from app.services.ai_guard import Guard, label
 from app.services.bubbles import layout
+from app.services.kid_fields import Checked, KidFields, check_before_meta
 from app.services.story_planner import CastMember, Place, PlanFailed, SceneInfo, StoryContext
 
 router = APIRouter(
@@ -38,7 +40,6 @@ router = APIRouter(
     responses={**ERROR_RESPONSES, 409: {"model": ErrorBody}},
 )
 
-STORY_LABELS = {"title": "title", "synopsis": "story"}
 PLAN_FAILED = (
     "Our story helper got muddled making that plan. Your story is safe: tap Try again, "
     "or change a scene a little."
@@ -102,18 +103,34 @@ def _panels(session: Session, comic: Comic) -> list[Panel]:
 
 
 def _check_story(
-    session: Session, user: User, comic: Comic, fields: dict[str, str], llm: LLMDep
-) -> bool:
-    """The full check (local + classifier). Blocks name the field. Returns True when the words are
-    only locally checked (classifier down): then only the offline planner may use them."""
-    verdict = safety.check_story(session, user.id, f"comic:{comic.id}", fields, llm)
-    if not verdict.allowed:
-        raise ApiError(422, "unsafe", verdict.message(STORY_LABELS), verdict.field_name)
-    comic.text_check = "pending" if verdict.pending else "checked"
-    if not verdict.pending:
+    session: Session, user: User, comic: Comic, fields: KidFields, llm: LLMDep
+) -> Checked:
+    """The full check (local + classifier) of every kid-written word the planner prompt carries:
+    the story, scene summaries, cast names and catchphrases, place names and descriptions. Blocks
+    name the field; places whose words don't pass come back in `left_out` (decision 89). `pending`
+    means the words are only locally checked (classifier down): only the offline planner may use
+    them."""
+    checked = check_before_meta(session, user.id, f"comic:{comic.id}", fields, llm)
+    comic.text_check = "pending" if checked.pending else "checked"
+    if not checked.pending:
         comic.check_note = None
     session.add(comic)
-    return verdict.pending
+    return checked
+
+
+def _usable_places(places: list[Place], checked: Checked) -> list[Place]:
+    """The places a plan may use: every locked place whose words passed. None left is a 409."""
+    usable = [p for p in places if p.id not in checked.left_out]
+    if not usable:
+        names = " and ".join(f"“{name}”" for name in checked.left_out.values())
+        raise ApiError(
+            409,
+            "needs_locked",
+            f"Our safety helper didn't like the words of {names}, so your story has no place to "
+            "use. Delete it and describe a new place!",
+            "places",
+        )
+    return usable
 
 
 def _needs_locked(cast: list[CastMember], places: list[Place]) -> None:
@@ -145,9 +162,9 @@ def plan_scenes(
     _needs_locked(cast, places)
     if len(comic.synopsis.split()) < 3:
         raise invalid("Write a sentence or two about your story first!", "synopsis")
-    pending = _check_story(
-        session, user, comic, {"title": comic.title, "synopsis": comic.synopsis}, llm
-    )
+    ctx = StoryContext(comic.title, comic.synopsis, comic.mood, comic.panel_count, cast, places)
+    checked = _check_story(session, user, comic, story_planner.planner_fields(ctx), llm)
+    ctx.places = _usable_places(places, checked)  # out of the Meta and the offline plan alike
 
     existing = _scenes(session, comic)
     if any(s.edited_at for s in existing) and not body.start_over:
@@ -158,9 +175,8 @@ def plan_scenes(
             "scenes",
         )
 
-    ctx = StoryContext(comic.title, comic.synopsis, comic.mood, comic.panel_count, cast, places)
     guard = Guard(llm, session, user.id)
-    guard.offline_only = pending  # unchecked words never reach Meta
+    guard.offline_only = checked.pending  # unchecked words never reach Meta
     try:
         outcome = story_planner.plan_scenes(guard, ctx)
     except PlanFailed as failed:
@@ -170,6 +186,7 @@ def plan_scenes(
     return ScenesPlanned(
         scenes=scenes,
         skipped=skipped,
+        left_out_places=list(checked.left_out.values()),
         source="meta" if outcome.source == "meta" else "mock",
         fallback=outcome.fallback,
         label=label(outcome.source),
@@ -249,9 +266,28 @@ def plan_panels(
                 "or take them out of the scene.",
                 f"scenes.{s.id}",
             )
-    fields = {"title": comic.title, "synopsis": comic.synopsis}
-    fields |= {f"scenes.{s.id}.summary": s.summary for s in scenes}
-    pending = _check_story(session, user, comic, fields, llm)
+    ctx = StoryContext(
+        comic.title,
+        comic.synopsis,
+        comic.mood,
+        comic.panel_count,
+        cast,
+        places,
+        [SceneInfo(s.id, s.background_id, tuple(s.character_ids), s.summary) for s in scenes],
+    )
+    checked = _check_story(session, user, comic, story_planner.planner_fields(ctx), llm)
+    ctx.places = _usable_places(places, checked)
+    for i, s in enumerate(scenes, start=1):
+        if s.background_id in checked.left_out:
+            name = checked.left_out[s.background_id]
+            raise ApiError(
+                422,
+                "unsafe",
+                f"Our safety helper didn't like the words of “{name}”, so it can't go in your "
+                f"story. Pick another place for scene {i}, or delete “{name}” and describe a new "
+                "one.",
+                f"scenes.{s.id}",
+            )
 
     existing = _panels(session, comic)
     keep = (
@@ -267,27 +303,19 @@ def plan_panels(
             "panels",
         )
 
-    ctx = StoryContext(
-        comic.title,
-        comic.synopsis,
-        comic.mood,
-        comic.panel_count,
-        cast,
-        places,
-        [SceneInfo(s.id, s.background_id, tuple(s.character_ids), s.summary) for s in scenes],
-    )
     guard = Guard(llm, session, user.id)
-    guard.offline_only = pending  # unchecked words never reach Meta
+    guard.offline_only = checked.pending  # unchecked words never reach Meta
     try:
         outcome = story_planner.plan_panels(guard, ctx)
     except PlanFailed as failed:
         raise ApiError(422, "plan_failed", PLAN_FAILED) from failed
 
-    check = "pending" if pending else "checked"
+    check = "pending" if checked.pending else "checked"
     panels = _save_panels(session, comic, existing, keep, outcome.plan, ctx, scenes, check)
     return PanelsPlanned(
         panels=[panel_read(p, storage) for p in panels],
         kept=len(keep),
+        left_out_places=list(checked.left_out.values()),
         source="meta" if outcome.source == "meta" else "mock",
         fallback=outcome.fallback,
         label=label(outcome.source),
@@ -358,15 +386,20 @@ def buddy(body: BuddyRequest, session: SessionDep, user: UserDep, llm: LLMDep) -
     """Questions that help the kid think, a spelling check, or scene title ideas."""
     comic = get_comic(session, user, body.comic_id)
     cast, _ = _cast(session, comic)
-    names = [c.name for c in cast] or [
-        c.name for c in session.exec(select(Character).where(col(Character.id).in_(comic.cast_ids)))
+    people = [(c.id, c.name) for c in cast] or [
+        (c.id, c.name)
+        for c in session.exec(select(Character).where(col(Character.id).in_(comic.cast_ids)))
     ]
+    places = _places(session, user)
+    # Story Buddy checks every word of this (and the kid's text) before Meta sees it.
     ctx = story_buddy.BuddyContext(
         title=comic.title,
         synopsis=comic.synopsis,
         mood=comic.mood,
-        cast_names=names,
-        place_names=[p.name for p in _places(session, user)],
+        cast_names=[name for _, name in people],
+        place_names=[p.name for p in places],
+        cast_ids=[cid for cid, _ in people],
+        place_ids=[p.id for p in places],
     )
     return story_buddy.Buddy(llm, session, user.id).answer(body.action, body.text, ctx)
 

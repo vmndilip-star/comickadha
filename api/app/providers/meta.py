@@ -2,14 +2,16 @@
 
 Settings: META_API_KEY, META_MODEL, META_VISION_MODEL (defaults to META_MODEL) and META_BASE_URL.
 Model names come from .env, never from code. "-contributor" models are refused at startup because
-requests to them may be used for training. Calls time out after META_TIMEOUT_SECONDS and are
-retried once with backoff on 429 and 5xx (the openai client does both). Token counts are logged
-per request so the quota can be watched; prompts, images and replies never are.
+requests to them may be used for training. Each call site passes its own max_tokens and timeout
+(services/ai_limits.py; META_TIMEOUT_SECONDS is the fallback), and the openai client retries once
+with backoff on 429 and 5xx. Each request logs its call name, token counts and seconds so the
+quota can be watched; prompts, images and replies never are.
 """
 
 import base64
 import json
 import logging
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -21,9 +23,15 @@ from app.providers.llm import LLMError
 log = logging.getLogger(__name__)
 
 
-def check_model_name(model: str, setting: str) -> None:
+def check_model_name(
+    model: str,
+    setting: str,
+    *,
+    needed_by: str = "LLM_PROVIDER=meta",
+    example: str = "muse-spark-1.3",
+) -> None:
     if not model:
-        raise ValueError(f"LLM_PROVIDER=meta needs {setting} in .env (for example muse-spark-1.3).")
+        raise ValueError(f"{needed_by} needs {setting} in .env (for example {example}).")
     if model.endswith("-contributor"):
         raise ValueError(
             f"{setting}={model} is a contributor model: requests to it may be used for training. "
@@ -85,6 +93,7 @@ class MetaLLMProvider:
             system,
             content,
             max_tokens,
+            schema_name,
             response_format={
                 "type": "json_schema",
                 "json_schema": {"name": schema_name, "schema": schema, "strict": True},
@@ -99,7 +108,16 @@ class MetaLLMProvider:
             raise LLMError("The model's reply wasn't a JSON object.")
         return data
 
-    def _chat(self, model: str, system: str, content: Any, max_tokens: int, **extra: Any) -> str:
+    def _chat(
+        self,
+        model: str,
+        system: str,
+        content: Any,
+        max_tokens: int,
+        call: str = "chat",
+        **extra: Any,
+    ) -> str:
+        started = time.monotonic()
         try:
             response = self.client.chat.completions.create(
                 model=model,
@@ -117,18 +135,22 @@ class MetaLLMProvider:
             raise LLMError("Meta's API didn't answer.") from error
         usage = getattr(response, "usage", None)
         log.info(
-            "meta usage model=%s prompt_tokens=%s completion_tokens=%s total_tokens=%s",
+            "meta usage call=%s model=%s prompt_tokens=%s completion_tokens=%s total_tokens=%s "
+            "max_tokens=%s seconds=%.1f",
+            call,
             model,
             getattr(usage, "prompt_tokens", "?"),
             getattr(usage, "completion_tokens", "?"),
             getattr(usage, "total_tokens", "?"),
+            max_tokens,
+            time.monotonic() - started,
         )
         choice = response.choices[0] if response.choices else None
         text = choice.message.content if choice and choice.message else None
         # A model that thinks before it answers can spend the whole budget: nothing, or half a
         # reply (unusable JSON), comes back.
         if getattr(choice, "finish_reason", None) == "length":
-            log.warning("meta reply cut off at max_tokens=%s", max_tokens)
+            log.warning("meta reply cut off call=%s max_tokens=%s", call, max_tokens)
             self._record(False, "OutOfTokens")
             raise LLMError("Meta's reply was cut off.")
         if not text:

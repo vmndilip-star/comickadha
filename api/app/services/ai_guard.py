@@ -7,8 +7,12 @@
   and (with Meta) the classifier. Unsafe words are a 422 "unsafe" with a message for that field.
 - If the classifier can't check the kid's words, the offline helper answers (nothing unchecked is
   ever sent to Meta).
-- A malformed reply is retried once; an outage, an unsafe reply or one the classifier can't check
-  falls back to the offline helper, labelled as such.
+- A reply that is valid JSON but fails the caller's check (or raises KeyError, TypeError or
+  ValueError while being read) is asked for once more. Everything else falls back to the offline
+  helper, labelled as such, with no retry: an outage, and also a reply that isn't JSON or was cut
+  off at max_tokens (the provider raises LLMError for both, which counts as an outage), an unsafe
+  reply, or one the classifier can't check. So a max_tokens that is too low silently turns a Meta
+  feature offline: services/ai_limits.py holds the measured limits.
 """
 
 from collections.abc import Callable
@@ -54,9 +58,17 @@ class Guard:
         safety.log_verdict(self.session, self.user_id, target, verdict, kind)
 
     def check_input(
-        self, target: str, fields: dict[str, str], *, field_name: str | None = None
+        self,
+        target: str,
+        fields: dict[str, str],
+        *,
+        field_name: str | None = None,
+        labels: dict[str, str] | None = None,
     ) -> None:
-        """Raises 422 "unsafe" for unsafe words. A classifier outage means "offline only"."""
+        """Raises 422 "unsafe" for unsafe words. A classifier outage means "offline only".
+
+        With `labels` (field -> "your catchphrase"), the message says which words to change and
+        the error names the blocked field; otherwise it names `field_name`."""
         verdict = safety.check_local(fields)
         if verdict.allowed and self.llm is not None:
             try:
@@ -67,7 +79,13 @@ class Guard:
                 return
         self.log(target, verdict)
         if not verdict.allowed:
-            raise ApiError(422, "unsafe", verdict.kid_message or UNSAFE, field_name)
+            where = labels.get(verdict.field_name or "") if labels else None
+            message = verdict.kid_message or (
+                f"Let's keep Comickatha friendly for everyone! Please change {where} and try again."
+                if where
+                else UNSAFE
+            )
+            raise ApiError(422, "unsafe", message, verdict.field_name if labels else field_name)
 
     def output_ok(self, target: str, fields: dict[str, str]) -> bool:
         """The model's words pass the local checks and the classifier (fails closed)."""
@@ -96,7 +114,7 @@ class Guard:
         Returns (raw, source, fallback); fallback is True when Meta was set up but didn't answer.
         """
         if self.llm is not None and not self.offline_only:
-            for _attempt in range(2):  # one retry for a malformed reply
+            for _attempt in range(2):  # one more try for JSON that fails `check` (not for LLMError)
                 try:
                     raw = meta(self.llm)
                     if not check(raw):

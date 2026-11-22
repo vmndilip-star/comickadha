@@ -3,19 +3,25 @@ from functools import partial
 from fastapi import APIRouter
 from sqlmodel import Session, col, select
 
-from app.deps import EngineDep, JobsDep, ProviderDep, SessionDep, StorageDep, UserDep
+from app.deps import EngineDep, JobsDep, LLMDep, ProviderDep, SessionDep, StorageDep, UserDep
 from app.errors import ERROR_RESPONSES, ApiError, not_found
 from app.models import Background, User
 from app.models.base import utcnow
 from app.schemas.background import BackgroundCreate, BackgroundRead, BackgroundUpdate
+from app.schemas.common import ErrorBody
 from app.schemas.job import JobStarted
 from app.services import image_gen, safety
+from app.services.safety import SafetyUnavailable
 from app.services.storage import Storage
 
 router = APIRouter(prefix="/api/backgrounds", tags=["backgrounds"], responses=ERROR_RESPONSES)
 
 PLACE_TINTS = ("#B7E4A7", "#FFD0C2", "#9AD0F5", "#FFE9A8", "#2E2A6B", "#FF8A6B")
 SAFETY_LABELS = {"name": "place name", "description": "description"}
+CHECKER_RESTING = (
+    "Our safety helper is taking a break, so we couldn't paint {name} yet. "
+    "Tap Paint it again in a minute!"
+)
 
 
 def active_backgrounds(session: Session, user: User) -> list[Background]:
@@ -124,7 +130,7 @@ def _busy(bg: Background) -> ApiError:
     )
 
 
-@router.post("/{background_id}/lock", status_code=202)
+@router.post("/{background_id}/lock", status_code=202, responses={503: {"model": ErrorBody}})
 def lock_background(
     background_id: str,
     session: SessionDep,
@@ -133,17 +139,33 @@ def lock_background(
     jobs: JobsDep,
     provider: ProviderDep,
     storage: StorageDep,
+    llm: LLMDep,
 ) -> JobStarted:
-    """Checks the description is kid-safe, then paints the reference image as an SSE-tracked job."""
+    """Checks the description is kid-safe, then paints the reference image as an SSE-tracked job.
+
+    The mock paints on this machine, so its words get the local checks only (decision 31: an
+    outage mustn't block every Lock). A real image model (IMAGE_PROVIDER=muse) gets the words, so
+    they must also pass the classifier first: an outage sends nothing (503 not_checked, the place
+    stays a draft), and the job checks the picture before anyone sees it."""
     bg = get_background(session, user, background_id)
     if bg.status == "generating" and bg.last_job_id:
         return JobStarted(job_id=bg.last_job_id, kind="background_image", target_id=bg.id)
     if bg.status == "locked":
         raise ApiError(409, "already_locked", f"{bg.name} is already locked!")
 
-    verdict = safety.check_and_log(
-        session, user.id, f"background:{bg.id}", {"name": bg.name, "description": bg.description}
-    )
+    real_model = image_gen.needs_image_check(provider)
+    if real_model and llm is None:  # startup refuses this; fail closed anyway
+        raise ApiError(503, "not_checked", CHECKER_RESTING.format(name=bg.name))
+    try:
+        verdict = safety.check_and_log(
+            session,
+            user.id,
+            f"background:{bg.id}",
+            {"name": bg.name, "description": bg.description},
+            llm if real_model else None,
+        )
+    except SafetyUnavailable as error:
+        raise ApiError(503, "not_checked", CHECKER_RESTING.format(name=bg.name)) from error
     if not verdict.allowed:
         raise ApiError(422, "unsafe", verdict.message(SAFETY_LABELS))
 
@@ -155,7 +177,13 @@ def lock_background(
     jobs.start(
         job.id,
         partial(
-            image_gen.run_place_job, spec=spec, engine=engine, provider=provider, storage=storage
+            image_gen.run_place_job,
+            spec=spec,
+            engine=engine,
+            provider=provider,
+            storage=storage,
+            llm=llm,
+            user_id=user.id,
         ),
         on_error=lambda _message: image_gen.mark_failed(engine, spec.id),
     )
