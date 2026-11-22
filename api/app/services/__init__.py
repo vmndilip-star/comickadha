@@ -1,1 +1,2 @@
-"""Domain services (storage, sheets; planner, compositor and safety arrive in later phases)."""
+"""Domain services: safety checks, the AI helpers and planner, sheets, places, the compositor,
+jobs, storage and PDF export."""

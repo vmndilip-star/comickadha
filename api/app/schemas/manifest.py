@@ -22,9 +22,10 @@ class SheetInfo(BaseModel):
 
 
 class BodySheet(SheetInfo):
-    # Where each pose's head is, so the compositor can paste an expression onto it.
+    # Where each pose's head is (exact, from the rig, for builder sheets). A record only:
+    # panels and bubbles work their head positions out from the pinned spec (stage.py).
     heads: dict[str, HeadBox] = {}
-    # Poses that face the viewer enough to get an expression pasted on.
+    # Poses whose face shows (the face-sheet expressions apply to them).
     face_visible: list[str] = []
 
 
@@ -42,8 +43,8 @@ class CharacterManifest(BaseModel):
     version: int
     seed: int
     style: str
-    # "builder": drawn from the avatar spec below, so any pose can be redrawn with any expression.
-    # "image": drawn by an image model; expressions are pasted onto the head boxes.
+    # "builder": drawn from the avatar spec below (every sheet since Phase 3.5).
+    # "image": an old image-model sheet from Phase 3; still read so those characters display.
     renderer: Literal["builder", "image"] = "image"
     spec: dict[str, Any]
     body_sheet: BodySheet

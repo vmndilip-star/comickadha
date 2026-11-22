@@ -8,7 +8,8 @@ from app.models.base import new_id, utcnow
 
 
 class Job(SQLModel, table=True):
-    """Background work (sheet generation, comic generation, redraw). Used from Phase 3."""
+    """Background work: a character sheet, a place picture or "Make my comic!" (schemas/job.py
+    JobKind). Panel re-draws run in the request, not as jobs."""
 
     id: str = Field(default_factory=new_id, primary_key=True)
     kind: str = Field(max_length=32)

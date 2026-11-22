@@ -21,6 +21,6 @@ class ImageProvider(Protocol):
         """Returns a PNG of `size` (width, height), or at least its aspect ratio.
 
         `reference_images` (PNG bytes) are what the result must stay consistent with,
-        e.g. the character's front view when drawing the other poses.
+        e.g. a character's portrait when restyling a panel they are in.
         """
         ...

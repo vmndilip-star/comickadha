@@ -1,4 +1,5 @@
-"""Text generation interface: the builder helper and safety classifier; the planner in Phase 4."""
+"""Text generation interface for every Meta call: the Lab helper, Create character, Story Buddy,
+the planner, the safety classifier and the image check (services/ai_limits.py lists them)."""
 
 from typing import Any, Protocol
 

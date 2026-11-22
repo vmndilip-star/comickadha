@@ -16,10 +16,11 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # "meta" uses Meta's model API for every AI helper and the safety checks; "mock" works offline.
+    # "meta": Meta's model API for every AI helper, the safety classifier and the image check.
+    # "mock": no LLM at all; the offline helpers answer and safety is the local checks only.
     llm_provider: Literal["mock", "meta"] = "mock"
-    # "muse" paints places with Meta's Muse Image model (needs LLM_PROVIDER=meta, so the words and
-    # the pictures can be checked); "mock" paints placeholder art offline.
+    # "muse": places are painted by Meta's Muse Image (needs LLM_PROVIDER=meta, so the words and the
+    # pictures can be checked; startup refuses it otherwise). "mock": offline placeholder places.
     image_provider: Literal["mock", "muse"] = "mock"
     # Pause per builder cell, so the sheet visibly fills in (22 cells, about 2 seconds).
     builder_reveal_seconds: float = 0.08

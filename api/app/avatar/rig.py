@@ -95,7 +95,7 @@ def apply(m: Matrix, x: float, y: float) -> tuple[float, float]:
 def head_box(body_type: str, pose_name: str, catalog: Catalog | None = None) -> Box:
     """Where the head box (catalog["head_box"], head space) lands in a pose cell, in canvas units.
 
-    The compositor pastes the matching box from the face cell here.
+    Builder manifests store it as each pose's head box; panels and bubbles use it via stage.py.
     """
     cat = catalog or load_catalog()
     pose = cat["poses"][pose_name]

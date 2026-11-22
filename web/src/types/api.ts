@@ -615,7 +615,8 @@ export interface paths {
         };
         /**
          * Job Events
-         * @description Server-sent events: progress | cell_ready | done | error.
+         * @description Server-sent events: progress | cell_ready | panel_ready | panel_failed | done | error
+         *     (panel_ready and panel_failed come from "Make my comic!" jobs).
          *
          *     Replays every event after `after` (or the browser's Last-Event-ID on reconnect), then streams
          *     live ones until the job ends.
