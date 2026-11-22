@@ -48,7 +48,7 @@ Copy-Item .env.example .env
 - `IMAGE_PROVIDER=muse` paints places with Muse Image (about 20 s and $0.01 a picture). It needs
   `LLM_PROVIDER=meta`: the API refuses to start otherwise, because every place description and
   every picture must be safety-checked first. `META_IMAGE_TIMEOUT_SECONDS` defaults to 60.
-- Character sheets stay `SHEET_PROVIDER=builder` (drawn from the parts library).
+- Character sheets are always drawn from the parts library (no setting).
 
 Restart the API afterwards. In development builds, the profile button (top right) shows which
 helper is active and whether the last Meta call worked.

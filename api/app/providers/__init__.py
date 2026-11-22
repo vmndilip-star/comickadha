@@ -1,4 +1,4 @@
-"""Providers, chosen by settings: IMAGE_PROVIDER, LLM_PROVIDER and SHEET_PROVIDER."""
+"""Providers, chosen by settings: IMAGE_PROVIDER and LLM_PROVIDER."""
 
 from app.config import Settings
 from app.providers.image import ImageProvider

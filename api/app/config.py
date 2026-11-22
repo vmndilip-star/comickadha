@@ -21,8 +21,6 @@ class Settings(BaseSettings):
     # "muse" paints places with Meta's Muse Image model (needs LLM_PROVIDER=meta, so the words and
     # the pictures can be checked); "mock" paints placeholder art offline.
     image_provider: Literal["mock", "muse"] = "mock"
-    # "builder" draws character sheets from the avatar parts; "image" asks the image provider.
-    sheet_provider: Literal["builder", "image"] = "builder"
     # Pause per builder cell, so the sheet visibly fills in (22 cells, about 2 seconds).
     builder_reveal_seconds: float = 0.08
     # Pause after each panel of "Make my comic!", so the Reader visibly fills in. Tests use 0.

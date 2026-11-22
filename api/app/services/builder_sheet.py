@@ -1,4 +1,4 @@
-"""SHEET_PROVIDER=builder: draws all 16 poses and 6 faces from the avatar's parts.
+"""The sheet provider: draws all 16 poses and 6 faces from the avatar's parts.
 
 Every cell is the character's avatar spec rendered with resvg, the same SVG the Lab previews, so the
 sheet matches the preview exactly. Head boxes come straight from the rig. Builder characters are
@@ -55,7 +55,6 @@ class BuilderSheets:
         return out.finish(
             heads,
             as_fractions(rig.face_cell_head_box()),
-            renderer="builder",
             style=STYLE,
             manifest_spec=avatar,
         )

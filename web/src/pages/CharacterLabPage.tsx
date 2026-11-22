@@ -52,7 +52,6 @@ function CharacterLab({ character, characters }: { character: Character; charact
   const navigate = useNavigate()
   const [expression, setExpression] = useState<Expression>('happy')
   const [pose, setPose] = useState<Pose>('front')
-  const [editingHead, setEditingHead] = useState(false)
   const [locking, setLocking] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
@@ -92,10 +91,8 @@ function CharacterLab({ character, characters }: { character: Character; charact
           character={character}
           expression={expression}
           pose={pose}
-          editingHead={editingHead}
           onExpression={setExpression}
           onPose={setPose}
-          onToggleHeadEditor={() => setEditingHead(!editingHead)}
           onRename={(name) => update(character.id, { name })}
           renderBuilder={(lockedView) => (
             <LabBuilder

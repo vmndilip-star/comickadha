@@ -35,7 +35,6 @@ def make_settings(storage: Path, **overrides: Any) -> Settings:
         "mock_delay_seconds": 0,
         "llm_provider": "mock",
         "image_provider": "mock",
-        "sheet_provider": "builder",
         "builder_reveal_seconds": 0,
         "panel_reveal_seconds": 0,
         "recheck_seconds": 0,

@@ -17,14 +17,13 @@ from app.db import init_db, make_engine, missing_columns
 from app.errors import install_error_handlers
 from app.prompts import load_all as load_prompts
 from app.providers import get_image_provider, get_llm_provider
-from app.providers.image import ImageProvider
 from app.providers.mock import MockImageProvider
 from app.routers import backgrounds, builder, characters, comics, jobs, media, profile, studio
 from app.seed import seed
 from app.services import recheck
 from app.services.backup import backup_storage
 from app.services.builder_sheet import BuilderSheets
-from app.services.character_sheet import ImageSheets, SheetProvider
+from app.services.character_sheet import SheetProvider
 from app.services.jobs import JobRunner, fail_interrupted_jobs
 from app.services.storage import LocalStorage
 
@@ -36,15 +35,11 @@ class Health(BaseModel):
     version: str
     llm_provider: str
     image_provider: str
-    sheet_provider: str
 
 
-def make_sheet_provider(
-    settings: Settings, image_provider: ImageProvider, *, reveal: bool = True
-) -> SheetProvider:
-    """reveal=False skips the builder's per-cell pause (seeding has nobody watching)."""
-    if settings.sheet_provider == "image":
-        return ImageSheets(image_provider)
+def make_sheet_provider(settings: Settings, *, reveal: bool = True) -> SheetProvider:
+    """Character sheets are drawn from the avatar's parts. reveal=False skips the per-cell pause
+    (seeding has nobody watching)."""
     return BuilderSheets(reveal_seconds=settings.builder_reveal_seconds if reveal else 0)
 
 
@@ -94,12 +89,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             log.warning("marked %d interrupted job(s) as failed", interrupted)
         app.state.engine = engine
         app.state.storage = LocalStorage(settings.media_dir)
-        app.state.sheet_provider = make_sheet_provider(settings, app.state.image_provider)
+        app.state.sheet_provider = make_sheet_provider(settings)
         app.state.jobs = JobRunner(engine, asyncio.get_running_loop())
         if settings.seed_on_startup:
             with Session(engine) as session:
                 mock = MockImageProvider()
-                sheets = make_sheet_provider(settings, mock, reveal=False)
+                sheets = make_sheet_provider(settings, reveal=False)
                 seed(session, app.state.storage, mock, sheets=sheets)
         rechecks = (
             asyncio.create_task(recheck_loop(app, settings.recheck_seconds))
@@ -135,7 +130,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             version=__version__,
             llm_provider=settings.llm_provider,
             image_provider=settings.image_provider,
-            sheet_provider=settings.sheet_provider,
         )
 
     for router in (

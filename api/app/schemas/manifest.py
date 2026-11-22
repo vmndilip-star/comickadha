@@ -1,23 +1,15 @@
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 Box = tuple[float, float, float, float]  # x, y, w, h as fractions of a cell
 
 
-class HeadOffset(BaseModel):
-    """Kid-editable nudge for a head box: fractions of the cell; scale grows from the centre."""
-
-    dx: float = Field(default=0.0, ge=-0.5, le=0.5)
-    dy: float = Field(default=0.0, ge=-0.5, le=0.5)
-    scale: float = Field(default=1.0, ge=0.5, le=2.0)
-
-
 class HeadBox(BaseModel):
     box: Box
-    # "exact" when the image provider knows where it drew the head (the mock), else "estimated".
+    # "exact" for builder sheets (from the rig); "estimated" only in old image-model manifests.
+    # Old manifests may also carry an `offset` (the removed head nudges): it is ignored.
     source: Literal["exact", "estimated"]
-    offset: HeadOffset = HeadOffset()
 
 
 class SheetInfo(BaseModel):

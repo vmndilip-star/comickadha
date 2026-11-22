@@ -1,16 +1,12 @@
 """Character sheets: 16 body poses (4x4) and 6 faces (2x3), described by a manifest.
 
-Two sheet providers fill the same manifest (chosen by SHEET_PROVIDER):
-- "builder" (default, services/builder_sheet.py) renders every cell from the avatar's parts.
-- "image" (this module) asks an image model: the front view first; then the other 15 poses in
-  batches of 4, each with the front view as the reference image; then the 6 faces. Every batch is
-  validated (right size, every cell drawn on a magenta background) and retried once before the job
-  fails. Cells are keyed to transparency and sliced.
-Either way each cell is saved and announced as it arrives, so the Lab can show the sheet filling in.
+The sheet provider (services/builder_sheet.py, the only one since Cleanup 1) renders every cell
+from the avatar's parts. Each cell is saved and announced as it arrives, so the Lab can show the
+sheet filling in. Comics never use sheet images: panels draw every character from its pinned spec.
 """
 
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol
 
@@ -18,11 +14,8 @@ from PIL import Image
 from sqlalchemy import Engine
 from sqlmodel import Session
 
-from app.avatar import spec as avatar_spec
 from app.models import Character
 from app.models.base import utcnow
-from app.prompts import render
-from app.providers.image import ImageProvider, KnowsHeadBoxes
 from app.schemas.common import EXPRESSIONS, POSES
 from app.schemas.manifest import BodySheet, Box, CharacterManifest, FaceSheet, HeadBox
 from app.services import imaging, looks
@@ -33,26 +26,12 @@ BODY_GRID = (4, 4)
 FACE_GRID = (2, 3)
 CELL = (256, 256)
 FRONT = "front"
-BATCH_SIZE = 4
-BATCHES = [list(POSES[i : i + BATCH_SIZE]) for i in range(1, len(POSES), BATCH_SIZE)]
 FACE_VISIBLE = [p for p in POSES if p not in ("back", "side_left", "side_right")]
-
-# A cell is valid if the character covers between 3% and 92% of it after keying.
-MIN_COVERAGE, MAX_COVERAGE = 0.03, 0.92
-ATTEMPTS = 2
 
 BODY_CELLS: dict[str, tuple[int, int]] = {p: divmod(i, BODY_GRID[1]) for i, p in enumerate(POSES)}
 FACE_CELLS: dict[str, tuple[int, int]] = {
     e: divmod(i, FACE_GRID[1]) for i, e in enumerate(EXPRESSIONS)
 }
-KIND_LABELS = {
-    "kid": "kid",
-    "grown_up": "grown-up",
-    "animal": "friendly animal",
-    "robot": "friendly robot",
-}
-# Hair styles the mock image provider knows how to draw.
-MOCK_HAIR = ("bob", "spiky", "braids", "curly")
 
 Emit = Callable[[str, dict[str, Any], float | None], None]
 
@@ -141,7 +120,6 @@ class SheetCells:
         heads: dict[str, HeadBox],
         face_box: Box | None,
         *,
-        renderer: Literal["builder", "image"],
         style: str,
         manifest_spec: dict[str, Any],
     ) -> dict[str, Any]:
@@ -165,7 +143,7 @@ class SheetCells:
             version=self.spec.version,
             seed=self.spec.seed,
             style=style,
-            renderer=renderer,
+            renderer="builder",
             spec=manifest_spec,
             body_sheet=BodySheet(
                 url=self.storage.url(body_key),
@@ -190,164 +168,6 @@ class SheetCells:
             f"{self.prefix}/manifest.json", manifest.model_dump_json(indent=2).encode()
         )
         return manifest.model_dump(mode="json")
-
-
-# ---- the image-model provider ---------------------------------------------------------------
-
-
-class ImageSheets:
-    """SHEET_PROVIDER=image: an image model draws the sheet; faces are pasted onto head boxes."""
-
-    name = "image"
-
-    def __init__(self, provider: ImageProvider) -> None:
-        self.provider = provider
-
-    def build(self, spec: SheetSpec, storage: Storage, emit: Emit) -> dict[str, Any]:
-        return build_sheet(spec, self.provider, storage, emit)
-
-
-def _prompt(
-    spec: SheetSpec,
-    sheet: str,
-    task: str,
-    grid: tuple[int, int],
-    cells: Sequence[str],
-    with_reference: bool,
-) -> str:
-    s = avatar_spec.normalize(spec.spec)
-    look = avatar_spec.describe(s)
-    hair = s["parts"].get("hair", "")
-    return render(
-        "character_sheet",
-        name=spec.name,
-        kind_label=KIND_LABELS.get(spec.kind, spec.kind),
-        role=spec.role,
-        look=look[0].upper() + look[1:] + ".",
-        reference_line=(
-            "Keep the character identical to the reference image: "
-            "same colours, outfit and proportions."
-            if with_reference
-            else ""
-        ),
-        sheet=sheet,
-        task=task,
-        rows=grid[0],
-        cols=grid[1],
-        cells=" | ".join(cells),
-        kind=spec.kind,
-        skin=s["colors"]["skin"],
-        hair_color=s["colors"]["hair"],
-        hair_style=hair if hair in MOCK_HAIR else "curly",
-        tint=s["colors"]["top"],
-    )
-
-
-def validated_cells(
-    png: bytes, size: tuple[int, int], grid: tuple[int, int], names: Sequence[str]
-) -> dict[str, Image.Image] | None:
-    """Keyed cells if the image is the right shape and every cell has a drawing; else None."""
-    try:
-        image = imaging.fit_size(imaging.load(png), size)
-    except OSError:
-        return None
-    if image is None:
-        return None
-    cells = imaging.slice_grid(imaging.key_magenta(image), grid, names)
-    if all(MIN_COVERAGE <= imaging.coverage(c) <= MAX_COVERAGE for c in cells.values()):
-        return cells
-    return None
-
-
-def draw_cells(
-    provider: ImageProvider,
-    prompt: str,
-    grid: tuple[int, int],
-    names: Sequence[str],
-    seed: int,
-    references: list[bytes] | None,
-    what: str,
-) -> tuple[dict[str, Image.Image], bytes]:
-    """One batch: generate, validate, and retry once with a new seed before giving up."""
-    size = (grid[1] * CELL[0], grid[0] * CELL[1])
-    for attempt in range(ATTEMPTS):
-        png = provider.generate(prompt, size, seed + attempt * 7919, references)
-        cells = validated_cells(png, size, grid, names)
-        if cells is not None:
-            return cells, png
-    raise JobFailed(f"We couldn't draw {what}. Tap Lock to try again!")
-
-
-def build_sheet(
-    spec: SheetSpec, provider: ImageProvider, storage: Storage, emit: Emit
-) -> dict[str, Any]:
-    """Runs the whole image pipeline (blocking) and returns the manifest as JSON data."""
-    out = SheetCells(spec, storage, emit)
-    prefix = out.prefix
-
-    # 1. The front view: every other drawing must match it.
-    emit("progress", {"stage": "front"}, 0.02)
-    task = "the character standing, facing the viewer"
-    cells, front_png = draw_cells(
-        provider,
-        _prompt(spec, "body", task, (1, 1), [FRONT], False),
-        (1, 1),
-        [FRONT],
-        spec.seed,
-        None,
-        f"{spec.name}'s front view",
-    )
-    storage.save(f"{prefix}/raw/front.png", front_png)
-    out.keep("body", FRONT, cells[FRONT])
-
-    # 2. The other 15 poses, 4 at a time, with the front view as the reference.
-    emit("progress", {"stage": "poses"}, out.progress())
-    for i, batch in enumerate(BATCHES, start=1):
-        grid = (1, len(batch))
-        prompt = _prompt(spec, "body", "the same character in these poses", grid, batch, True)
-        cells, raw = draw_cells(
-            provider, prompt, grid, batch, spec.seed + i, [front_png], f"all of {spec.name}'s poses"
-        )
-        storage.save(f"{prefix}/raw/poses-{i}.png", raw)
-        for pose in batch:
-            out.keep("body", pose, cells[pose])
-
-    # 3. The 6 expression faces.
-    emit("progress", {"stage": "faces"}, out.progress())
-    names = list(EXPRESSIONS)
-    task = "close-up heads of the same character showing these expressions"
-    cells, raw = draw_cells(
-        provider,
-        _prompt(spec, "faces", task, FACE_GRID, names, True),
-        FACE_GRID,
-        names,
-        spec.seed + 99,
-        [front_png],
-        f"{spec.name}'s faces",
-    )
-    storage.save(f"{prefix}/raw/faces.png", raw)
-    for expression in names:
-        out.keep("face", expression, cells[expression])
-
-    # 4. Head boxes (exact if the provider knows them, else estimated) and the manifest.
-    exact = provider if isinstance(provider, KnowsHeadBoxes) else None
-    heads: dict[str, HeadBox] = {}
-    for pose in POSES:
-        box = exact.head_box(f"body/{pose}") if exact else None
-        heads[pose] = HeadBox(
-            box=box or imaging.estimate_head_box(out.body[pose]),
-            source="exact" if box else "estimated",
-        )
-    face_box: Box | None = (exact.head_box("face/happy") if exact else None) or imaging.alpha_box(
-        out.faces["happy"]
-    )
-    return out.finish(
-        heads,
-        face_box,
-        renderer="image",
-        style=spec.style,
-        manifest_spec={"kind": spec.kind, "role": spec.role, **spec.spec},
-    )
 
 
 # ---- the job --------------------------------------------------------------------------------

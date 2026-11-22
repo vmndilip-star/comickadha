@@ -13,7 +13,6 @@ PROMPTS_DIR = Path(__file__).parent
 # Each prompt and the placeholders the code fills in.
 REQUIRED: dict[str, set[str] | None] = {
     "background": {"name", "description", "aspect", "tint"},
-    "character_sheet": None,  # many fields; checked by the sheet tests
     "builder_helper": {"catalog"},
     "builder_create": {"catalog"},
     "safety_classifier": set(),

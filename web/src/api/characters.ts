@@ -1,4 +1,4 @@
-import type { Character, CharacterCreate, CharacterUpdate, HeadOffset, JobStarted, Pose } from '@/types'
+import type { Character, CharacterCreate, CharacterUpdate, JobStarted } from '@/types'
 import { request } from './client'
 
 export const listCharacters = () => request<Character[]>('GET', '/characters')
@@ -10,5 +10,3 @@ export const deleteCharacter = (id: string) => request<void>('DELETE', `/charact
 /** Starts drawing the character sheet; follow the job's events. */
 export const lockCharacter = (id: string) => request<JobStarted>('POST', `/characters/${id}/lock`)
 export const unlockCharacter = (id: string) => request<Character>('POST', `/characters/${id}/unlock`)
-export const updateHeadOffset = (id: string, pose: Pose, offset: HeadOffset) =>
-  request<Character>('PATCH', `/characters/${id}/heads/${pose}`, offset)

@@ -10,11 +10,10 @@ from app.models import Character, User
 from app.models.base import utcnow
 from app.schemas.avatar import AvatarSpec
 from app.schemas.character import CharacterCreate, CharacterRead, CharacterUpdate
-from app.schemas.common import MAX_CAST, Pose
+from app.schemas.common import MAX_CAST
 from app.schemas.job import JobStarted
-from app.schemas.manifest import CharacterManifest, HeadOffset
+from app.schemas.manifest import CharacterManifest
 from app.services import character_safety, character_sheet, safety
-from app.services.storage import Storage
 
 router = APIRouter(prefix="/api/characters", tags=["characters"], responses=ERROR_RESPONSES)
 
@@ -230,31 +229,3 @@ def read_manifest(
     if character.manifest is None:
         raise _no_manifest(character)
     return CharacterManifest.model_validate(character.manifest)
-
-
-@router.patch("/{character_id}/heads/{pose}")
-def update_head_offset(
-    character_id: str,
-    pose: Pose,
-    body: HeadOffset,
-    session: SessionDep,
-    user: UserDep,
-    storage: StorageDep,
-) -> CharacterRead:
-    """Nudges where the face goes on one pose. Allowed while locked: placement, not looks."""
-    character = get_character(session, user, character_id)
-    if character.manifest is None:
-        raise _no_manifest(character)
-    manifest = CharacterManifest.model_validate(character.manifest)
-    head = manifest.body_sheet.heads.get(pose)
-    if head is None:
-        raise not_found("pose")
-    head.offset = body
-    character.manifest = manifest.model_dump(mode="json")
-    _write_manifest_file(storage, manifest)
-    return _save(session, character)
-
-
-def _write_manifest_file(storage: Storage, manifest: CharacterManifest) -> None:
-    key = f"{character_sheet.sheet_prefix(manifest.id, manifest.version)}/manifest.json"
-    storage.save(key, manifest.model_dump_json(indent=2).encode())

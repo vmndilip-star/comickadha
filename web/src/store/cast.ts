@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { ApiError } from '@/api/client'
 import * as api from '@/api/characters'
-import type { AvatarSpec, BodyType, Character, CharacterKind, CharacterUpdate, HeadOffset, Pose } from '@/types'
+import type { AvatarSpec, BodyType, Character, CharacterKind, CharacterUpdate } from '@/types'
 import { useJobsStore } from './jobs'
 import type { LoadStatus } from './load'
 import { editCounter, useSaveStore } from './save'
@@ -32,7 +32,6 @@ interface CastState {
   /** Locking starts the sheet-drawing job; unlocking goes back to editing. */
   setLocked: (id: string, locked: boolean) => Promise<void>
   /** Nudges where the face goes on one pose (autosaved). */
-  setHeadOffset: (id: string, pose: Pose, offset: HeadOffset) => void
   /** Reconnects to sheets still being drawn (after a refresh or coming back to the page). */
   resumeJobs: () => void
   remove: (id: string) => Promise<boolean>
@@ -133,24 +132,6 @@ export const useCastStore = create<CastState>()((set, get) => {
       } catch (error) {
         toast.error(error)
       }
-    },
-
-    setHeadOffset: (id, pose, offset) => {
-      const key = `head:${id}:${pose}`
-      set((s) => ({
-        characters: s.characters.map((c) => {
-          const head = c.manifest?.body_sheet.heads[pose]
-          if (c.id !== id || !c.manifest || !head) return c
-          const heads = { ...c.manifest.body_sheet.heads, [pose]: { ...head, offset } }
-          return { ...c, manifest: { ...c.manifest, body_sheet: { ...c.manifest.body_sheet, heads } } }
-        }),
-      }))
-      edits.mark(key)
-      useSaveStore.getState().schedule(key, async () => {
-        const seen = edits.current(key)
-        const saved = await api.updateHeadOffset(id, pose, offset)
-        if (edits.isLatest(key, seen)) replace(saved)
-      })
     },
 
     resumeJobs: () => {

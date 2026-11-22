@@ -30,7 +30,7 @@ from app.providers.image import ImageProvider
 from app.providers.mock import MockImageProvider
 from app.services import looks
 from app.services.builder_sheet import BuilderSheets
-from app.services.character_sheet import ImageSheets, SheetProvider, SheetSpec
+from app.services.character_sheet import SheetProvider, SheetSpec
 from app.services.image_gen import PlaceSpec, build_place
 from app.services.storage import LocalStorage, Storage
 
@@ -524,10 +524,8 @@ def main() -> None:
     engine = make_engine(settings.resolved_database_url)
     init_db(engine)
     storage = LocalStorage(settings.media_dir)
-    mock = MockImageProvider()
-    sheets = ImageSheets(mock) if settings.sheet_provider == "image" else BuilderSheets()
     with Session(engine) as session:
-        seed(session, storage, mock, sheets=sheets, reset=True)
+        seed(session, storage, MockImageProvider(), reset=True)
     print("Reset Comickatha: 1 kid, 3 characters, 3 places, 3 comics.")
 
 

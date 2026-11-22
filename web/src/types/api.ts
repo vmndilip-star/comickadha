@@ -167,26 +167,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/characters/{character_id}/heads/{pose}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Update Head Offset
-         * @description Nudges where the face goes on one pose. Allowed while locked: placement, not looks.
-         */
-        patch: operations["update_head_offset_api_characters__character_id__heads__pose__patch"];
-        trace?: never;
-    };
     "/api/builder/info": {
         parameters: {
             query?: never;
@@ -1254,35 +1234,6 @@ export interface components {
              * @enum {string}
              */
             source: "exact" | "estimated";
-            /**
-             * @default {
-             *       "dx": 0,
-             *       "dy": 0,
-             *       "scale": 1
-             *     }
-             */
-            offset: components["schemas"]["HeadOffset"];
-        };
-        /**
-         * HeadOffset
-         * @description Kid-editable nudge for a head box: fractions of the cell; scale grows from the centre.
-         */
-        HeadOffset: {
-            /**
-             * Dx
-             * @default 0
-             */
-            dx: number;
-            /**
-             * Dy
-             * @default 0
-             */
-            dy: number;
-            /**
-             * Scale
-             * @default 1
-             */
-            scale: number;
         };
         /** Health */
         Health: {
@@ -1297,8 +1248,6 @@ export interface components {
             llm_provider: string;
             /** Image Provider */
             image_provider: string;
-            /** Sheet Provider */
-            sheet_provider: string;
         };
         /** HelperInfo */
         HelperInfo: {
@@ -2173,60 +2122,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CharacterManifest"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-        };
-    };
-    update_head_offset_api_characters__character_id__heads__pose__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                character_id: string;
-                pose: "front" | "three_quarter_left" | "side_left" | "back" | "three_quarter_right" | "side_right" | "walk" | "run" | "point" | "sit" | "jump" | "wave" | "hands_on_hips" | "thinking" | "scared_pose" | "celebrate";
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["HeadOffset"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CharacterRead"];
                 };
             };
             /** @description Not Found */

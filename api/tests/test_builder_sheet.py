@@ -1,4 +1,4 @@
-"""SHEET_PROVIDER=builder (the default): Lock draws every cell straight from the avatar's parts."""
+"""The builder sheet provider: Lock draws every cell straight from the avatar's parts."""
 
 from typing import Any
 

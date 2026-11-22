@@ -4,7 +4,6 @@ import { EXPRESSION_LABEL, POSE_LABEL } from '@/lib/labels'
 import { lockedManifest } from '@/lib/sheet'
 import type { Character, Expression, Pose } from '@/types'
 import { ExpressionGrid } from './ExpressionGrid'
-import { HeadPositionEditor } from './HeadPositionEditor'
 import { PoseGrid } from './PoseGrid'
 import { SheetProgress } from './SheetProgress'
 import { SheetStage } from './SheetStage'
@@ -13,17 +12,15 @@ interface CharacterStageProps {
   character: Character
   expression: Expression
   pose: Pose
-  editingHead: boolean
   onExpression: (expression: Expression) => void
   onPose: (pose: Pose) => void
-  onToggleHeadEditor: () => void
   onRename: (name: string) => void
   /** The builder (live preview + tabs). It gets the locked sheet view to show instead of the preview. */
   renderBuilder: (lockedView: ReactNode | null) => ReactNode
 }
 
 export function CharacterStage(props: CharacterStageProps) {
-  const { character, expression, pose, editingHead } = props
+  const { character, expression, pose } = props
   const manifest = lockedManifest(character)
   const editable = character.status === 'draft' || character.status === 'failed'
 
@@ -36,20 +33,10 @@ export function CharacterStage(props: CharacterStageProps) {
         <span className="absolute top-3.5 left-3.5 z-10 rounded-pill border-3 border-ink bg-surface px-3 py-1 text-label font-extrabold">
           {EXPRESSION_LABEL[expression]} · {POSE_LABEL[pose]}
         </span>
-        <SheetStage character={character} manifest={manifest} pose={pose} expression={expression} showHeadBox={editingHead} />
+        <SheetStage character={character} manifest={manifest} pose={pose} expression={expression} />
       </div>
       <ExpressionGrid character={character} selected={expression} onSelect={props.onExpression} />
       <PoseGrid manifest={manifest} selected={pose} onSelect={props.onPose} />
-      {/* Builder sheets draw every pose with its own face, so there is nothing to nudge. */}
-      {manifest.renderer === 'image' && (
-        <HeadPositionEditor
-          character={character}
-          manifest={manifest}
-          pose={pose}
-          editing={editingHead}
-          onToggle={props.onToggleHeadEditor}
-        />
-      )}
     </div>
   )
 

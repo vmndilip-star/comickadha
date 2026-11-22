@@ -1,6 +1,6 @@
 """Image generation interface: every provider turns a prompt into PNG bytes."""
 
-from typing import Protocol, runtime_checkable
+from typing import Protocol
 
 
 class ImageError(Exception):
@@ -23,16 +23,4 @@ class ImageProvider(Protocol):
         `reference_images` (PNG bytes) are what the result must stay consistent with,
         e.g. the character's front view when drawing the other poses.
         """
-        ...
-
-
-@runtime_checkable
-class KnowsHeadBoxes(Protocol):
-    """Optional: providers that know exactly where they drew each head (the mock does).
-
-    Others get head boxes estimated from the cell's alpha mask.
-    """
-
-    def head_box(self, cell: str) -> tuple[float, float, float, float] | None:
-        """(x, y, w, h) as fractions of the cell, for "body/<pose>" or "face/<expression>"."""
         ...
