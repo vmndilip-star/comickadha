@@ -19,6 +19,7 @@ from app.services import safety
 
 log = logging.getLogger(__name__)
 
+# How a kid would call the comic's story fields in a safety message (also the comics router).
 STORY_LABELS = {"title": "title", "synopsis": "story"}
 WAITING = ("pending", "blocked")
 

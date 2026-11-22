@@ -63,12 +63,6 @@ class MetaLLMProvider:
         )
         self.last_call: dict[str, object] | None = None
 
-    def complete(
-        self, system: str, prompt: str, *, max_tokens: int = 1024, json_mode: bool = False
-    ) -> str:
-        extra: dict[str, Any] = {"response_format": {"type": "json_object"}} if json_mode else {}
-        return self._chat(self.model, system, prompt, max_tokens, **extra)
-
     def complete_json(
         self,
         system: str,

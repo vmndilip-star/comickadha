@@ -1,4 +1,4 @@
-import type { BubbleType, CharacterKind, Expression, Mood, Pose, Role, Trait } from '@/types'
+import type { BubbleType, Expression, Mood, Pose, Role, Trait } from '@/types'
 
 export const EXPRESSION_LABEL: Record<Expression, string> = {
   happy: 'Happy',
@@ -26,13 +26,6 @@ export const POSE_LABEL: Record<Pose, string> = {
   thinking: 'Thinking',
   scared_pose: 'Scared',
   celebrate: 'Celebrate',
-}
-
-export const KIND_LABEL: Record<CharacterKind, string> = {
-  kid: 'Kid',
-  grown_up: 'Grown-up',
-  animal: 'Animal',
-  robot: 'Robot',
 }
 
 export const ROLE_LABEL: Record<Role, string> = {
@@ -79,4 +72,3 @@ export const BUBBLE_LABEL: Record<BubbleType, string> = {
 }
 
 /** Placeholder colours for new places. */
-export const PLACE_TINTS = ['#B7E4A7', '#FFD0C2', '#9AD0F5', '#FFE9A8', '#2E2A6B', '#FF8A6B'] as const

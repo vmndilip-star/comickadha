@@ -91,25 +91,6 @@ def test_errors_and_unusable_replies_become_llm_errors() -> None:
             llm.complete_json("sys", "hi", {}, schema_name="thing")
 
 
-def test_a_reply_cut_off_before_any_answer_is_named_out_of_tokens() -> None:
-    """A model that thinks first can spend the whole budget; the dev menu says so plainly."""
-    cut_off = SimpleNamespace(
-        choices=[SimpleNamespace(message=SimpleNamespace(content=""), finish_reason="length")],
-        usage=None,
-    )
-    fake = SimpleNamespace(
-        chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **_: cut_off))
-    )
-    llm = MetaLLMProvider(
-        api_key="k", model="m", vision_model="v", base_url="http://x", client=fake
-    )
-
-    with pytest.raises(LLMError):
-        llm.complete("system", "prompt")
-
-    assert llm.last_call is not None and llm.last_call["error"] == "OutOfTokens"
-
-
 def test_the_classifier_leaves_room_to_think() -> None:
     fake = FakeMeta()
     llm = provider(fake)

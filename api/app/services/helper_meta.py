@@ -13,6 +13,7 @@ from app.prompts import render
 from app.providers.llm import LLMProvider
 from app.services.ai_limits import LIMITS
 from app.services.helper_offline import TRAITS
+from app.services.strict_schema import strict_object
 
 Raw = dict[str, Any]
 
@@ -73,15 +74,6 @@ def colour_ids(slot: str, cat: Catalog) -> list[str]:
     return ids
 
 
-def _object(properties: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "type": "object",
-        "properties": properties,
-        "required": list(properties),
-        "additionalProperties": False,
-    }
-
-
 def suggestion_schema(cat: Catalog | None = None, *, drawing: bool = False) -> dict[str, Any]:
     cat = cat or load_catalog()
     strings = {"type": "array", "items": {"type": "string"}}
@@ -94,13 +86,13 @@ def suggestion_schema(cat: Catalog | None = None, *, drawing: bool = False) -> d
         }
     properties |= {
         "body_type": {"type": "string", "enum": list(cat["body_types"])},
-        "parts": _object(
+        "parts": strict_object(
             {
                 c: {"type": "string", "enum": list(info["options"])}
                 for c, info in cat["categories"].items()
             }
         ),
-        "colors": _object(
+        "colors": strict_object(
             {slot: {"type": "string", "enum": colour_ids(slot, cat)} for slot in cat["color_slots"]}
         ),
         "extras": {"type": "array", "items": {"type": "string", "enum": list(cat["extras"])}},
@@ -110,11 +102,11 @@ def suggestion_schema(cat: Catalog | None = None, *, drawing: bool = False) -> d
         "reply": {"type": "string"},
         "unmatched": strings,
     }
-    return _object(properties)
+    return strict_object(properties)
 
 
 def ideas_schema() -> dict[str, Any]:
-    return _object(
+    return strict_object(
         {
             "name_ideas": {"type": "array", "items": {"type": "string"}},
             "traits": {"type": "array", "items": {"type": "string", "enum": TRAITS}},
@@ -213,22 +205,22 @@ def create_schema(cat: Catalog | None = None) -> dict[str, Any]:
     cat = cat or load_catalog()
     strings = {"type": "array", "items": {"type": "string"}}
     targets = list(cat["categories"]) + [f"colors.{slot}" for slot in cat["color_slots"]]
-    option = _object(
+    option = strict_object(
         {
             "label": {"type": "string"},
             "target": {"type": "string", "enum": targets},
             "value": {"type": "string"},
         }
     )
-    return _object(
+    return strict_object(
         {
-            "parts": _object(
+            "parts": strict_object(
                 {
                     c: {"type": "string", "enum": list(info["options"])}
                     for c, info in cat["categories"].items()
                 }
             ),
-            "colors": _object(
+            "colors": strict_object(
                 {
                     slot: {"type": "string", "enum": colour_ids(slot, cat)}
                     for slot in cat["color_slots"]
@@ -240,7 +232,7 @@ def create_schema(cat: Catalog | None = None) -> dict[str, Any]:
             "catchphrase": {"type": "string"},
             "intro_line": {"type": "string"},
             "role_suggestion": {"type": "string", "enum": ["hero", "sidekick", "friend"]},
-            "follow_up": _object(
+            "follow_up": strict_object(
                 {"question": {"type": "string"}, "options": {"type": "array", "items": option}}
             ),
             "reply": {"type": "string"},

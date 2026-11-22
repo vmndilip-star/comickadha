@@ -35,6 +35,7 @@ from app.schemas.studio import (
 from app.services.ai_guard import Guard
 from app.services.ai_limits import LIMITS
 from app.services.kid_fields import KidFields
+from app.services.strict_schema import strict_object
 
 T = TypeVar("T")
 
@@ -383,28 +384,19 @@ def offline_panels(ctx: StoryContext) -> PanelPlan:
 # ---- Meta's planner -------------------------------------------------------------------------
 
 
-def _object(properties: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "type": "object",
-        "properties": properties,
-        "required": list(properties),
-        "additionalProperties": False,
-    }
-
-
 def scenes_schema(ctx: StoryContext) -> dict[str, Any]:
-    scene = _object(
+    scene = strict_object(
         {
             "background_id": {"type": "string", "enum": ctx.place_ids},
             "character_ids": {"type": "array", "items": {"type": "string", "enum": ctx.cast_ids}},
             "summary": {"type": "string"},
         }
     )
-    return _object({"scenes": {"type": "array", "items": scene}})
+    return strict_object({"scenes": {"type": "array", "items": scene}})
 
 
 def panels_schema(ctx: StoryContext) -> dict[str, Any]:
-    character = _object(
+    character = strict_object(
         {
             "id": {"type": "string", "enum": ctx.cast_ids},
             "pose": {"type": "string", "enum": catalog_poses()},
@@ -412,14 +404,14 @@ def panels_schema(ctx: StoryContext) -> dict[str, Any]:
             "position": {"type": "string", "enum": ["left", "center", "right"]},
         }
     )
-    bubble = _object(
+    bubble = strict_object(
         {
             "speaker": {"type": "string", "enum": [*ctx.cast_ids, NARRATOR]},
             "type": {"type": "string", "enum": ["talk", "think", "shout", "narrator"]},
             "text": {"type": "string"},
         }
     )
-    panel = _object(
+    panel = strict_object(
         {
             "scene_id": {"type": "string", "enum": [s.id for s in ctx.scenes]},
             "beat": {"type": "string"},
@@ -427,7 +419,7 @@ def panels_schema(ctx: StoryContext) -> dict[str, Any]:
             "bubbles": {"type": "array", "items": bubble},
         }
     )
-    return _object({"panels": {"type": "array", "items": panel}})
+    return strict_object({"panels": {"type": "array", "items": panel}})
 
 
 def planner_fields(ctx: StoryContext) -> KidFields:

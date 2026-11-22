@@ -33,10 +33,6 @@ class CastMember:
     spec: dict[str, Any]
 
 
-def page_count(panels: int) -> int:
-    return 1 + -(-panels // PER_PAGE)
-
-
 def _centered(draw: ImageDraw.ImageDraw, y: float, text: str, kind: str, px: int) -> int:
     """Draws one line centred across the page; returns the font size used (shrunk to fit)."""
     f = lettering.font(kind, px)

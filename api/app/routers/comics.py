@@ -29,6 +29,7 @@ from app.schemas.job import JobStarted
 from app.services import comic_maker, looks, pdf_export, recheck, safety
 from app.services.bubbles import layout
 from app.services.jobs import FAILED_MESSAGE, fail_rendering_panels
+from app.services.recheck import STORY_LABELS
 from app.services.storage import Storage
 
 router = APIRouter(prefix="/api", tags=["comics"], responses=ERROR_RESPONSES)
@@ -59,9 +60,6 @@ def panel_read(panel: Panel, storage: Storage) -> PanelRead:
             "text_check": panel.text_check or "checked",
         }
     )
-
-
-STORY_LABELS = {"title": "title", "synopsis": "story"}
 
 
 def safety_notes(comic: Comic) -> list[FieldNote]:

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as builderApi from '@/api/builder'
 import { giveDrawingConsent } from '@/api/profile'
+import { useProfileStore } from '@/store/profile'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Dialog } from '@/components/ui/Dialog'
@@ -199,7 +200,7 @@ function ConsentDialog({ open, onClose, onConsent }: { open: boolean; onClose: (
   const submit = async () => {
     setBusy(true)
     try {
-      await giveDrawingConsent({ a, b, answer: Number(answer) })
+      useProfileStore.getState().setProfile(await giveDrawingConsent({ a, b, answer: Number(answer) }))
       setAnswer('')
       onConsent()
     } catch (error) {

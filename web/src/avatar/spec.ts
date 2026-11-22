@@ -2,23 +2,19 @@
  * Avatar specs against the parts catalog: the twin of api/app/avatar/spec.py's normalize(), so a
  * spec built in the browser always passes the API's strict check. Golden tests compare the two.
  */
+import { BODY_TYPES, ROLES, TRAITS } from '@/types'
 import { catalog as defaultCatalog, type Catalog, type PaletteEntry } from './catalog'
 
-export const BODY_TYPES = ['kid', 'grown_up', 'robot', 'cat', 'dog', 'bear'] as const
+// The option lists live in types/index.ts, checked there against the API's unions.
 export type BodyTypeId = (typeof BODY_TYPES)[number]
-export const ROLE_IDS = ['hero', 'sidekick', 'friend'] as const
-/** Positive or neutral traits only (docs/character-safety.md). */
-export const TRAIT_IDS = [
-  'brave', 'curious', 'funny', 'kind', 'clever', 'creative', 'calm', 'cheerful', 'helpful', 'honest', 'adventurous', 'caring', 'energetic', 'gentle', 'patient', 'playful', 'shy', 'silly', 'sporty', 'thoughtful',
-] as const
 
 export interface FullSpec {
   body_type: BodyTypeId
   parts: Record<string, string>
   colors: Record<string, string>
   extras: string[]
-  personality: { traits: (typeof TRAIT_IDS)[number][]; catchphrase: string }
-  role: (typeof ROLE_IDS)[number]
+  personality: { traits: (typeof TRAITS)[number][]; catchphrase: string }
+  role: (typeof ROLES)[number]
 }
 
 const HEX = /^#[0-9A-Fa-f]{6}$/
@@ -100,11 +96,11 @@ function looseFields(spec: Record<string, unknown>) {
     const catchphrase = p.catchphrase ?? ''
     if (Array.isArray(traits) && typeof catchphrase === 'string' && catchphrase.length <= 60) {
       // Only traits on the list, once each, at most 3 (as the Python twin does).
-      const listed = traits.filter((t): t is string => (TRAIT_IDS as readonly unknown[]).includes(t))
+      const listed = traits.filter((t): t is string => (TRAITS as readonly unknown[]).includes(t))
       out.personality = { traits: [...new Set(listed)].slice(0, 3), catchphrase }
     }
   }
-  if (typeof spec.role === 'string' && (ROLE_IDS as readonly string[]).includes(spec.role)) out.role = spec.role
+  if (typeof spec.role === 'string' && (ROLES as readonly string[]).includes(spec.role)) out.role = spec.role
   return out
 }
 

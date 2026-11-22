@@ -365,23 +365,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/backgrounds/{background_id}/unlock": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Unlock Background */
-        post: operations["unlock_background_api_backgrounds__background_id__unlock_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/comics": {
         parameters: {
             query?: never;
@@ -2981,55 +2964,6 @@ export interface operations {
             };
             /** @description Service Unavailable */
             503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-        };
-    };
-    unlock_background_api_backgrounds__background_id__unlock_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                background_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BackgroundRead"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorBody"];
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
                 headers: {
                     [name: string]: unknown;
                 };

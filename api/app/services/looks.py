@@ -86,14 +86,6 @@ def looks_for(session: Session, pairs: Iterable[tuple[str, int]]) -> dict[str, d
     return out
 
 
-def pinned_spec(session: Session, character_id: str, version: int) -> Spec | None:
-    stmt = select(CharacterVersion).where(
-        CharacterVersion.character_id == character_id, CharacterVersion.version == version
-    )
-    row = session.exec(stmt).first()
-    return row.spec if row else None
-
-
 def specs_for(session: Session, characters: list[dict[str, Any]]) -> dict[str, Spec]:
     """The look to draw for each character in a panel: its pinned version's spec, or (for a
     version with no frozen look, such as an unlocked character) its current spec."""

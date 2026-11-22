@@ -10,17 +10,6 @@ class LLMError(Exception):
 class LLMProvider(Protocol):
     name: str
 
-    def complete(
-        self,
-        system: str,
-        prompt: str,
-        *,
-        max_tokens: int = 1024,
-        json_mode: bool = False,
-    ) -> str:
-        """Returns the model's reply. With json_mode, the reply must be a single JSON document."""
-        ...
-
     def complete_json(
         self,
         system: str,

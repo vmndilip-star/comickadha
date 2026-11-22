@@ -24,6 +24,7 @@ from app.schemas.studio import BuddyAction, BuddyReply, Spark, SpellingChange
 from app.services.ai_guard import RESTING, Guard, InvalidReply, label
 from app.services.ai_limits import LIMITS
 from app.services.kid_fields import KidFields, check_before_meta
+from app.services.strict_schema import strict_object
 
 Raw = dict[str, Any]
 
@@ -194,29 +195,20 @@ def offline_name_scene(text: str, ctx: BuddyContext) -> Raw:
 # ---- with Meta, through the Guard -----------------------------------------------------------
 
 
-def _object(properties: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "type": "object",
-        "properties": properties,
-        "required": list(properties),
-        "additionalProperties": False,
-    }
-
-
 STRINGS = {"type": "array", "items": {"type": "string"}}
 SCHEMAS: dict[str, dict[str, Any]] = {
-    "idea": _object({"questions": STRINGS, "reply": {"type": "string"}}),
-    "spelling": _object(
+    "idea": strict_object({"questions": STRINGS, "reply": {"type": "string"}}),
+    "spelling": strict_object(
         {
             "corrected": {"type": "string"},
             "changes": {
                 "type": "array",
-                "items": _object({"before": {"type": "string"}, "after": {"type": "string"}}),
+                "items": strict_object({"before": {"type": "string"}, "after": {"type": "string"}}),
             },
             "reply": {"type": "string"},
         }
     ),
-    "name_scene": _object({"titles": STRINGS, "reply": {"type": "string"}}),
+    "name_scene": strict_object({"titles": STRINGS, "reply": {"type": "string"}}),
 }
 
 

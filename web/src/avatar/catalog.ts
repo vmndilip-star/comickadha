@@ -114,4 +114,3 @@ export interface Catalog {
 
 export const catalog: Catalog = JSON.parse(catalogText) as Catalog
 
-export const CANVAS = catalog.canvas

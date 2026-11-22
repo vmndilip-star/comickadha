@@ -65,7 +65,6 @@ export type Expression = PanelCharacter['expression']
 export type Pose = PanelCharacter['pose']
 export type Position = PanelCharacter['position']
 export type BubbleType = Bubble['type']
-export type PanelStatus = Panel['status']
 
 export const MAX_CAST = 3
 
@@ -90,3 +89,22 @@ export const MOODS = ['mystery', 'funny', 'adventure', 'spooky'] as const satisf
 export const PANEL_COUNTS = [4, 6, 8] as const satisfies readonly PanelCount[]
 export const BUBBLE_TYPES = ['talk', 'think', 'shout', 'narrator'] as const satisfies readonly BubbleType[]
 export const POSITIONS = ['left', 'center', 'right'] as const satisfies readonly Position[]
+
+/** True only when two unions hold the same values. */
+type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false
+type Assert<T extends true> = T
+/**
+ * `satisfies` above stops a list naming a value the API doesn't allow; this stops a list missing
+ * one (the build fails until the list matches the union in the generated api.ts).
+ */
+export type OptionListsMatchTheApi = [
+  Assert<Same<(typeof EXPRESSIONS)[number], Expression>>,
+  Assert<Same<(typeof POSES)[number], Pose>>,
+  Assert<Same<(typeof BODY_TYPES)[number], BodyType>>,
+  Assert<Same<(typeof ROLES)[number], Role>>,
+  Assert<Same<(typeof TRAITS)[number], Trait>>,
+  Assert<Same<(typeof MOODS)[number], Mood>>,
+  Assert<Same<(typeof PANEL_COUNTS)[number], PanelCount>>,
+  Assert<Same<(typeof BUBBLE_TYPES)[number], BubbleType>>,
+  Assert<Same<(typeof POSITIONS)[number], Position>>,
+]

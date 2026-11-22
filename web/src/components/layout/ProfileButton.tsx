@@ -2,20 +2,22 @@ import { useState } from 'react'
 import { getHelperInfo } from '@/api/builder'
 import { useProfileStore } from '@/store/profile'
 import type { HelperInfo, LastCall } from '@/types'
+import { ProfileMenu } from './ProfileMenu'
 
-/** The profile button. In development builds it opens a small menu showing which helper is
- * active (Meta AI or offline) and how the last Meta call went. Production builds have no menu. */
+/** The profile button. It opens a menu with the grown-up settings (drawing uploads); development
+ * builds add which helper is active (Meta AI or offline) and how the last Meta call went. */
 export function ProfileButton() {
   const profile = useProfileStore((s) => s.profile)
+  const turnOff = useProfileStore((s) => s.turnOffDrawingUploads)
   const name = profile?.display_name ?? ''
   const dev = import.meta.env.DEV
   const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [info, setInfo] = useState<HelperInfo | null>(null)
 
   const toggle = () => {
-    if (!dev) return
     setOpen(!open)
-    if (!open) {
+    if (!open && dev) {
       setInfo(null)
       void getHelperInfo()
         .then(setInfo)
@@ -28,8 +30,8 @@ export function ProfileButton() {
       <button
         type="button"
         aria-label="Profile and parent settings"
-        aria-expanded={dev ? open : undefined}
-        aria-haspopup={dev ? 'dialog' : undefined}
+        aria-expanded={open}
+        aria-haspopup="dialog"
         title={name}
         onClick={toggle}
         style={{ backgroundColor: profile?.avatar_color ?? 'var(--ck-rule)' }}
@@ -37,18 +39,26 @@ export function ProfileButton() {
       >
         {name.charAt(0)}
       </button>
-      {dev && open && (
-        <div
-          role="dialog"
-          aria-label="Developer info"
-          className="absolute top-13 right-0 z-50 flex w-72 flex-col gap-1.5 rounded-card border-3 border-ink bg-surface p-3.5 text-[14px] shadow-card"
-        >
-          <span className="text-[12px] font-extrabold tracking-wide text-muted uppercase">Dev only</span>
-          <span className="font-bold">
-            Helper: {info ? (info.source === 'meta' ? 'Meta AI' : 'Offline helper') : 'Checking…'}
-          </span>
-          <span className="font-semibold">Last Meta call: {info ? lastCall(info) : '…'}</span>
-        </div>
+      {open && (
+        <ProfileMenu
+          consentOn={Boolean(profile?.drawing_consent_at)}
+          busy={busy}
+          onTurnOff={() => {
+            setBusy(true)
+            void turnOff().finally(() => setBusy(false))
+          }}
+          dev={
+            dev && (
+              <div className="flex flex-col gap-1.5 border-t-3 border-rule pt-3">
+                <span className="text-[12px] font-extrabold tracking-wide text-muted uppercase">Dev only</span>
+                <span className="font-bold">
+                  Helper: {info ? (info.source === 'meta' ? 'Meta AI' : 'Offline helper') : 'Checking…'}
+                </span>
+                <span className="font-semibold">Last Meta call: {info ? lastCall(info) : '…'}</span>
+              </div>
+            )
+          }
+        />
       )}
     </div>
   )

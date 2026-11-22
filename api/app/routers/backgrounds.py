@@ -188,14 +188,3 @@ def lock_background(
         on_error=lambda _message: image_gen.mark_failed(engine, spec.id),
     )
     return JobStarted(job_id=job.id, kind="background_image", target_id=bg.id)
-
-
-@router.post("/{background_id}/unlock")
-def unlock_background(
-    background_id: str, session: SessionDep, user: UserDep, storage: StorageDep
-) -> BackgroundRead:
-    bg = get_background(session, user, background_id)
-    if bg.status == "generating":
-        raise _busy(bg)
-    bg.status = "draft"
-    return _save(session, bg, storage)
