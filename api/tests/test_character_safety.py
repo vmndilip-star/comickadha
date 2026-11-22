@@ -10,13 +10,12 @@ from sqlmodel import Session, col, select
 
 from app.avatar import spec as avatar_spec
 from app.avatar.catalog import load_catalog
-from app.avatar.migrate import has_off_list_traits, migrate_traits
-from app.models import Character, CharacterVersion, ModerationLog
+from app.models import ModerationLog
 from app.schemas.common import TRAITS
 from app.services.builder_create import SAFE_REPLY, choice_ok
 from app.services.character_safety import BODY_NOTE, RULE_BENDING, strip_body_words
 from app.services.safety import REAL_PERSON
-from tests.conftest import IDS, app_state
+from tests.conftest import app_state
 from tests.fakes import server_error, suggestion, use_meta, user_text
 
 CAT = load_catalog()
@@ -368,31 +367,3 @@ def test_normalize_keeps_listed_traits_and_the_catchphrase() -> None:
         }
     )
     assert spec["personality"] == {"traits": ["brave", "kind", "calm"], "catchphrase": "Hi!"}
-
-
-def test_old_traits_move_to_the_list(client: TestClient) -> None:
-    engine = app_state(client).engine
-    with Session(engine) as session:
-        mira = session.get(Character, IDS["mira"])
-        assert mira is not None
-        mira.spec = {
-            **mira.spec,
-            "personality": {"traits": ["grumpy", "brave", "loud"], "catchphrase": "Hi"},
-        }
-        session.add(mira)
-        frozen = session.exec(
-            select(CharacterVersion).where(CharacterVersion.character_id == IDS["mira"])
-        ).first()
-        assert frozen is not None
-        frozen.spec = {**frozen.spec, "personality": {"traits": ["grumpy"], "catchphrase": "Hi"}}
-        session.add(frozen)
-        session.commit()
-    assert has_off_list_traits(engine)
-
-    assert migrate_traits(engine) == 2
-
-    assert not has_off_list_traits(engine)
-    assert client.get(f"/api/characters/{IDS['mira']}").json()["spec"]["personality"]["traits"] == [
-        "brave"
-    ]
-    assert client.get(f"/api/comics/{IDS['mango']}").status_code == 200  # pinned looks still load

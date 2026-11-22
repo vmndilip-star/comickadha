@@ -12,9 +12,8 @@ from pydantic import BaseModel
 from sqlmodel import Session
 
 from app import __version__
-from app.avatar.migrate import has_off_list_traits, migrate_characters, migrate_traits
 from app.config import Settings, get_settings
-from app.db import has_old_character_specs, init_db, make_engine, missing_columns
+from app.db import init_db, make_engine, missing_columns
 from app.errors import install_error_handlers
 from app.prompts import load_all as load_prompts
 from app.providers import get_image_provider, get_llm_provider
@@ -22,7 +21,7 @@ from app.providers.image import ImageProvider
 from app.providers.mock import MockImageProvider
 from app.routers import backgrounds, builder, characters, comics, jobs, media, profile, studio
 from app.seed import seed
-from app.services import looks, recheck
+from app.services import recheck
 from app.services.backup import backup_storage
 from app.services.builder_sheet import BuilderSheets
 from app.services.character_sheet import ImageSheets, SheetProvider
@@ -86,26 +85,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         load_prompts()
         settings.storage_dir.mkdir(parents=True, exist_ok=True)
         engine = make_engine(settings.resolved_database_url)
-        # Back up the storage folder before changing an existing database (the newest 5 are kept).
-        migrating = (
-            missing_columns(engine)
-            or has_old_character_specs(engine)
-            or looks.needs_backfill(engine)
-            or has_off_list_traits(engine)
-        )
-        if migrating and not settings.database_url:
+        # Back up the storage folder before adding columns to an existing database (the newest 5
+        # are kept).
+        if missing_columns(engine) and not settings.database_url:
             backup_storage(settings.storage_dir, reason="before-migration")
         init_db(engine)
         if interrupted := fail_interrupted_jobs(engine):
             log.warning("marked %d interrupted job(s) as failed", interrupted)
-        if migrated := migrate_characters(engine):
-            log.info("moved %d character(s) to builder specs", migrated)
-        if retraited := migrate_traits(engine):
-            log.info("moved %d spec(s) to the trait list", retraited)
         app.state.engine = engine
         app.state.storage = LocalStorage(settings.media_dir)
-        if frozen := looks.backfill_versions(engine, app.state.storage):
-            log.info("froze the looks of %d locked sheet version(s)", frozen)
         app.state.sheet_provider = make_sheet_provider(settings, app.state.image_provider)
         app.state.jobs = JobRunner(engine, asyncio.get_running_loop())
         if settings.seed_on_startup:
