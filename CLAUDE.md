@@ -92,7 +92,7 @@ Run `gen:types` after any change to `api/app/schemas/` or a router signature, th
 - **Places**: `routers/backgrounds.py`, `services/image_gen.py` (paint → image check → save).
 - **Story and comics**: `story_planner.py` (scenes, then panels), `story_buddy.py`, `recheck.py` (decision 55), `stage.py` + `bubbles.py` (panel geometry), `compositor.py` (art, final.png, cover), `lettering.py`, `comic_maker.py` (Make my comic! job), `pdf_export.py`.
 - **Jobs and storage**: `services/jobs.py` (`JobRunner`, SSE with replay), `storage.py`, `backup.py`, `db.py` (`add_missing_columns`), `seed.py`.
-- **Web** (`web/src/`, React 19, Vite 6, TypeScript, Tailwind 4, React Router 7, Zustand 5): `api/` (typed fetch, `ApiError`), `store/` (data; autosave in `save.ts`), `pages/`, `components/{ui,layout,home,character,story,comic}`, `avatar/`, `lib/` (pure helpers), `types/`. Tokens in `styles/tokens.css`; use theme classes, raw hex only for data colours.
+- **Web** (`web/src/`, React 19, Vite 6, TypeScript, Tailwind 4, React Router 7, Zustand 5): `api/` (typed fetch, `ApiError`), `store/` (data; autosave in `save.ts`), `pages/` (the Lab, Create, Studio and Reader load lazily: `pages/lazyPages.tsx`), `components/{ui,layout,home,character,story,comic}`, `avatar/`, `lib/` (pure helpers), `types/`. Tokens in `styles/tokens.css`; use theme classes, raw hex only for data colours.
 - **Tests**: `api/tests/` (pytest; seeds once per session; `fakes.py` has fake Meta and Muse clients); Vitest next to the code.
 
 ## What each Meta prompt carries
@@ -110,7 +110,7 @@ Keep this table (full version in `docs/architecture.md`) current when a prompt c
 
 ## Decisions still in force (details in `docs/decisions.md`)
 
-Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92 · Places: 7, 8, 21, 90 · Studio: 6, 13, 44–47, 52, 53 · Comics and Reader: 2, 4, 5, 14, 23, 56–64 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
+Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93 · Places: 7, 8, 21, 90 · Studio: 6, 13, 44–47, 52, 53 · Comics and Reader: 2, 4, 5, 14, 23, 56–64 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
 
 ## Future features
 

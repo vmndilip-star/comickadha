@@ -8,7 +8,8 @@ current when the code changes.
 
 - `web/`: React 19, Vite 6, TypeScript (strict), Tailwind 4, React Router 7, Zustand 5.
   - Tokens: values live in `src/styles/tokens.css` (CSS variables); `tailwind.config.ts` maps theme names to them, loaded through `@config` in `src/styles/index.css`. Use theme classes (`bg-sun`, `shadow-card`, `rounded-card`, `border-3`, `font-display`). Raw hex is only for data colours (character and place tints).
-  - Components by area in `src/components/{ui,layout,home,character,story,comic}`, pages in `src/pages`, routes in `src/routes.tsx`.
+  - Components by area in `src/components/{ui,layout,home,character,story,comic}`, pages in `src/pages`, routes in `src/routes.tsx`. The Lab, Create character, Studio and Reader pages load on first visit (`src/pages/lazyPages.tsx`, decision 94).
+  - Profile menu (`components/layout/ProfileButton.tsx` + store-free `ProfileMenu.tsx`): the Grown-up section in every build ("Drawing uploads: on/off", "Turn off drawing uploads"); the helper info in development builds only (decision 93).
   - The Reader (`/comics/:id`) sits outside `PageShell` because it has its own `EditorTopBar`.
   - Data: `src/api/*` are typed fetch helpers (`client.ts` turns every error into an `ApiError` carrying the API's kid-friendly message). Zustand stores in `src/store` hold the data; `AppRoot` calls `loadAll()` once, and pages show `PageLoading` (comic-style skeleton, or a Try again card) until `useDataStatus()` is `ready`.
   - Autosave: store actions update the screen immediately and call `useSaveStore.schedule(key, job)`; the job runs 600ms after the last edit and sends the latest state. `editCounter()` stops a slow response overwriting newer typing. `SaveStatus` shows "Saving…" / "Saved automatically". Pending saves flush on `pagehide`, and mutating requests use `keepalive`.
