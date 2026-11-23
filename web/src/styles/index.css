@@ -67,6 +67,22 @@
   animation: ck-wiggle 900ms ease-in-out infinite;
 }
 
+@keyframes ck-line-in {
+  0% {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* The rotating waiting lines slide in (not for reduced motion). */
+@utility animate-line-in {
+  animation: ck-line-in 260ms ease-out both;
+}
+
 @keyframes ck-confetti {
   0% {
     transform: translateY(0) rotate(0deg);
@@ -86,6 +102,7 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-pop,
   .animate-wiggle,
+  .animate-line-in,
   .animate-confetti {
     animation: none;
   }

@@ -140,6 +140,75 @@ def check_scenes(plan: ScenePlan, ctx: StoryContext) -> list[str]:
     return problems
 
 
+THINKING = "thinking"
+OPENING_MAX = 2  # how many of a character's lines may start with the same two words
+
+
+def _words_of(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9']+", text.lower())
+
+
+def opening(text: str) -> str:
+    """How a line starts: its first two words, lower case, without punctuation."""
+    return " ".join(_words_of(text)[:2])
+
+
+def uses_catchphrase(text: str, catchphrase: str) -> bool:
+    phrase = " ".join(_words_of(catchphrase))
+    return bool(phrase) and f" {phrase} " in f" {' '.join(_words_of(text))} "
+
+
+def dialogue_problems(plan: PanelPlan, ctx: StoryContext) -> list[str]:
+    """The rules that keep dialogue fresh (Phase 7, A3 and A5), for the whole comic:
+    - a character in the thinking pose has a think bubble or none (never talk or shout);
+    - each character's catchphrase at most once in the comic;
+    - the same two opening words start at most OPENING_MAX of a character's lines, and never two of
+      their lines in a row."""
+    problems: list[str] = []
+    said: dict[str, list[tuple[int, str]]] = {}
+    for i, panel in enumerate(plan.panels, start=1):
+        thinking = {c.id for c in panel.characters if c.pose == THINKING}
+        for b in panel.bubbles:
+            if b.speaker == NARRATOR:
+                continue
+            if b.speaker in thinking and b.type in ("talk", "shout"):
+                name = member.name if (member := ctx.member(b.speaker)) else b.speaker
+                problems.append(
+                    f"panel {i}: {name} is in the thinking pose, so their bubble must be a think "
+                    "bubble (or no bubble)"
+                )
+            said.setdefault(b.speaker, []).append((i, b.text))
+    for member in ctx.cast:
+        lines = said.get(member.id, [])
+        if member.catchphrase.strip():
+            used = [i for i, text in lines if uses_catchphrase(text, member.catchphrase)]
+            if len(used) > 1:
+                problems.append(
+                    f"{member.name}'s catchphrase is used in panels {', '.join(map(str, used))}: "
+                    "use it at most once in the whole comic"
+                )
+        counts: dict[str, list[int]] = {}
+        previous = ""
+        for i, text in lines:
+            start = opening(text)
+            if not start:
+                continue
+            if start == previous:
+                problems.append(
+                    f"panel {i}: {member.name}'s line starts like their last one ({start!r}): "
+                    "start it differently"
+                )
+            counts.setdefault(start, []).append(i)
+            previous = start
+        for start, panels in counts.items():
+            if len(panels) > OPENING_MAX:
+                problems.append(
+                    f"{member.name} starts {len(panels)} lines with {start!r} (panels "
+                    f"{', '.join(map(str, panels))}): use those words at most {OPENING_MAX} times"
+                )
+    return problems
+
+
 def check_panels(plan: PanelPlan, ctx: StoryContext) -> list[str]:
     problems: list[str] = []
     poses, expressions = set(catalog_poses()), set(catalog_expressions())
@@ -169,7 +238,7 @@ def check_panels(plan: PanelPlan, ctx: StoryContext) -> list[str]:
                 problems.append(f"panel {i}: only the narrator uses narrator bubbles")
             if words(b.text) > MAX_WORDS:
                 problems.append(f"panel {i}: bubble text must be {MAX_WORDS} words or fewer")
-    return problems
+    return problems + dialogue_problems(plan, ctx)
 
 
 def validation_problems(error: ValidationError) -> list[str]:
@@ -258,7 +327,8 @@ def _template_summary(i: int, n: int, members: list[CastMember], place: Place) -
     return f"Something surprising happens at {place.name}!"
 
 
-# Keyword rules: (word starts, pose, expression, line, bubble type).
+# Keyword rules: (word starts, pose, expression, line, bubble type). Each rule's lines are in
+# LINES below: several, each starting differently, so long comics don't repeat themselves (A5).
 RULES: list[tuple[tuple[str, ...], str, str, str, str]] = [
     (("scare", "afraid", "monster", "ghost", "dark", "spook", "scream", "shiver"),
      "scared_pose", "scared", "What was that?!", "shout"),
@@ -283,6 +353,20 @@ RULES: list[tuple[tuple[str, ...], str, str, str, str]] = [
     (("sit", "rest", "picnic", "eat", "lunch", "snack"),
      "sit", "happy", "Time for a snack!", "talk"),
 ]  # fmt: skip
+# More lines for each rule's first line, every one starting with different words.
+LINES: dict[str, list[str]] = {
+    "What was that?!": ["Did you hear that?", "Eek! Something moved!", "Stay close to me!"],
+    "Look what I found!": ["Hey, come and see!", "Over here, a clue!", "Wow, check this out!"],
+    "Ha ha! This is the best!": ["That's so funny!", "Hee hee, stop it!", "Best day ever!"],
+    "Hooray! We did it!": ["Yes! We solved it!", "Woo-hoo, we won!", "Three cheers for us!"],
+    "Oh no... where did it go?": ["This is so sad.", "I really miss it.", "Where could it be?"],
+    "Hmph! That's not fair!": ["Hey, that's mine!", "Not again!", "That makes me cross!"],
+    "Hmm... I have an idea.": ["What if we try this?", "Let me think...", "Maybe it's nearby?"],
+    "Quick, this way!": ["Run, run, run!", "Hurry up, everyone!", "Faster, we're close!"],
+    "Let's go and see!": ["Follow me, team!", "This way, friends!", "Keep going, nearly there!"],
+    "Hello, everyone!": ["Hi there, friends!", "Welcome, welcome!", "Nice to meet you!"],
+    "Time for a snack!": ["Yum, I'm hungry!", "Pass the sandwiches, please!", "Picnic time!"],
+}
 
 OPENERS = {
     "mystery": "Something strange was happening at {place}...",
@@ -290,7 +374,11 @@ OPENERS = {
     "adventure": "An adventure was about to begin at {place}!",
     "spooky": "It was a spooky evening at {place}...",
 }
-EXTRA_LINES = ["Let's do this!", "What should we do next?", "Come on, follow me!", "I knew it!"]
+EXTRA_LINES = [
+    "Let's do this!", "What should we do next?", "Come on, follow me!", "I knew it!",
+    "That was close!", "Good thinking!", "Wait for me!", "You can do it!", "Watch this!",
+    "Are you ready?", "We make a great team!", "Just one more try!",
+]  # fmt: skip
 CLOSERS = {
     "mystery": "And that is how the mystery was solved!",
     "funny": "Everyone laughed all the way home. The end!",
@@ -332,11 +420,59 @@ def _beats(
     return [_capitalised(_shorten(p, 100)) for p in (parts + extra)[:k]]
 
 
+class Voices:
+    """What each character has said so far, so the offline planner keeps the dialogue rules: a
+    catchphrase once, the same two opening words at most OPENING_MAX times, never twice in a row."""
+
+    def __init__(self) -> None:
+        self.openings: dict[str, list[str]] = {}
+        self.catchphrase_said: set[str] = set()
+
+    def fresh(self, speaker: str, text: str) -> bool:
+        start = opening(text)
+        used = self.openings.get(speaker, [])
+        return bool(start) and (not used or used[-1] != start) and used.count(start) < OPENING_MAX
+
+    def say(self, speaker: str, text: str) -> None:
+        self.openings.setdefault(speaker, []).append(opening(text))
+
+    def pick(self, speaker: str, options: list[str]) -> str | None:
+        """The first option that keeps the rules (then remembered), or None if none does."""
+        for text in options:
+            if self.fresh(speaker, text):
+                self.say(speaker, text)
+                return text
+        return None
+
+
+def _speech(
+    lead: CastMember, line: str | None, kind: str, index: int, voices: Voices, beat: str
+) -> PlannedBubble:
+    """The lead's bubble: their catchphrase once (if the beat has no line of its own), else a fresh
+    line. When every line is used up, the narrator tells the beat instead."""
+    catchphrase = lead.catchphrase if 0 < words(lead.catchphrase) <= MAX_WORDS else ""
+    fresh = catchphrase and lead.id not in voices.catchphrase_said
+    if not line and fresh and voices.fresh(lead.id, catchphrase):
+        voices.catchphrase_said.add(lead.id)
+        voices.say(lead.id, catchphrase)
+        return PlannedBubble(speaker=lead.id, type="talk", text=clip_words(catchphrase))
+    if line:
+        options = [line, *LINES.get(line, [])]
+    else:
+        start = index % len(EXTRA_LINES)
+        options = EXTRA_LINES[start:] + EXTRA_LINES[:start]
+        kind = "talk"
+    said = voices.pick(lead.id, options)
+    if said is None:
+        return PlannedBubble(speaker=NARRATOR, type="narrator", text=clip_words(beat + "."))
+    return PlannedBubble(speaker=lead.id, type=kind, text=clip_words(said))
+
+
 def offline_panels(ctx: StoryContext) -> PanelPlan:
     scenes = ctx.scenes
     counts = [len(group) for group in split_into(list(range(ctx.panel_count)), len(scenes))]
     panels: list[PlannedPanel] = []
-    said_catchphrase: set[str] = set()
+    voices = Voices()
     for scene, count in zip(scenes, counts, strict=True):
         members = [m for cid in scene.character_ids if (m := ctx.member(cid))][:3] or ctx.cast[:1]
         place = ctx.place(scene.background_id) or Place(scene.background_id, "the scene")
@@ -363,18 +499,12 @@ def offline_panels(ctx: StoryContext) -> PanelPlan:
                 text = CLOSERS.get(ctx.mood, CLOSERS["adventure"])
                 bubble = PlannedBubble(speaker=NARRATOR, type="narrator", text=text)
             else:
-                # A catchphrase once per character; after that, a varied line.
-                catchphrase = lead.catchphrase if 0 < words(lead.catchphrase) <= MAX_WORDS else ""
-                if not line and catchphrase and lead.id not in said_catchphrase:
-                    said_catchphrase.add(lead.id)
-                    said = catchphrase
-                else:
-                    said = line or EXTRA_LINES[index % len(EXTRA_LINES)]
-                bubble = PlannedBubble(
-                    speaker=lead.id,
-                    type=kind if line else "talk",
-                    text=clip_words(said),
-                )
+                bubble = _speech(lead, line, kind, index, voices, beat)
+                # A thinking character thinks in a cloud (A3): never a talk or shout bubble.
+                if lead.id == bubble.speaker and bubble.type in ("talk", "shout"):
+                    for c in characters:
+                        if c.id == lead.id and c.pose == THINKING:
+                            bubble = bubble.model_copy(update={"type": "think"})
             panels.append(
                 PlannedPanel(scene_id=scene.id, beat=beat, characters=characters, bubbles=[bubble])
             )

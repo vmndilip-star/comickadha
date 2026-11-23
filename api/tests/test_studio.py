@@ -390,6 +390,13 @@ def scene_reply(*members: str) -> dict[str, Any]:
     }
 
 
+# Varied lines: the dialogue rules (Phase 7, A5) reject a character starting every line alike.
+LINES = [
+    "Look at this!", "Wow, a clue!", "Over here!", "Come and see!", "What is that?",
+    "We did it!", "Follow me!", "Is it here?", "Nearly there!", "Hooray for us!",
+]  # fmt: skip
+
+
 def panel_reply(scenes: list[dict[str, Any]], count: int = 6) -> dict[str, Any]:
     return {
         "panels": [
@@ -404,7 +411,9 @@ def panel_reply(scenes: list[dict[str, Any]], count: int = 6) -> dict[str, Any]:
                         "position": "left",
                     }
                 ],
-                "bubbles": [{"speaker": IDS["mira"], "type": "talk", "text": "Look at this!"}],
+                "bubbles": [
+                    {"speaker": IDS["mira"], "type": "talk", "text": LINES[i % len(LINES)]}
+                ],
             }
             for i in range(count)
         ]
@@ -509,3 +518,19 @@ def test_fake_meta_counts_safety_calls(client: TestClient) -> None:
 
     names = [schema_of(c)["name"] for c in fake.calls]
     assert names.index("safety_verdicts") < names.index("scene_plan")
+
+
+# ---- Phase 7 A4: locking from the Studio unblocks planning --------------------------------------
+
+
+def test_locking_a_picked_character_from_the_studio_unblocks_planning(client: TestClient) -> None:
+    from tests.conftest import wait_for_job
+
+    comic_id = new_comic(client, cast=("robo",))
+    blocked = plan(client, comic_id, "scenes")
+    assert (blocked.status_code, blocked.json()["code"]) == (409, "needs_locked")
+
+    job = client.post(f"/api/characters/{IDS['robo']}/lock").json()["job_id"]  # "Lock Robo-Tik now"
+    assert wait_for_job(client, job)["status"] == "done"
+
+    assert plan(client, comic_id, "scenes").status_code == 200

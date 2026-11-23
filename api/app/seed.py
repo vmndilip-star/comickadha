@@ -4,6 +4,7 @@
 `uv run python -m app.seed` resets the database and media files back to this data.
 """
 
+import sys
 import uuid
 from datetime import timedelta
 from typing import Any
@@ -12,7 +13,7 @@ from sqlalchemy import delete
 from sqlmodel import Session
 
 from app.avatar import spec as avatar_spec
-from app.config import get_settings
+from app.config import Settings, get_settings
 from app.db import init_db, make_engine
 from app.models import (
     Background,
@@ -26,12 +27,16 @@ from app.models import (
     User,
 )
 from app.models.base import utcnow
+from app.providers import get_image_provider, get_llm_provider
 from app.providers.image import ImageProvider
+from app.providers.llm import LLMProvider
 from app.providers.mock import MockImageProvider
-from app.services import looks
+from app.services import looks, safety
+from app.services.backup import backup_storage
 from app.services.builder_sheet import BuilderSheets
 from app.services.character_sheet import SheetProvider, SheetSpec
-from app.services.image_gen import PlaceSpec, build_place
+from app.services.image_gen import PlaceSpec, build_place, place_check, save_place
+from app.services.jobs import JobFailed
 from app.services.storage import LocalStorage, Storage
 
 # Fixed namespace so seeded ids (and URLs) stay the same after every reset.
@@ -518,8 +523,71 @@ def seed(
     return True
 
 
+def paint_places(
+    settings: Settings,
+    *,
+    llm: LLMProvider | None = None,
+    provider: ImageProvider | None = None,
+) -> list[str]:
+    """seed --paint: repaints the 3 demo places with the real image model (IMAGE_PROVIDER=muse)
+    through the normal place checks: the classifier on the words, then the image check on every
+    picture. Backs up the storage folder first. Returns a line per place.
+
+    No place versions yet (decision 90), so a panel using one of them shows the new picture the
+    next time it is drawn: fine for the demo places, which are placeholder art."""
+    if settings.image_provider == "mock":
+        raise SystemExit(
+            "seed --paint needs a real image model: set IMAGE_PROVIDER=muse (with "
+            "LLM_PROVIDER=meta and META_IMAGE_MODEL) in .env. The mock would only paint "
+            "placeholder art again."
+        )
+    llm = llm or get_llm_provider(settings)
+    provider = provider or get_image_provider(settings)
+    if llm is None:  # get_image_provider refuses muse without meta; fail closed anyway
+        raise SystemExit("seed --paint needs LLM_PROVIDER=meta to check the words and pictures.")
+    engine = make_engine(settings.resolved_database_url)
+    storage = LocalStorage(settings.media_dir)
+    backup_storage(settings.storage_dir, reason="before-paint")
+    report: list[str] = []
+    for place_id in (KITCHEN, GARDEN, SPACE):
+        with Session(engine) as session:
+            bg = session.get(Background, place_id)
+            if bg is None or bg.deleted_at is not None:
+                report.append(f"{place_id}: not there (deleted or never seeded), skipped")
+                continue
+            try:
+                verdict = safety.check_and_log(
+                    session,
+                    bg.user_id,
+                    f"background:{bg.id}",
+                    {"name": bg.name, "description": bg.description},
+                    llm,
+                )
+            except safety.SafetyUnavailable:
+                report.append(f"{bg.name}: the safety helper didn't answer, nothing sent")
+                continue
+            if not verdict.allowed:
+                report.append(f"{bg.name}: its words didn't pass the checks, nothing sent")
+                continue
+            spec = PlaceSpec.of(bg, version=bg.version + 1)
+            user_id = bg.user_id
+        try:
+            check = place_check(engine, spec, provider, llm, user_id)
+            keys = build_place(spec, provider, storage, _quiet, check)
+        except JobFailed as failed:
+            report.append(f"{spec.name}: {failed.message}")
+            continue
+        save_place(engine, spec, keys)
+        report.append(f"{spec.name}: painted (version {spec.version})")
+    return report
+
+
 def main() -> None:
     settings = get_settings()
+    if "--paint" in sys.argv[1:]:
+        for line in paint_places(settings):
+            print(line)
+        return
     settings.storage_dir.mkdir(parents=True, exist_ok=True)
     engine = make_engine(settings.resolved_database_url)
     init_db(engine)

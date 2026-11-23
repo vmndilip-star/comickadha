@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import type { Bubble } from '@/types'
-import { PANEL_H, PANEL_W, fallbackBoxes, moveBox, resizeBox, tailWedge, thinkTrail, type Box } from './bubbles'
+import {
+  PANEL_H,
+  PANEL_W,
+  SHOUT_OUTLINE,
+  SHOUT_TEXT,
+  fallbackBoxes,
+  moveBox,
+  resizeBox,
+  starburst,
+  tailWedge,
+  thinkTrail,
+  type Box,
+} from './bubbles'
 
 const bubble = (id: string, patch: Partial<Bubble> = {}): Bubble => ({
   id,
@@ -77,5 +89,38 @@ describe('dragging', () => {
     expect(resizeBox(box, 80, 30, 400, 300)).toEqual([0.2, 0.1, 0.6, 0.25])
     expect(resizeBox(box, -4000, -4000, 400, 300)).toEqual([0.2, 0.1, 0.16, 0.08])
     expect(resizeBox(box, 4000, 4000, 400, 300)).toEqual([0.2, 0.1, 0.8, 0.9])
+  })
+})
+
+describe('shout words', () => {
+  // The burst outline as points in the bubble's own 0-1 box (its SVG is stretched over SHOUT_OUTLINE).
+  const burst = starburst()
+    .split(' ')
+    .map((pair: string) => pair.split(',').map(Number) as [number, number])
+    .map(([x, y]): [number, number] => [
+      (SHOUT_OUTLINE.left + (x / 100) * SHOUT_OUTLINE.width) / 100,
+      (SHOUT_OUTLINE.top + (y / 100) * SHOUT_OUTLINE.height) / 100,
+    ])
+  const inside = ([px, py]: [number, number]) => {
+    let hit = false
+    for (let i = 0, j = burst.length - 1; i < burst.length; j = i++) {
+      const [xi, yi] = burst[i]!
+      const [xj, yj] = burst[j]!
+      if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) hit = !hit
+    }
+    return hit
+  }
+
+  it('fit inside the burst, never over the spikes', () => {
+    const [w, h] = [SHOUT_TEXT.width / 2, SHOUT_TEXT.height / 2]
+    for (const corner of [[0.5 - w, 0.5 - h], [0.5 + w, 0.5 - h], [0.5 - w, 0.5 + h], [0.5 + w, 0.5 + h]] as [number, number][]) {
+      expect(inside(corner)).toBe(true)
+    }
+  })
+
+  it('use the same box as the server lettering', () => {
+    // api/app/services/lettering.py: BURST_VALLEYS / sqrt(2) * 0.95 (tips 1.16 x 1.44, valleys 0.82 of them).
+    expect(SHOUT_TEXT.width).toBeCloseTo(((1.16 * 0.82) / Math.SQRT2) * 0.95, 3)
+    expect(SHOUT_TEXT.height).toBeCloseTo(((1.44 * 0.82) / Math.SQRT2) * 0.95, 3)
   })
 })

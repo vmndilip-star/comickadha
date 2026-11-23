@@ -1,8 +1,9 @@
-import { Link } from 'react-router'
 import { Avatar } from '@/components/character/Avatar'
 import { cn } from '@/lib/cn'
-import { joinWithAnd } from '@/lib/format'
+import { useCastStore } from '@/store/cast'
+import { useJob } from '@/store/jobs'
 import type { Character } from '@/types'
+import { LockNowRow } from './LockNowRow'
 
 interface CastPickerProps {
   characters: Character[]
@@ -47,15 +48,24 @@ export function CastPicker({ characters, selectedIds, onChange }: CastPickerProp
           )
         })}
       </div>
-      {unlocked.length > 0 && (
-        <p className="m-0 text-label font-semibold text-muted">
-          {joinWithAnd(unlocked.map((c) => c.name))} {unlocked.length === 1 ? 'is' : 'are'} still being designed.{' '}
-          <Link to={`/characters/${unlocked[0]?.id ?? ''}`} className="font-extrabold">
-            Lock them in the Character Lab
-          </Link>{' '}
-          before you make the comic.
-        </p>
-      )}
+      {unlocked.map((c) => (
+        <CastLockRow key={c.id} character={c} />
+      ))}
     </div>
+  )
+}
+
+/** Locks a picked character from the Studio (the same Lock job as the Lab), showing its progress. */
+function CastLockRow({ character }: { character: Character }) {
+  const setLocked = useCastStore((s) => s.setLocked)
+  const job = useJob(character.status === 'generating' ? character.last_job_id : null)
+  return (
+    <LockNowRow
+      name={character.name}
+      status={character.status}
+      progress={job?.progress ?? 0}
+      labHref={`/characters/${character.id}`}
+      onLock={() => void setLocked(character.id, true)}
+    />
   )
 }

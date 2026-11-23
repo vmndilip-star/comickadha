@@ -22,6 +22,8 @@ npm run dev
 
 Reset to the demo data (one kid, 3 characters, 3 places, 3 comics): `uv run python -m app.seed` from `api/`.
 
+The demo places start as placeholder art. With Meta switched on (see below), `uv run python -m app.seed --paint` repaints them with Muse Image through the same checks as Lock (about $0.01–0.02 a place; it backs up `api/storage` first and refuses to run with `IMAGE_PROVIDER=mock`).
+
 Or with Docker Desktop running: `docker compose up --build`.
 
 To change settings, copy `.env.example` to `.env`.

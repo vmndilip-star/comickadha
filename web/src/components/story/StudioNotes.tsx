@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/Button'
+import { RotatingLine } from '@/components/ui/RotatingLine'
 import { leftOutNote } from '@/lib/studio'
 import type { PlanNote } from '@/store/studio'
 import { PlaceDialog } from './PlaceDialog'
@@ -16,7 +17,7 @@ function Pencil() {
 }
 
 /** Comic-style "thinking" overlay over the step while the planner works. */
-export function PlanningLoader({ text }: { text: string }) {
+export function PlanningLoader({ text, lines = [] }: { text: string; lines?: string[] }) {
   return (
     <div
       role="status"
@@ -27,6 +28,7 @@ export function PlanningLoader({ text }: { text: string }) {
       <p className="halftone-sun m-0 rounded-card border-3 border-ink bg-sun px-5 py-3 font-display text-[28px] tracking-[1px] shadow-card">
         {text}
       </p>
+      <RotatingLine lines={lines} className="text-lg" />
     </div>
   )
 }

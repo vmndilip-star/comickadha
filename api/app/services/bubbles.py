@@ -77,7 +77,9 @@ def layout(
         kind = str(bubble.get("type", "talk"))
         w = SPEECH_W
         h = fitted_height(str(bubble.get("text", "")), kind, w)
-        x = min(max(tip[0] - w / 2, MARGIN), 1 - MARGIN - w)
+        # A shout's spikes reach past its box (lettering.BURST_TIPS): keep them inside the panel.
+        edge = MARGIN + (w * (lettering.BURST_TIPS[0] - 1) / 2 if kind == "shout" else 0)
+        x = min(max(tip[0] - w / 2, edge), 1 - edge - w)
         placed[str(bubble["id"])] = {
             **bubble,
             "box": (round(x, 4), round(y, 4), w, h),

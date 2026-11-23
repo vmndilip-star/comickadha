@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { Avatar } from '@/components/character/Avatar'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { ThumbPicker } from '@/components/ui/ThumbPicker'
 import { cn } from '@/lib/cn'
 import { lookFor } from '@/lib/comic'
 import { BUBBLE_LABEL, EXPRESSION_LABEL, POSE_LABEL } from '@/lib/labels'
-import { MAX_BUBBLE_WORDS, moveCharacter, wordCount } from '@/lib/studio'
+import { blockedTypes, MAX_BUBBLE_WORDS, moveCharacter, speakerPatch, THINKING_HINT, thinkingNote, withPose, wordCount } from '@/lib/studio'
 import { useFieldError } from '@/store/fieldErrors'
 import {
   BUBBLE_TYPES,
@@ -136,6 +137,7 @@ interface PanelEditorProps {
 }
 
 function PanelEditor({ panel, looks, cast, onChange, nameOf }: PanelEditorProps) {
+  const [note, setNote] = useState<string | null>(null)
   const setBubble = (id: string, patch: Partial<Bubble>) =>
     onChange((p) => ({ ...p, bubbles: p.bubbles.map((b) => (b.id === id ? { ...b, ...patch } : b)) }))
   const setCharacter = (id: string, patch: Partial<PanelCharacter>) =>
@@ -165,7 +167,11 @@ function PanelEditor({ panel, looks, cast, onChange, nameOf }: PanelEditorProps)
               label={`${character.name}'s pose`}
               options={POSES.map((p) => ({ id: p, label: POSE_LABEL[p] }))}
               selected={pc.pose}
-              onSelect={(pose) => setCharacter(pc.id, { pose: pose as PanelCharacter['pose'] })}
+              onSelect={(pose) => {
+                const next = pose as PanelCharacter['pose']
+                setNote(withPose(panel, pc.id, next).switched ? thinkingNote(character.name) : null)
+                onChange((p) => withPose(p, pc.id, next).panel)
+              }}
               render={(p) => <Avatar spec={look} pose={p} expression={pc.expression} size={48} />}
             />
             <div role="group" aria-label={`Where ${character.name} stands`} className="flex flex-wrap gap-1.5">
@@ -188,6 +194,11 @@ function PanelEditor({ panel, looks, cast, onChange, nameOf }: PanelEditorProps)
         )
       })}
       <FieldMessage message={positionError} />
+      {note && (
+        <p role="status" className="m-0 rounded-card border-3 border-ink bg-sky-tint p-2.5 text-label font-bold">
+          {note}
+        </p>
+      )}
     </div>
   )
 }
@@ -208,6 +219,7 @@ function BubbleEditor({
   const error = useFieldError(`bubbles.${bubble.id}.text`)
   const words = wordCount(bubble.text)
   const speakers = panel.characters.map((c) => c.id)
+  const blocked = blockedTypes(panel, bubble.speaker)
   const setType = (type: BubbleType) => {
     if (type === 'narrator') onChange({ type, speaker: NARRATOR })
     else onChange({ type, speaker: bubble.speaker === NARRATOR ? (speakers[0] ?? NARRATOR) : bubble.speaker })
@@ -223,13 +235,19 @@ function BubbleEditor({
             key={type}
             type="button"
             aria-pressed={bubble.type === type}
+            disabled={blocked.includes(type)}
+            title={blocked.includes(type) ? THINKING_HINT : undefined}
             onClick={() => setType(type)}
-            className={cn('min-h-10 rounded-pill border-3 border-ink px-3 text-[14px] font-extrabold', bubble.type === type ? 'bg-sun' : 'bg-surface')}
+            className={cn(
+              'min-h-10 rounded-pill border-3 border-ink px-3 text-[14px] font-extrabold disabled:opacity-40',
+              bubble.type === type ? 'bg-sun' : 'bg-surface',
+            )}
           >
             {BUBBLE_LABEL[type]}
           </button>
         ))}
       </div>
+      {blocked.length > 0 && <p className="m-0 text-label font-bold text-muted">{THINKING_HINT}</p>}
       {bubble.type !== 'narrator' && speakers.length > 1 && (
         <div role="group" aria-label={`Who says bubble ${index + 1}`} className="flex flex-wrap gap-1.5">
           {speakers.map((id) => (
@@ -237,7 +255,7 @@ function BubbleEditor({
               key={id}
               type="button"
               aria-pressed={bubble.speaker === id}
-              onClick={() => onChange({ speaker: id })}
+              onClick={() => onChange(speakerPatch(panel, bubble, id))}
               className={cn('min-h-10 rounded-pill border-2 border-ink px-3 text-[14px] font-bold', bubble.speaker === id ? 'bg-mint' : 'bg-surface')}
             >
               {nameOf(id)}

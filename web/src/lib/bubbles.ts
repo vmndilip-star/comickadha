@@ -106,6 +106,15 @@ export function starburst(count = 18): string {
   return points.join(' ')
 }
 
+/**
+ * The shout burst, the same shape as the server's lettering (api/app/services/lettering.py): the
+ * outline's box around the bubble (percent of the bubble), drawn by starburst() (tips at 50, valleys
+ * at 41 of 100), and the box the words fit in, inside the valleys (a share of the bubble's width and
+ * height, centred). If the words don't fit there at the smallest size, the burst grows taller.
+ */
+export const SHOUT_OUTLINE = { left: -8, top: -22, width: 116, height: 144 }
+export const SHOUT_TEXT = { width: 0.639, height: 0.7932 }
+
 /** The think outline: bumps around an ellipse, in a 100 x 100 box (stretched over the bubble). */
 export function cloudBumps(count = 12): { cx: number; cy: number; r: number }[] {
   return Array.from({ length: count }, (_, i) => {

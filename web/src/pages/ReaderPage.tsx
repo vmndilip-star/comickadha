@@ -10,7 +10,7 @@ import { Confetti } from '@/components/ui/Confetti'
 import { SaveStatus } from '@/components/ui/SaveStatus'
 import type { Box } from '@/lib/bubbles'
 import { castFor, placesFor } from '@/lib/comic'
-import { moveCharacter } from '@/lib/studio'
+import { moveCharacter, withPose } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
@@ -204,10 +204,11 @@ export function ReaderPage() {
                 }))
               }
               onCharacter={(characterId, patch) =>
-                changeCharacters(panel, (p) => ({
-                  ...p,
-                  characters: p.characters.map((c) => (c.id === characterId ? { ...c, ...patch } : c)),
-                }))
+                changeCharacters(panel, (p) => {
+                  const next = { ...p, characters: p.characters.map((c) => (c.id === characterId ? { ...c, ...patch } : c)) }
+                  // A thinking character only thinks: their talk and shout bubbles become thoughts.
+                  return patch.pose ? withPose(next, characterId, patch.pose).panel : next
+                })
               }
               onPosition={(characterId, position) =>
                 changeCharacters(panel, (p) => ({ ...p, characters: moveCharacter(p.characters, characterId, position) }))

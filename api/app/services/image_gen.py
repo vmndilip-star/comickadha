@@ -138,18 +138,33 @@ async def run_place_job(
     user_id: str = "",
 ) -> dict[str, Any]:
     """Job work for POST /backgrounds/{id}/lock."""
-    check: Check | None = None
-    if needs_image_check(provider):
-        if llm is None:  # startup refuses this; fail closed anyway
-            raise JobFailed(CHECKER_RESTING.format(name=spec.name))
-        checker = llm
-
-        def check(png: bytes) -> Verdict:
-            with Session(engine) as session:
-                target = f"background:{spec.id}:v{spec.version}"
-                return safety.check_image(session, user_id, target, png, checker)
-
+    check = place_check(engine, spec, provider, llm, user_id)
     keys = await ctx.run(build_place, spec, provider, storage, ctx.emit_threadsafe, check)
+    save_place(engine, spec, keys)
+    return {"target_id": spec.id, "version": spec.version}
+
+
+def place_check(
+    engine: Engine, spec: PlaceSpec, provider: ImageProvider, llm: LLMProvider | None, user_id: str
+) -> Check | None:
+    """The image check for a real model's pictures (None for the mock's). Fails closed without an
+    LLM (startup refuses that set-up anyway)."""
+    if not needs_image_check(provider):
+        return None
+    if llm is None:
+        raise JobFailed(CHECKER_RESTING.format(name=spec.name))
+    checker = llm
+
+    def check(png: bytes) -> Verdict:
+        with Session(engine) as session:
+            target = f"background:{spec.id}:v{spec.version}"
+            return safety.check_image(session, user_id, target, png, checker)
+
+    return check
+
+
+def save_place(engine: Engine, spec: PlaceSpec, keys: dict[str, str]) -> None:
+    """The painted picture becomes the place's reference: locked at the new version."""
     with Session(engine) as session:
         bg = session.get(Background, spec.id)
         if bg is None:
@@ -161,7 +176,6 @@ async def run_place_job(
         bg.updated_at = utcnow()
         session.add(bg)
         session.commit()
-    return {"target_id": spec.id, "version": spec.version}
 
 
 def mark_failed(engine: Engine, background_id: str) -> None:

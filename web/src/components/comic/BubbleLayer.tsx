@@ -20,6 +20,8 @@ import {
   isNarrator,
   moveBox,
   resizeBox,
+  SHOUT_OUTLINE as BURST,
+  SHOUT_TEXT,
   starburst,
   tailWedge,
   thinkTrail,
@@ -50,7 +52,13 @@ interface Drag {
 const STAR = starburst()
 const CLOUD = cloudBumps()
 // The spikes and cloud bumps reach past the text box, as in final.png.
-const SHOUT_OUTLINE: CSSProperties = { left: '-8%', top: '-22%', width: '116%', height: '144%' }
+const SHOUT_OUTLINE: CSSProperties = {
+  left: `${BURST.left}%`,
+  top: `${BURST.top}%`,
+  width: `${BURST.width}%`,
+  height: `${BURST.height}%`,
+}
+const SHOUT_WORDS: CSSProperties = { maxWidth: `${SHOUT_TEXT.width * 100}%` }
 const THINK_OUTLINE: CSSProperties = { left: '-6%', top: '-14%', width: '112%', height: '128%' }
 const TEXT: Record<Bubble['type'], string> = {
   talk: 'font-body font-extrabold',
@@ -181,16 +189,21 @@ function BubbleBody({ bubble, box, editable, selected, onSelect, onHeight }: Bub
   const kind = bubble.type
 
   // Lettering: the biggest step whose text fits the box; at the smallest, the bubble grows.
+  // Shout words fit inside the burst's valleys (SHOUT_TEXT), and the burst grows to keep them there.
   useLayoutEffect(() => {
     const el = body.current
     const words = text.current
     const parent = el?.parentElement
     if (!el || !words || !parent) return
-    const room = h * parent.clientHeight
+    const shout = kind === 'shout'
+    el.style.minHeight = `${h * 100}%`
+    const room = h * parent.clientHeight * (shout ? SHOUT_TEXT.height : 1)
     for (const step of FONT_STEPS) {
       el.style.fontSize = fontSize(step)
-      if (words.offsetHeight + (el.offsetHeight - el.clientHeight) + 2 * padding(el) <= room) break
+      const needed = shout ? words.offsetHeight : words.offsetHeight + (el.offsetHeight - el.clientHeight) + 2 * padding(el)
+      if (needed <= room) break
     }
+    if (shout && words.offsetHeight > room) el.style.minHeight = `${words.offsetHeight / SHOUT_TEXT.height}px`
     if (parent.clientHeight) onHeight(el.offsetHeight / parent.clientHeight)
   })
 
@@ -233,7 +246,7 @@ function BubbleBody({ bubble, box, editable, selected, onSelect, onHeight }: Bub
           <ellipse cx={50} cy={50} rx={40} ry={36} fill="white" />
         </svg>
       )}
-      <span ref={text} className={cn('relative', TEXT[kind])}>
+      <span ref={text} className={cn('relative', TEXT[kind])} style={kind === 'shout' ? SHOUT_WORDS : undefined}>
         {bubble.text}
       </span>
       {selected && (

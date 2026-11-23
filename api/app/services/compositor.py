@@ -69,12 +69,17 @@ def render_art(
 # ---- final.png: bubbles lettered in --------------------------------------------------------
 
 
+# Bumped when the lettering itself changes (2: shout words fit inside the burst, Phase 7), so every
+# final.png baked before re-letters itself the next time it is asked for.
+LETTERING_VERSION = 2
+
+
 def final_hash(art_key: str | None, art_version: int | None, bubbles: list[dict[str, Any]]) -> str:
     """What final.png is made from; when this changes, final.png is stale."""
     keep = [
         {k: b.get(k) for k in ("id", "speaker", "type", "text", "box", "tail")} for b in bubbles
     ]
-    blob = json.dumps([art_key, art_version, keep], sort_keys=True)
+    blob = json.dumps([art_key, art_version, keep, LETTERING_VERSION], sort_keys=True)
     return hashlib.sha256(blob.encode()).hexdigest()
 
 
@@ -191,10 +196,8 @@ def _spikes(rect: tuple[float, float, float, float]) -> list[tuple[float, float]
     count = 18
     for i in range(count * 2):
         a = math.pi * i / count
-        outer = i % 2 == 0
-        rx = w / 2 * (1.12 if outer else 0.92)
-        ry = h / 2 * (1.25 if outer else 0.9)
-        points.append((cx + rx * math.cos(a), cy + ry * math.sin(a)))
+        sx, sy = lettering.BURST_TIPS if i % 2 == 0 else lettering.BURST_VALLEYS
+        points.append((cx + w / 2 * sx * math.cos(a), cy + h / 2 * sy * math.sin(a)))
     return points
 
 

@@ -178,3 +178,70 @@ def test_final_png_letters_every_bubble_type_and_is_deterministic() -> None:
     assert final == compositor.bake_final(art, laid) and final != art
     renamed = [{**b, "text": "Changed"} if b["id"] == "2" else b for b in laid]
     assert compositor.final_hash("k", 1, laid) != compositor.final_hash("k", 1, renamed)
+
+
+# ---- Phase 7 A1: shout words stay inside the burst ---------------------------------------------
+
+
+def test_a_long_shout_stays_inside_the_burst() -> None:
+    from app.services import lettering
+
+    text = "WATCH OUT EVERYBODY THE GIANT MANGO IS ROLLING DOWN THE HILL AGAIN"
+    w, h, scale = 0.42 * 1600, 0.12 * 1200, 2  # the layout's speech width, at 2x art
+    fitted = lettering.fit(text, "shout", w, h, scale)
+    height = max(h, fitted.height)
+    # The burst's valleys: an ellipse around the bubble's middle. Every line's corners are inside.
+    a = lettering.BURST_VALLEYS[0] * w / 2
+    b = lettering.BURST_VALLEYS[1] * height / 2
+    f = lettering.font("shout", fitted.size)
+    line_h = fitted.size * lettering.LINE
+    top = -line_h * len(fitted.lines) / 2
+    for i, line in enumerate(fitted.lines):
+        half = f.getlength(line) / 2
+        for dy in (top + i * line_h, top + (i + 1) * line_h):
+            assert (half / a) ** 2 + (dy / b) ** 2 <= 1, (line, dy)
+
+
+def test_a_shout_too_long_for_its_box_makes_the_burst_taller() -> None:
+    from app.services import bubbles, lettering
+
+    text = "WATCH OUT EVERYBODY THE GIANT MANGO IS ROLLING DOWN THE HILL AGAIN AND AGAIN"
+    short = lettering.fit(text, "shout", 336, 40)
+
+    assert short.height > 40
+    assert bubbles.fitted_height(text, "shout", 0.42) > bubbles.MIN_H  # the layout grows it too
+
+
+def test_final_png_letters_a_long_shout() -> None:
+    from app.services import compositor
+
+    art = compositor.render_art([], {}, None, "#FFE9A8", [])[0]
+    bubble = {
+        "id": "s",
+        "speaker": "narrator",
+        "type": "shout",
+        "text": "WATCH OUT EVERYBODY THE GIANT MANGO IS ROLLING DOWN THE HILL",
+        "box": [0.3, 0.2, 0.42, 0.12],
+        "tail": None,
+    }
+    assert compositor.bake_final(art, [bubble]).startswith(b"\x89PNG")
+
+
+def test_old_final_pngs_re_letter_after_a_lettering_change(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.services import compositor
+
+    before = compositor.final_hash("art.png", 1, [])
+    monkeypatch.setattr(compositor, "LETTERING_VERSION", compositor.LETTERING_VERSION + 1)
+
+    assert compositor.final_hash("art.png", 1, []) != before
+
+
+def test_a_shout_burst_stays_inside_the_panel() -> None:
+    from app.services import bubbles, lettering
+
+    shout = {"id": "s", "speaker": "a", "type": "shout", "text": "LOOK OUT!"}
+    laid = bubbles.layout([shout], [{"id": "a", "position": "left"}])
+    x, _y, w, _h = laid[0]["box"]
+
+    spikes = w * (lettering.BURST_TIPS[0] - 1) / 2
+    assert x - spikes >= bubbles.MARGIN - 1e-9 and x + w + spikes <= 1 - bubbles.MARGIN + 1e-9

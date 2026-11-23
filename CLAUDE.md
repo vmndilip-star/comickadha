@@ -37,7 +37,7 @@ npm run dev
 docker compose up --build
 ```
 
-- First start creates the tables and seeds the demo data (`api/storage/comickatha.db`, files in `api/storage/media/`). Reset: `uv run python -m app.seed` (from `api/`).
+- First start creates the tables and seeds the demo data (`api/storage/comickatha.db`, files in `api/storage/media/`). Reset: `uv run python -m app.seed` (from `api/`). `--paint` repaints the demo places with Muse (paid; Meta on; decision 96).
 - Before adding a column to an existing database the API backs up `api/storage` to `api/storage-backups/<timestamp>-before-migration/` (newest 5 kept). By hand: `uv run python -m app.backup`.
 - Settings: `Copy-Item .env.example .env`. Defaults need no keys (mock providers). Read from the process environment, then the repo-root `.env`, then `api/.env`; tests pin the mocks.
 - The demo runs on Meta: `.env` needs `META_API_KEY`, `LLM_PROVIDER=meta`, `META_MODEL=muse-spark-1.3`, `IMAGE_PROVIDER=muse`, `META_IMAGE_MODEL=muse-image-1.0`. `IMAGE_PROVIDER=muse` without `LLM_PROVIDER=meta` stops startup.
@@ -110,7 +110,7 @@ Keep this table (full version in `docs/architecture.md`) current when a prompt c
 
 ## Decisions still in force (details in `docs/decisions.md`)
 
-Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93 · Places: 7, 8, 21, 90 · Studio: 6, 13, 44–47, 52, 53 · Comics and Reader: 2, 4, 5, 14, 23, 56–64 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
+Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93 · Places: 7, 8, 21, 90, 96 · Studio: 6, 13, 44–47, 52, 53, 97, 98 · Comics and Reader: 2, 4, 5, 14, 23, 56–64, 95 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
 
 ## Future features
 

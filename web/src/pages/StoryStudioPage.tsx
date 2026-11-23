@@ -17,7 +17,7 @@ import { EmptySlot } from '@/components/ui/EmptySlot'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { SaveStatus } from '@/components/ui/SaveStatus'
 import { allDrawn, byRecent, castFor, placesFor } from '@/lib/comic'
-import { MAX_SCENES, moveScene, readyToPlan } from '@/lib/studio'
+import { MAX_SCENES, moveScene, readyToPlan, waitingLines } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore, useStartComic } from '@/store/comics'
 import { useFieldErrors } from '@/store/fieldErrors'
@@ -181,7 +181,7 @@ function Studio({ comic }: { comic: Comic }) {
 
       <div className="flex flex-wrap items-start gap-6">
         <section className="relative flex min-w-0 flex-[999_1_560px] flex-col gap-5.5 rounded-hero border-3 border-ink bg-surface p-5 shadow-hero sm:p-7">
-          {planning && <PlanningLoader text={LOADER_TEXT[planning]} />}
+          {planning && <PlanningLoader text={LOADER_TEXT[planning]} lines={waitingLines(allCast.map((c) => c.name))} />}
           {stepMessage && <FieldMessage message={stepMessage} />}
 
           {step === 1 && (

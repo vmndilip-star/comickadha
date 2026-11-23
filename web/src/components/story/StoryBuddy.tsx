@@ -1,6 +1,10 @@
 import { BuddySpeech } from '@/components/ui/BuddySpeech'
 import { Button } from '@/components/ui/Button'
 import { FieldMessage } from '@/components/ui/FieldMessage'
+import { RotatingLine } from '@/components/ui/RotatingLine'
+import { castFor } from '@/lib/comic'
+import { waitingLines } from '@/lib/studio'
+import { useCastStore } from '@/store/cast'
 import { useFieldError } from '@/store/fieldErrors'
 import { useStudioStore } from '@/store/studio'
 import type { Comic, Scene } from '@/types'
@@ -31,6 +35,7 @@ export function StoryBuddy({ comic, scene, onUseSpelling, onUseTitle }: StoryBud
   const ask = useStudioStore((s) => s.askBuddy)
   const clear = useStudioStore((s) => s.clearBuddy)
   const error = useFieldError('buddy')
+  const characters = useCastStore((s) => s.characters)
   const sceneText = scene?.summary.trim() ?? ''
 
   return (
@@ -52,6 +57,9 @@ export function StoryBuddy({ comic, scene, onUseSpelling, onUseTitle }: StoryBud
           </Button>
         )}
       </div>
+      {busy !== null && (
+        <RotatingLine lines={waitingLines(castFor(comic, characters).map((c) => c.name))} className="text-label text-muted" />
+      )}
       <FieldMessage message={error} />
       <div aria-live="polite">
         {reply ? (

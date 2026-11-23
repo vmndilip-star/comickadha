@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Avatar } from '@/components/character/Avatar'
+import { blockedTypes, THINKING_HINT, thinkingNote, withPose } from '@/lib/studio'
 import { Button } from '@/components/ui/Button'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { Pill } from '@/components/ui/Pill'
@@ -52,6 +54,7 @@ interface PanelInspectorProps {
 
 export function PanelInspector(props: PanelInspectorProps) {
   const { number, panelTotal, panel, looks, place, cast, canUndo } = props
+  const [note, setNote] = useState<string | null>(null)
   const bubble = panel.bubbles.find((b) => b.id === props.bubbleId) ?? panel.bubbles[0]
   const panelCast = panel.characters
     .map((pc) => ({ pc, character: cast.find((c) => c.id === pc.id) }))
@@ -123,10 +126,16 @@ export function PanelInspector(props: PanelInspectorProps) {
               selected={current.pc.pose}
               onSelect={(p) => {
                 props.onBeginEdit()
+                setNote(withPose(panel, current.pc.id, p as Pose).switched ? thinkingNote(current.character.name) : null)
                 props.onCharacter(current.pc.id, { pose: p as Pose })
               }}
               render={(p) => <Avatar spec={look} pose={p as Pose} expression={current.pc.expression} size={48} />}
             />
+            {note && (
+              <p role="status" className="m-0 rounded-card border-3 border-ink bg-sky-tint p-2.5 text-label font-bold">
+                {note}
+              </p>
+            )}
             <div role="group" aria-label={`Where ${current.character.name} stands`} className="flex flex-wrap gap-1.5">
               {POSITIONS.map((position) => (
                 <button
@@ -184,6 +193,7 @@ interface BubbleFieldsProps {
 function BubbleFields({ panel, bubble, nameOf, onSelectBubble, onBeginEdit, onBubble }: BubbleFieldsProps) {
   const error = useFieldError(`bubbles.${bubble.id}.text`)
   const speakers = panel.characters.map((c) => c.id)
+  const blocked = blockedTypes(panel, bubble.speaker)
   return (
     <>
       {panel.bubbles.length > 1 && (
@@ -216,6 +226,8 @@ function BubbleFields({ panel, bubble, nameOf, onSelectBubble, onBeginEdit, onBu
               key={type}
               type="button"
               aria-pressed={bubble.type === type}
+              disabled={blocked.includes(type)}
+              title={blocked.includes(type) ? THINKING_HINT : undefined}
               onClick={() => {
                 onBeginEdit()
                 const speaker =
@@ -223,7 +235,7 @@ function BubbleFields({ panel, bubble, nameOf, onSelectBubble, onBeginEdit, onBu
                 onBubble(bubble.id, { type, speaker })
               }}
               className={cn(
-                'min-h-touch px-3 py-2 text-ink',
+                'min-h-touch px-3 py-2 text-ink disabled:opacity-40',
                 BUBBLE_SHAPE[type],
                 bubble.type === type ? 'bg-sun font-extrabold shadow-sm' : cn(BUBBLE_FILL[type], 'font-bold'),
               )}
@@ -232,6 +244,7 @@ function BubbleFields({ panel, bubble, nameOf, onSelectBubble, onBeginEdit, onBu
             </button>
           ))}
         </div>
+        {blocked.length > 0 && <p className="m-0 text-label font-bold text-muted">{THINKING_HINT}</p>}
       </div>
     </>
   )
