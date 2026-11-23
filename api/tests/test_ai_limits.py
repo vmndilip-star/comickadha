@@ -9,7 +9,7 @@ from app.avatar import spec as avatar_spec
 from app.seed import USER_ID
 from app.services import safety
 from app.services.ai_limits import LIMITS
-from tests.conftest import IDS, app_state
+from tests.conftest import IDS, app_state, plan_panels
 from tests.fakes import FakeMeta, data_url, drawing, scene_png, server_error, use_meta
 
 KID = avatar_spec.validate({"body_type": "kid"})
@@ -91,7 +91,7 @@ def test_every_call_site_sends_its_limits(client: TestClient) -> None:
     ).json()["id"]
     client.patch(f"/api/comics/{comic_id}", json={"cast_ids": [IDS["mira"], IDS["raju"]]})
     scenes = run(fake, "scene_plan", lambda: post(f"/api/studio/{comic_id}/plan-scenes", json={}))
-    panels = run(fake, "panel_plan", lambda: post(f"/api/studio/{comic_id}/plan-panels", json={}))
+    panels = run(fake, "panel_plan", lambda: plan_panels(client, comic_id))  # one call a part
     with Session(app_state(client).engine) as session:
         safety.check_image(session, USER_ID, "test", scene_png(), app_state(client).llm)
 
@@ -104,7 +104,7 @@ def test_every_call_site_sends_its_limits(client: TestClient) -> None:
         a: [expected(f"buddy_{a}")] for a in ("idea", "spelling", "name_scene")
     }
     assert scenes == [expected("plan_scenes")]
-    assert panels == [expected("plan_panels")]
+    assert len(panels) == 3 and set(panels) == {expected("plan_panels")}  # 6 panels, 3 scenes
     classifier = sent(fake, "safety_verdicts")
     assert classifier and set(classifier) == {expected("classifier")}
     assert sent(fake, "image_safety") == [expected("image_check")]

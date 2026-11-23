@@ -11,7 +11,7 @@ from app.avatar import spec as avatar_spec
 from app.models import Background, Character, ModerationLog, Scene
 from app.services import story_planner
 from app.services.story_buddy import BuddyContext, _prompt, buddy_fields
-from tests.conftest import IDS, app_state
+from tests.conftest import IDS, app_state, plan_panels
 from tests.fakes import FakeMeta, flag, server_error, use_meta, user_text
 
 GOOD = "Mira and Raju follow sticky footprints to the school garden and find the mango."
@@ -26,6 +26,8 @@ def new_comic(client: TestClient, title: str = "Mango", synopsis: str = GOOD) ->
 
 
 def plan(client: TestClient, comic_id: str, what: str = "scenes") -> Any:
+    if what == "panels":  # a job since Phase 7 part C: run it and wait
+        return plan_panels(client, comic_id)
     return client.post(f"/api/studio/{comic_id}/plan-{what}", json={})
 
 

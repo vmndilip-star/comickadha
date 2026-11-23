@@ -1,5 +1,5 @@
 /** Pure helpers for Story Studio (scenes and panel edits), kept out of components for tests. */
-import type { Bubble, BubbleType, Character, Comic, PanelCharacter, Pose, Position, Scene } from '@/types'
+import type { Bubble, BubbleType, Character, Comic, Panel, PanelCharacter, Pose, Position, Scene } from '@/types'
 
 export const MAX_SCENES = 8
 export const MAX_BUBBLE_WORDS = 12
@@ -108,3 +108,74 @@ export function waitingLines(castNames: string[]): string[] {
 export function lineAt(lines: string[], tick: number): string {
   return lines.length ? lines[((tick % lines.length) + lines.length) % lines.length]! : ''
 }
+
+// ---- long comics (Phase 7, part C) --------------------------------------------------------------
+
+/** Each scene's share of the panels, as the planner splits them: as even as possible, earlier
+ * scenes first (the same split as story_planner.scene_shares on the server). */
+export function sceneShares(panelCount: number, sceneCount: number): number[] {
+  if (sceneCount <= 0) return []
+  const base = Math.floor(panelCount / sceneCount)
+  const extra = panelCount % sceneCount
+  return Array.from({ length: sceneCount }, (_, i) => base + (i < extra ? 1 : 0))
+}
+
+export interface SceneGroup {
+  /** The scene's id, or "other" for panels whose scene was removed. */
+  id: string
+  /** 1-based scene number (0 for "other"). */
+  number: number
+  scene: Scene | null
+  panels: Panel[]
+  /** How many panels the plan gives this scene (its share of panel_count). */
+  expected: number
+}
+
+/** Step 3's panels grouped by scene, in scene order; panels whose scene was removed come last. */
+export function panelsByScene(panels: Panel[], scenes: Scene[], panelCount: number): SceneGroup[] {
+  const shares = sceneShares(panelCount, scenes.length)
+  const byIdx = [...panels].sort((a, b) => a.idx - b.idx)
+  const groups: SceneGroup[] = scenes.map((scene, i) => ({
+    id: scene.id,
+    number: i + 1,
+    scene,
+    panels: byIdx.filter((p) => p.scene_id === scene.id),
+    expected: shares[i] ?? 0,
+  }))
+  const ids = new Set(scenes.map((s) => s.id))
+  const other = byIdx.filter((p) => !p.scene_id || !ids.has(p.scene_id))
+  if (other.length) groups.push({ id: 'other', number: 0, scene: null, panels: other, expected: other.length })
+  return groups
+}
+
+/** Panels as the planner saves them part by part: each new one takes its slot (idx). */
+export function mergePanels(existing: Panel[], incoming: Panel[]): Panel[] {
+  const slots = new Map(existing.map((p) => [p.idx, p]))
+  for (const panel of incoming) slots.set(panel.idx, panel)
+  return [...slots.values()].sort((a, b) => a.idx - b.idx)
+}
+
+export const PANELS_PER_PAGE = 6
+
+export interface ComicPageSlice<T> {
+  /** The page number as printed in the PDF (page 1 is the cover, so panels start on page 2). */
+  number: number
+  panels: T[]
+}
+
+/** A comic's panels as the PDF's pages: 6 a page, numbered after the cover. */
+export function pagesOf<T>(panels: T[], perPage = PANELS_PER_PAGE): ComicPageSlice<T>[] {
+  const pages: ComicPageSlice<T>[] = []
+  for (let start = 0; start < panels.length; start += perPage) {
+    pages.push({ number: pages.length + 2, panels: panels.slice(start, start + perPage) })
+  }
+  return pages
+}
+
+/** What the planner is doing now ("Planning scene 3 of 7…"), from the plan job's progress. */
+export function planProgressText(stage: 'planning' | 'polishing', done: number, of: number): string {
+  if (stage === 'polishing') return 'Polishing the words…'
+  if (!of) return 'Planning your panels…'
+  return `Planning scene ${Math.min(done + 1, of)} of ${of}…`
+}
+

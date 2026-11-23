@@ -8,6 +8,7 @@ from app.schemas.character import CharacterRead
 from app.schemas.common import (
     MAX_COMIC_CAST,
     MAX_PANEL_CAST,
+    MAX_SYNOPSIS,
     BubbleType,
     ComicStatus,
     Expression,
@@ -93,12 +94,12 @@ class PanelRead(BaseModel):
 
 class ComicCreate(BaseModel):
     title: str = Field(default="", max_length=60)
-    synopsis: str = Field(default="", max_length=600)
+    synopsis: str = Field(default="", max_length=MAX_SYNOPSIS)
 
 
 class ComicUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=60)
-    synopsis: str | None = Field(default=None, max_length=600)
+    synopsis: str | None = Field(default=None, max_length=MAX_SYNOPSIS)
     mood: Mood | None = None
     panel_count: PanelCount | None = None
     cast_ids: list[str] | None = Field(default=None, max_length=MAX_COMIC_CAST)
@@ -110,6 +111,8 @@ class ComicRead(BaseModel):
     id: str
     title: str
     synopsis: str
+    # A panel plan being made right now (a job): the Studio follows it after a refresh.
+    plan_job_id: str | None = None
     mood: Mood
     panel_count: PanelCount
     cast_ids: list[str]

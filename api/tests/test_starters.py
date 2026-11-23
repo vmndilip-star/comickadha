@@ -31,7 +31,7 @@ from app.services.story_planner import (
     offline_panels,
 )
 from app.starters import STARTER_IDS, STARTERS, VERSION, ensure_starters
-from tests.conftest import IDS, app_state, make_settings, own_cast, wait_for_job
+from tests.conftest import IDS, app_state, make_settings, own_cast, plan_panels, wait_for_job
 
 MESSAGE = "Starter characters can't be changed. Tap Make it mine to get your own copy!"
 STARTER = {s["name"]: s["id"] for s in STARTERS}
@@ -214,7 +214,7 @@ def test_a_5_character_comic_plans_and_draws_with_at_most_3_per_panel(client: Te
     client.patch(f"/api/comics/{comic_id}", json={"cast_ids": FIVE, "panel_count": 8})
 
     scenes = client.post(f"/api/studio/{comic_id}/plan-scenes", json={}).json()["scenes"]
-    res = client.post(f"/api/studio/{comic_id}/plan-panels", json={})
+    res = plan_panels(client, comic_id)
 
     assert res.status_code == 200, res.json()
     panels = res.json()["panels"]

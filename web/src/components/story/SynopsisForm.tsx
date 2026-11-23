@@ -2,7 +2,7 @@ import { FieldMessage } from '@/components/ui/FieldMessage'
 import { TextArea } from '@/components/ui/TextArea'
 import { TextField } from '@/components/ui/TextField'
 
-export const SYNOPSIS_MAX = 600
+export const SYNOPSIS_MAX = 1000
 
 interface SynopsisFormProps {
   title: string

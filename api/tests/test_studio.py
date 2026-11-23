@@ -28,8 +28,8 @@ from app.services.story_planner import (
     offline_panels,
     offline_scenes,
 )
-from tests.conftest import IDS, app_state
-from tests.fakes import FakeMeta, schema_of, server_error, use_meta, user_text
+from tests.conftest import IDS, app_state, plan_panels
+from tests.fakes import FakeMeta, panel_parts, schema_of, server_error, use_meta, user_text
 
 CAT = load_catalog()
 SYNOPSIS = (
@@ -209,6 +209,8 @@ def new_comic(
 
 
 def plan(client: TestClient, comic_id: str, what: str, start_over: bool = False) -> Any:
+    if what == "panels":  # a job since Phase 7 part C: run it and wait
+        return plan_panels(client, comic_id, start_over)
     return client.post(f"/api/studio/{comic_id}/plan-{what}", json={"start_over": start_over})
 
 
@@ -390,34 +392,11 @@ def scene_reply(*members: str) -> dict[str, Any]:
     }
 
 
-# Varied lines: the dialogue rules (Phase 7, A5) reject a character starting every line alike.
-LINES = [
-    "Look at this!", "Wow, a clue!", "Over here!", "Come and see!", "What is that?",
-    "We did it!", "Follow me!", "Is it here?", "Nearly there!", "Hooray for us!",
-]  # fmt: skip
-
-
-def panel_reply(scenes: list[dict[str, Any]], count: int = 6) -> dict[str, Any]:
-    return {
-        "panels": [
-            {
-                "scene_id": scenes[i % len(scenes)]["id"],
-                "beat": f"Beat {i + 1}",
-                "characters": [
-                    {
-                        "id": IDS["mira"],
-                        "pose": "point",
-                        "expression": "surprised",
-                        "position": "left",
-                    }
-                ],
-                "bubbles": [
-                    {"speaker": IDS["mira"], "type": "talk", "text": LINES[i % len(LINES)]}
-                ],
-            }
-            for i in range(count)
-        ]
-    }
+def scene_of(call: dict[str, Any]) -> str:
+    """The one scene a panel plan call is for (part C plans a scene at a time)."""
+    item = schema_of(call)["schema"]["properties"]["panels"]["items"]["properties"]
+    scene_id: str = item["scene_id"]["enum"][0]
+    return scene_id
 
 
 def test_meta_scenes_and_panels_use_catalog_and_comic_ids_in_the_schema(client: TestClient) -> None:
@@ -435,17 +414,20 @@ def test_meta_scenes_and_panels_use_catalog_and_comic_ids_in_the_schema(client: 
     assert IDS["kitchen"] in scene_item["background_id"]["enum"]
 
     scenes = res.json()["scenes"]
-    fake.replies["panel_plan"] = panel_reply(scenes)
+    fake.replies["panel_plan"] = panel_parts()
     res = plan(client, comic_id, "panels")
 
     assert res.status_code == 200, res.json()
-    panel_schema = schema_of(fake.calls_for("panel_plan")[0])["schema"]
-    item = panel_schema["properties"]["panels"]["items"]["properties"]
-    character = item["characters"]["items"]["properties"]
-    assert character["pose"]["enum"] == list(CAT["poses"])
-    assert character["expression"]["enum"] == list(CAT["expressions"])
-    assert set(item["scene_id"]["enum"]) == {s["id"] for s in scenes}
-    assert "narrator" in item["bubbles"]["items"]["properties"]["speaker"]["enum"]
+    assert (res.json()["source"], res.json()["fallback"]) == ("meta", False)
+    asked: list[str] = []
+    for call in fake.calls_for("panel_plan"):  # one call a scene (part C)
+        item = schema_of(call)["schema"]["properties"]["panels"]["items"]["properties"]
+        character = item["characters"]["items"]["properties"]
+        assert character["pose"]["enum"] == list(CAT["poses"])
+        assert character["expression"]["enum"] == list(CAT["expressions"])
+        assert "narrator" in item["bubbles"]["items"]["properties"]["speaker"]["enum"]
+        asked += item["scene_id"]["enum"]  # just that call's scene
+    assert sorted(asked) == sorted(s["id"] for s in scenes)
     assert res.json()["panels"][0]["characters"][0]["pose"] == "point"
 
 
@@ -465,21 +447,39 @@ def test_an_invalid_plan_is_retried_once_with_the_problems(client: TestClient) -
     assert "Raju" in user_text(second) and "Fix them" in user_text(second)
 
 
-def test_invalid_twice_is_a_friendly_422_and_nothing_changes(client: TestClient) -> None:
+def test_invalid_scenes_twice_are_a_friendly_422_and_nothing_changes(client: TestClient) -> None:
     fake = use_meta(client)
     comic_id = new_comic(client)
     fake.replies["scene_plan"] = scene_reply("mira", "raju")
-    scenes = plan(client, comic_id, "scenes").json()["scenes"]
-    fake.replies["panel_plan"] = panel_reply(scenes)
-    plan(client, comic_id, "panels")
+    plan(client, comic_id, "scenes")
     before = rows(client, comic_id)
-    fake.replies["panel_plan"] = panel_reply(scenes, count=3)  # wrong count, twice
+    fake.replies["scene_plan"] = scene_reply("mira")  # Raju missing, twice
 
-    res = plan(client, comic_id, "panels")
+    res = plan(client, comic_id, "scenes", start_over=True)
 
     assert (res.status_code, res.json()["code"]) == (422, "plan_failed")
     assert "Your story is safe" in res.json()["message"]
     assert rows(client, comic_id) == before
+
+
+def test_a_part_wrong_twice_is_planned_offline_and_the_rest_keep_meta(client: TestClient) -> None:
+    fake = use_meta(client)
+    comic_id = new_comic(client)
+    fake.replies["scene_plan"] = scene_reply("mira", "raju")
+    scenes = plan(client, comic_id, "scenes").json()["scenes"]
+    fake.replies["panel_plan"] = panel_parts(short_scene=scenes[1]["id"])  # a panel short, twice
+
+    res = plan(client, comic_id, "panels")
+
+    assert res.status_code == 200
+    assert (res.json()["source"], res.json()["fallback"]) == ("meta", True)
+    panels = res.json()["panels"]
+    assert len(panels) == 6
+    beats = {p["scene_id"]: p["beat"] for p in panels}
+    assert beats[scenes[0]["id"]].startswith("Beat ")  # Meta's
+    assert not beats[scenes[1]["id"]].startswith("Beat ")  # the offline planner's
+    second = [c for c in fake.calls_for("panel_plan") if scene_of(c) == scenes[1]["id"]]
+    assert len(second) == 2 and "Fix them" in user_text(second[1])  # asked once more, then offline
 
 
 def test_meta_down_falls_back_to_the_offline_planner(client: TestClient) -> None:

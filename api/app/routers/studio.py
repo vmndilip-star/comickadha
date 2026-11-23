@@ -1,5 +1,9 @@
 """Story Studio: plan scenes (step 1->2), plan panels (step 2->3), the Story Buddy and sparks.
 
+Planning panels is a job (Phase 7 part C, services/plan_job.py): the request runs the quick checks
+and the safety check on every word, clears the panels the plan replaces and returns 202; the job
+plans the comic a part at a time and saves each part as it's ready.
+
 The planner reads the comic as saved (the web app flushes its autosave first). Every kid-written
 word a Meta prompt carries (the story, scene summaries, cast names and catchphrases, place names
 and descriptions) is fully safety-checked (classifier included) before anything reaches Meta, and
@@ -8,30 +12,32 @@ that passed the local checks is planned by the offline planner only and marked "
 AI-checked" (decision 55). Only locked characters and places go into a plan.
 """
 
-from fastapi import APIRouter, Query
+from functools import partial
+from typing import Any
+
+from fastapi import APIRouter, Query, Request
 from sqlmodel import Session, col, select
 
-from app.deps import LLMDep, SessionDep, StorageDep, UserDep
+from app.deps import EngineDep, JobsDep, LLMDep, SessionDep, StorageDep, UserDep
 from app.errors import ERROR_RESPONSES, ApiError, invalid
-from app.models import Background, Character, Comic, Panel, Scene, User
+from app.models import Background, Character, Comic, Job, Panel, Scene, User
 from app.models.base import new_id, utcnow
 from app.routers.comics import get_comic, panel_read, scene_read
 from app.schemas.comic import SceneRead
 from app.schemas.common import ErrorBody
+from app.schemas.job import JobStarted
 from app.schemas.studio import (
     BuddyReply,
     BuddyRequest,
-    PanelPlan,
-    PanelsPlanned,
     PlanRequest,
     ScenePlan,
     ScenesPlanned,
     Spark,
 )
-from app.services import looks, story_buddy, story_planner
+from app.services import story_buddy, story_planner
 from app.services.ai_guard import Guard, label
-from app.services.bubbles import layout
 from app.services.kid_fields import Checked, KidFields, check_before_meta
+from app.services.plan_job import PlanJob, run_plan_job
 from app.services.story_planner import CastMember, Place, PlanFailed, SceneInfo, StoryContext
 
 router = APIRouter(
@@ -228,24 +234,47 @@ def _save_scenes(
     return result
 
 
-@router.post("/{comic_id}/plan-panels")
+def running_plan_job(session: Session, comic_id: str) -> Job | None:
+    """The panel plan being made for this comic right now, if any."""
+    stmt = select(Job).where(
+        Job.kind == "panel_plan",
+        Job.target_id == comic_id,
+        col(Job.status).in_(("queued", "running")),
+    )
+    return session.exec(stmt.order_by(col(Job.created_at).desc())).first()
+
+
+@router.post("/{comic_id}/plan-panels", status_code=202)
 def plan_panels(
     comic_id: str,
     body: PlanRequest,
+    request: Request,
     session: SessionDep,
     user: UserDep,
     storage: StorageDep,
     llm: LLMDep,
-) -> PanelsPlanned:
-    """Step 2 -> 3: exactly panel_count panels from the kid's scenes. Panels the kid edited (or
-    that are drawn) are kept unless they confirm "Start panels over"."""
+    engine: EngineDep,
+    jobs: JobsDep,
+) -> JobStarted:
+    """Step 2 -> 3: exactly panel_count panels from the kid's scenes, made by a job (follow it
+    over SSE: progress, scene_planned per part as it's saved, done). Each scene gets an even share
+    of the panels. Panels the kid edited (or that are drawn) are kept unless they confirm "Start
+    panels over". Pressing it again while planning reconnects to the same job."""
     comic = get_comic(session, user, comic_id)
+    if (running := running_plan_job(session, comic.id)) is not None:
+        return JobStarted(job_id=running.id, kind="panel_plan", target_id=comic.id)
     cast, _skipped = _cast(session, comic)
     places = _places(session, user)
     _needs_locked(cast, places)
     scenes = _scenes(session, comic)
     if not scenes:
         raise ApiError(409, "needs_scenes", "Add at least one scene first!", "scenes")
+    if len(scenes) > comic.panel_count:
+        raise invalid(
+            f"Your story has {len(scenes)} scenes but only {comic.panel_count} panels. Pick more "
+            "panels, or take out a scene.",
+            "scenes",
+        )
     cast_ids = {c.id for c in cast}
     place_ids = {p.id for p in places}
     for i, s in enumerate(scenes, start=1):
@@ -291,9 +320,9 @@ def plan_panels(
 
     existing = _panels(session, comic)
     keep = (
-        {}
+        set()
         if body.start_over
-        else {p.idx: p for p in existing if p.edited_at is not None or p.status != "planned"}
+        else {p.idx for p in existing if p.edited_at is not None or p.status != "planned"}
     )
     if any(idx >= comic.panel_count for idx in keep):
         raise ApiError(
@@ -302,83 +331,33 @@ def plan_panels(
             "Some panels you changed don't fit any more. Start panels over?",
             "panels",
         )
-
-    guard = Guard(llm, session, user.id)
-    guard.offline_only = checked.pending  # unchecked words never reach Meta
-    try:
-        outcome = story_planner.plan_panels(guard, ctx)
-    except PlanFailed as failed:
-        raise ApiError(422, "plan_failed", PLAN_FAILED) from failed
-
-    check = "pending" if checked.pending else "checked"
-    panels = _save_panels(session, comic, existing, keep, outcome.plan, ctx, scenes, check)
-    return PanelsPlanned(
-        panels=[panel_read(p, storage) for p in panels],
-        kept=len(keep),
-        left_out_places=list(checked.left_out.values()),
-        source="meta" if outcome.source == "meta" else "mock",
-        fallback=outcome.fallback,
-        label=label(outcome.source),
-    )
-
-
-def _save_panels(
-    session: Session,
-    comic: Comic,
-    existing: list[Panel],
-    keep: dict[int, Panel],
-    plan: PanelPlan,
-    ctx: StoryContext,
-    scenes: list[Scene],
-    text_check: str,
-) -> list[Panel]:
-    background = {s.id: s.background_id for s in scenes}
+    # The plan replaces every other panel: clear them now, so a refresh while it plans shows only
+    # the kept panels and the parts planned so far.
     for panel in existing:
-        if panel.idx not in keep or keep[panel.idx] is not panel:
+        if panel.idx not in keep:
             session.delete(panel)
-    session.flush()
-    out: list[Panel] = []
-    for idx, planned in enumerate(plan.panels):
-        if idx in keep:
-            out.append(keep[idx])
-            continue
-        characters = [
-            {
-                "id": c.id,
-                "sheet_version": member.sheet_version if (member := ctx.member(c.id)) else 0,
-                "pose": c.pose,
-                "expression": c.expression,
-                "position": c.position,
-                "scale": 1.0,
-            }
-            for c in planned.characters
-        ]
-        bubbles = [
-            {"id": new_id(), "speaker": b.speaker, "type": b.type, "text": b.text}
-            for b in planned.bubbles
-        ]
-        panel = Panel(
-            id=new_id(),
-            comic_id=comic.id,
-            scene_id=planned.scene_id,
-            idx=idx,
-            # Every panel's place is its scene's place: the model never chooses it.
-            background_id=background[planned.scene_id],
-            beat=planned.beat,
-            characters=characters,
-            bubbles=layout(bubbles, characters, looks.specs_for(session, characters)),
-            status="planned",
-            text_check=text_check,
-        )
-        session.add(panel)
-        out.append(panel)
-    comic.studio_step = 3
     comic.updated_at = utcnow()
     session.add(comic)
     session.commit()
-    for panel in out:
-        session.refresh(panel)
-    return out
+
+    plan = PlanJob(
+        comic_id=comic.id,
+        user_id=user.id,
+        story=ctx,
+        keep=frozenset(keep),
+        text_check="pending" if checked.pending else "checked",
+        offline_only=checked.pending,  # unchecked words never reach Meta
+        left_out=tuple(checked.left_out.values()),
+    )
+
+    def read(panel: Panel) -> dict[str, Any]:
+        return panel_read(panel, storage).model_dump(mode="json")
+
+    job = jobs.create("panel_plan", comic.id)
+    reveal = request.app.state.settings.plan_reveal_seconds
+    work = partial(run_plan_job, job=plan, engine=engine, llm=llm, read=read, reveal_seconds=reveal)
+    jobs.start(job.id, work)
+    return JobStarted(job_id=job.id, kind="panel_plan", target_id=comic.id)
 
 
 @router.post("/buddy")

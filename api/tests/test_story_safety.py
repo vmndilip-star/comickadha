@@ -9,7 +9,7 @@ from sqlmodel import Session, col, select
 
 from app.models import ModerationLog
 from app.services import recheck, safety
-from tests.conftest import IDS, app_state
+from tests.conftest import IDS, app_state, plan_panels
 from tests.fakes import flag, server_error, use_meta
 
 GOOD = "Mira and Raju follow sticky footprints to the school garden and find the mango."
@@ -24,6 +24,8 @@ def new_comic(client: TestClient, synopsis: str = GOOD, title: str = "Mango") ->
 
 
 def plan(client: TestClient, comic_id: str, what: str) -> Any:
+    if what == "panels":  # a job since Phase 7 part C: run it and wait
+        return plan_panels(client, comic_id)
     return client.post(f"/api/studio/{comic_id}/plan-{what}", json={})
 
 

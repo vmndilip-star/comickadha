@@ -9,7 +9,7 @@ from sqlmodel import Session
 
 from app.models import Comic, Job, Panel
 from app.services.jobs import PANEL_INTERRUPTED, fail_interrupted_jobs
-from tests.conftest import IDS, app_state, sse_events, wait_for_job
+from tests.conftest import IDS, app_state, plan_panels, sse_events, wait_for_job
 from tests.fakes import server_error, use_meta
 
 STORY = "Mira and Raju follow sticky footprints to the school garden and find the mango."
@@ -26,7 +26,7 @@ def planned_comic(
         json={"cast_ids": [IDS[c] for c in cast], "panel_count": panels},
     )
     assert client.post(f"/api/studio/{comic_id}/plan-scenes", json={}).status_code == 200
-    assert client.post(f"/api/studio/{comic_id}/plan-panels", json={}).status_code == 200
+    assert plan_panels(client, comic_id).status_code == 200
     return comic(client, comic_id)
 
 

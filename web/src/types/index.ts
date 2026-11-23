@@ -46,7 +46,6 @@ export type Bubble = Schemas['Bubble']
 export type ErrorBody = Schemas['ErrorBody']
 export type FieldNote = Schemas['FieldNote']
 export type ScenesPlanned = Schemas['ScenesPlanned']
-export type PanelsPlanned = Schemas['PanelsPlanned']
 export type BuddyRequest = Schemas['BuddyRequest']
 export type BuddyReply = Schemas['BuddyReply']
 export type BuddyAction = BuddyRequest['action']
@@ -88,7 +87,10 @@ export const TRAITS = [
   'brave', 'curious', 'funny', 'kind', 'clever', 'creative', 'calm', 'cheerful', 'helpful', 'honest', 'adventurous', 'caring', 'energetic', 'gentle', 'patient', 'playful', 'shy', 'silly', 'sporty', 'thoughtful',
 ] as const satisfies readonly Trait[]
 export const MOODS = ['mystery', 'funny', 'adventure', 'spooky'] as const satisfies readonly Mood[]
-export const PANEL_COUNTS = [4, 6, 8] as const satisfies readonly PanelCount[]
+export const PANEL_COUNTS = [4, 6, 8, 10, 16, 20, 25, 30] as const satisfies readonly PanelCount[]
+/** The panel count picker's two rows (Phase 7 part C). The default stays 6. */
+export const SHORT_PANEL_COUNTS = [4, 6, 8] as const satisfies readonly PanelCount[]
+export const LONG_PANEL_COUNTS = [10, 16, 20, 25, 30] as const satisfies readonly PanelCount[]
 export const BUBBLE_TYPES = ['talk', 'think', 'shout', 'narrator'] as const satisfies readonly BubbleType[]
 export const POSITIONS = ['left', 'center', 'right'] as const satisfies readonly Position[]
 

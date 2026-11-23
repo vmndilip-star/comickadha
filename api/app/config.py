@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     builder_reveal_seconds: float = 0.08
     # Pause after each panel of "Make my comic!", so the Reader visibly fills in. Tests use 0.
     panel_reveal_seconds: float = 0.4
+    # Pause after each part of an offline panel plan, so the Studio visibly fills in scene by
+    # scene (Meta's plans take their own time). Tests use 0.
+    plan_reveal_seconds: float = 0.3
     # How often story text that is "not yet AI-checked" is re-checked (decision 55). 0: never.
     recheck_seconds: float = 60.0
 

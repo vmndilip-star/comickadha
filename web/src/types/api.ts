@@ -563,8 +563,10 @@ export interface paths {
         put?: never;
         /**
          * Plan Panels
-         * @description Step 2 -> 3: exactly panel_count panels from the kid's scenes. Panels the kid edited (or
-         *     that are drawn) are kept unless they confirm "Start panels over".
+         * @description Step 2 -> 3: exactly panel_count panels from the kid's scenes, made by a job (follow it
+         *     over SSE: progress, scene_planned per part as it's saved, done). Each scene gets an even share
+         *     of the panels. Panels the kid edited (or that are drawn) are kept unless they confirm "Start
+         *     panels over". Pressing it again while planning reconnects to the same job.
          */
         post: operations["plan_panels_api_studio__comic_id__plan_panels_post"];
         delete?: never;
@@ -639,8 +641,9 @@ export interface paths {
         };
         /**
          * Job Events
-         * @description Server-sent events: progress | cell_ready | panel_ready | panel_failed | done | error
-         *     (panel_ready and panel_failed come from "Make my comic!" jobs).
+         * @description Server-sent events: progress | cell_ready | panel_ready | panel_failed | scene_planned |
+         *     done | error (panel_ready and panel_failed come from "Make my comic!" jobs, scene_planned from
+         *     panel plans).
          *
          *     Replays every event after `after` (or the browser's Last-Event-ID on reconnect), then streams
          *     live ones until the job ends.
@@ -1013,6 +1016,8 @@ export interface components {
             title: string;
             /** Synopsis */
             synopsis: string;
+            /** Plan Job Id */
+            plan_job_id?: string | null;
             /**
              * Mood
              * @enum {string}
@@ -1022,7 +1027,7 @@ export interface components {
              * Panel Count
              * @enum {integer}
              */
-            panel_count: 4 | 6 | 8;
+            panel_count: 4 | 6 | 8 | 10 | 16 | 20 | 25 | 30;
             /** Cast Ids */
             cast_ids: string[];
             /**
@@ -1080,7 +1085,7 @@ export interface components {
             /** Mood */
             mood?: ("mystery" | "funny" | "adventure" | "spooky") | null;
             /** Panel Count */
-            panel_count?: (4 | 6 | 8) | null;
+            panel_count?: (4 | 6 | 8 | 10 | 16 | 20 | 25 | 30) | null;
             /** Cast Ids */
             cast_ids?: string[] | null;
             /** Studio Step */
@@ -1364,7 +1369,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "character_sheet" | "background_image" | "comic";
+            kind: "character_sheet" | "background_image" | "comic" | "panel_plan";
             /** Target Id */
             target_id: string;
         };
@@ -1471,24 +1476,6 @@ export interface components {
             characters?: components["schemas"]["PanelCharacter"][] | null;
             /** Bubbles */
             bubbles?: components["schemas"]["Bubble"][] | null;
-        };
-        /** PanelsPlanned */
-        PanelsPlanned: {
-            /** Panels */
-            panels: components["schemas"]["PanelRead"][];
-            /** Kept */
-            kept: number;
-            /** Left Out Places */
-            left_out_places: string[];
-            /**
-             * Source
-             * @enum {string}
-             */
-            source: "meta" | "mock";
-            /** Fallback */
-            fallback: boolean;
-            /** Label */
-            label: string;
         };
         /** Personality */
         Personality: {
@@ -3570,12 +3557,12 @@ export interface operations {
         };
         responses: {
             /** @description Successful Response */
-            200: {
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PanelsPlanned"];
+                    "application/json": components["schemas"]["JobStarted"];
                 };
             };
             /** @description Not Found */

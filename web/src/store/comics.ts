@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router'
 import { create } from 'zustand'
 import * as api from '@/api/comics'
+import { mergePanels } from '@/lib/studio'
 import type { Comic, ComicUpdate, Panel, Scene } from '@/types'
 import { showOnField, useFieldErrors } from './fieldErrors'
 import type { LoadStatus } from './load'
@@ -27,6 +28,8 @@ interface ComicsState {
   /** Shows a fresh plan from the API (already saved there, so no autosave). */
   applyScenes: (id: string, scenes: Scene[]) => void
   applyPanels: (id: string, panels: Panel[]) => void
+  /** A part of a panel plan, saved while the rest is still being planned (Phase 7 part C). */
+  mergePanels: (id: string, panels: Panel[]) => void
   /** A panel as the API has it now (drawn by Make my comic!, or tried again). */
   applyPanel: (comicId: string, panel: Panel) => void
   replaceComic: (comic: Comic) => void
@@ -163,6 +166,8 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     applyScenes: (id, scenes) => change(id, (c) => ({ scenes, studio_step: c.studio_step > 2 ? c.studio_step : 2 })),
 
     applyPanels: (id, panels) => change(id, () => ({ panels, studio_step: 3 })),
+
+    mergePanels: (id, panels) => change(id, (c) => ({ panels: mergePanels(c.panels, panels) })),
 
     applyPanel: (comicId, panel) =>
       change(comicId, (c) => ({ panels: c.panels.map((p) => (p.id === panel.id ? panel : p)) })),

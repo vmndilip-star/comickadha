@@ -110,3 +110,61 @@ export function followComicJob(jobId: string, on: ComicJobHandlers): () => void 
   })
   return () => source.close()
 }
+
+/** Panel plan events (Phase 7 part C): progress, each part's panels as saved, then a summary. */
+export interface PlanProgressEvent {
+  stage: 'planning' | 'polishing'
+  /** Parts planned so far, out of `of` (a part is a scene, or a run of a big scene's panels). */
+  done: number
+  of: number
+  progress?: number
+}
+export interface ScenePlannedEvent {
+  scene_id: string
+  part: number
+  first: number
+  count: number
+  /** "meta", or "mock" when the offline planner made this part. */
+  source: 'meta' | 'mock'
+  panels: Panel[]
+  progress?: number
+}
+export interface PlanDoneEvent {
+  kept: number
+  left_out_places: string[]
+  source: 'meta' | 'mock'
+  /** True when Meta was set up but the offline planner made some or all of the plan. */
+  fallback: boolean
+  label: string
+}
+
+export interface PlanJobHandlers {
+  progress: (data: PlanProgressEvent) => void
+  scene: (data: ScenePlannedEvent) => void
+  done: (data: PlanDoneEvent) => void
+  error: (message: string) => void
+  lost: () => void
+}
+
+/** followJob for a panel plan: scene_planned brings each part's panels as soon as it's saved. */
+export function followPlanJob(jobId: string, on: PlanJobHandlers): () => void {
+  const source = new EventSource(`/api/jobs/${jobId}/events`)
+  const read = <T,>(event: MessageEvent): T => JSON.parse(event.data as string) as T
+
+  source.addEventListener('progress', (e) => on.progress(read<PlanProgressEvent>(e)))
+  source.addEventListener('scene_planned', (e) => on.scene(read<ScenePlannedEvent>(e)))
+  source.addEventListener('done', (e) => {
+    source.close()
+    on.done(read<PlanDoneEvent>(e))
+  })
+  source.addEventListener('error', (e) => {
+    if (e instanceof MessageEvent && typeof e.data === 'string') {
+      source.close()
+      on.error(read<ErrorEvent>(e).message)
+    } else if (source.readyState === EventSource.CLOSED) {
+      on.lost()
+    }
+  })
+  return () => source.close()
+}
+

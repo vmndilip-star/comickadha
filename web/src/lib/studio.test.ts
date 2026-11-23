@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import type { Bubble, PanelCharacter, Scene } from '@/types'
+import type { Bubble, Panel, PanelCharacter, Scene } from '@/types'
 import {
   blockedTypes,
   leftOutNote,
   lineAt,
+  mergePanels,
   moveCharacter,
   moveScene,
+  pagesOf,
+  panelsByScene,
+  planProgressText,
+  sceneShares,
   shownInStudio,
   speakerPatch,
   waitingLines,
@@ -117,5 +122,47 @@ describe('waiting lines', () => {
     expect(lineAt(lines, 1)).toBe(lines[1])
     expect(lineAt(lines, lines.length)).toBe(lines[0])
     expect(new Set(lines.map((_, i) => lineAt(lines, i))).size).toBe(lines.length)
+  })
+})
+
+describe('long comics', () => {
+  it('splits panels over scenes like the planner does', () => {
+    expect(sceneShares(25, 7)).toEqual([4, 4, 4, 4, 3, 3, 3])
+    expect(sceneShares(30, 8)).toEqual([4, 4, 4, 4, 4, 4, 3, 3])
+    expect(sceneShares(6, 3)).toEqual([2, 2, 2])
+    for (const [count, scenes] of [[4, 2], [6, 3], [8, 4], [10, 3], [16, 4], [20, 5], [25, 7], [30, 8]] as const) {
+      const shares = sceneShares(count, scenes)
+      expect(shares.reduce((a, b) => a + b, 0)).toBe(count)
+      expect(Math.min(...shares)).toBeGreaterThanOrEqual(1)
+    }
+  })
+
+  const panelAt = (idx: number, scene_id: string | null) => ({ id: `p${idx}`, idx, scene_id }) as unknown as Panel
+
+  it('groups panels by scene in scene order, with removed scenes last', () => {
+    const groups = panelsByScene([panelAt(3, 'b'), panelAt(0, 'a'), panelAt(1, 'a'), panelAt(2, null)], [scene('a', 0), scene('b', 1)], 6)
+    expect(groups.map((g) => [g.id, g.number, g.panels.map((p) => p.idx), g.expected])).toEqual([
+      ['a', 1, [0, 1], 3],
+      ['b', 2, [3], 3],
+      ['other', 0, [2], 1],
+    ])
+  })
+
+  it('merges a planned part into its slots', () => {
+    const merged = mergePanels([panelAt(0, 'a'), panelAt(1, 'a')], [panelAt(1, 'b'), panelAt(2, 'b')])
+    expect(merged.map((p) => [p.idx, p.scene_id])).toEqual([[0, 'a'], [1, 'b'], [2, 'b']])
+  })
+
+  it('pages panels 6 at a time, numbered like the PDF (after the cover)', () => {
+    const pages = pagesOf(Array.from({ length: 25 }, (_, i) => i))
+    expect(pages.map((p) => [p.number, p.panels.length])).toEqual([[2, 6], [3, 6], [4, 6], [5, 6], [6, 1]])
+    expect(pagesOf(Array.from({ length: 30 }, (_, i) => i))).toHaveLength(5) // 6 PDF pages with the cover
+  })
+
+  it('says which scene is being planned', () => {
+    expect(planProgressText('planning', 0, 0)).toBe('Planning your panels…')
+    expect(planProgressText('planning', 2, 7)).toBe('Planning scene 3 of 7…')
+    expect(planProgressText('planning', 7, 7)).toBe('Planning scene 7 of 7…')
+    expect(planProgressText('polishing', 7, 7)).toBe('Polishing the words…')
   })
 })

@@ -2,6 +2,7 @@
 
 import base64
 import io
+import itertools
 import json
 import random
 import re
@@ -179,6 +180,58 @@ def flag(match: str, *categories: str) -> Callable[[dict[str, Any]], dict[str, A
                 for text in texts
             ]
         }
+
+    return reply
+
+
+def panel_parts(
+    *,
+    short_scene: str | None = None,
+    line: Callable[[int, int, str], str] | None = None,
+    on_call: Callable[[dict[str, Any]], None] | None = None,
+) -> Callable[[dict[str, Any]], dict[str, Any]]:
+    """A fake Meta panel planner for plans made a part at a time (Phase 7 part C): each call gets
+    exactly the panels it asks for ("exactly N panels"), in its scene (the schema's one scene id),
+    with that scene's first character pointing and saying `line(n, i, request text)` (n counts
+    every panel answered, i is the panel in this answer; by default a different opening each
+    time). `short_scene`: that scene's parts always come back a panel short (wrong twice).
+    `on_call` runs first (to hold a call, or count calls in flight)."""
+    counter = itertools.count()
+    say = line or (lambda n, _i, _text: f"Line {n} of the story!")
+
+    def reply(call: dict[str, Any]) -> dict[str, Any]:
+        if on_call:
+            on_call(call)
+        props = schema_of(call)["schema"]["properties"]["panels"]["items"]["properties"]
+        scene_id = props["scene_id"]["enum"][0]
+        text = user_text(call)
+        found = re.search(r"exactly (\d+) panels", text)
+        count = int(found.group(1)) if found else 1
+        if scene_id == short_scene:
+            count = max(0, count - 1)
+        who = re.search(rf"id {re.escape(scene_id)}: at [^;]*; characters: [^(]*\(([^)]+)\)", text)
+        speaker = (
+            who.group(1) if who else props["characters"]["items"]["properties"]["id"]["enum"][0]
+        )
+        panels = []
+        for i in range(count):
+            n = next(counter)
+            character = {
+                "id": speaker,
+                "pose": "point",
+                "expression": "surprised",
+                "position": "left",
+            }
+            bubble = {"speaker": speaker, "type": "talk", "text": say(n, i, text)}
+            panels.append(
+                {
+                    "scene_id": scene_id,
+                    "beat": f"Beat {n + 1}",
+                    "characters": [character],
+                    "bubbles": [bubble],
+                }
+            )
+        return {"panels": panels}
 
     return reply
 

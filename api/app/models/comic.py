@@ -11,7 +11,8 @@ class Comic(SQLModel, table=True):
     id: str = Field(default_factory=new_id, primary_key=True)
     user_id: str = Field(foreign_key="user.id", index=True)
     title: str = Field(default="", max_length=60)
-    synopsis: str = Field(default="", max_length=600)
+    # SQLite doesn't enforce lengths; the API checks MAX_SYNOPSIS (raised from 600 in Phase 7).
+    synopsis: str = Field(default="", max_length=1000)
     mood: str = Field(default="adventure", max_length=16)
     panel_count: int = 6
     cast_ids: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))

@@ -18,7 +18,7 @@ from sqlmodel import Session
 from app.models import ModerationLog
 from app.prompts import render
 from app.providers.llm import LLMError, LLMProvider
-from app.services.ai_limits import LIMITS
+from app.services.ai_limits import CLASSIFIER_BATCH, LIMITS
 
 log = logging.getLogger(__name__)
 
@@ -170,11 +170,20 @@ def classify(llm: LLMProvider, fields: dict[str, str]) -> Verdict:
 
 
 def classify_each(llm: LLMProvider, fields: dict[str, str]) -> dict[str, Verdict]:
-    """One classifier call for every field; a verdict per (non-empty) field, in order.
-    Raises SafetyUnavailable if the model doesn't answer properly."""
+    """A verdict per (non-empty) field, in order: one classifier call per CLASSIFIER_BATCH fields
+    (a long comic's plan has dozens). Raises SafetyUnavailable if any call doesn't answer properly,
+    so nothing counts as checked unless every field was."""
     names = [name for name, text in fields.items() if text.strip()]
-    if not names:
-        return {}
+    out: dict[str, Verdict] = {}
+    for start in range(0, len(names), CLASSIFIER_BATCH):
+        batch = names[start : start + CLASSIFIER_BATCH]
+        out.update(_classify_batch(llm, {name: fields[name] for name in batch}))
+    return out
+
+
+def _classify_batch(llm: LLMProvider, fields: dict[str, str]) -> dict[str, Verdict]:
+    """One classifier call over these (non-empty) fields."""
+    names = list(fields)
     schema = {
         "type": "object",
         "properties": {

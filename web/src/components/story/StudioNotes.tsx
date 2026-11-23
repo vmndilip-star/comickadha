@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/Button'
+import { ProgressBar } from '@/components/ui/ProgressBar'
 import { RotatingLine } from '@/components/ui/RotatingLine'
-import { leftOutNote } from '@/lib/studio'
-import type { PlanNote } from '@/store/studio'
+import { leftOutNote, planProgressText } from '@/lib/studio'
+import type { PlanNote, PlanProgress } from '@/store/studio'
 import { PlaceDialog } from './PlaceDialog'
 
 function Pencil() {
@@ -29,6 +30,19 @@ export function PlanningLoader({ text, lines = [] }: { text: string; lines?: str
         {text}
       </p>
       <RotatingLine lines={lines} className="text-lg" />
+    </div>
+  )
+}
+
+/** While the panel plan is made (a job, part C): "Planning scene 3 of 7…", a bar and fun lines.
+ * Not an overlay: each scene's panels show below as soon as they're planned. */
+export function PlanProgressCard({ progress, lines = [] }: { progress: PlanProgress; lines?: string[] }) {
+  const text = planProgressText(progress.stage, progress.done, progress.of)
+  return (
+    <div role="status" aria-live="polite" className="flex flex-col gap-2 rounded-card border-3 border-ink bg-sun-tint p-4">
+      <p className="m-0 font-display text-[24px] tracking-[1px]">{text}</p>
+      <ProgressBar value={progress.of ? progress.done / progress.of : 0} label="Panels planned" />
+      <RotatingLine lines={lines} className="text-label" />
     </div>
   )
 }
@@ -88,7 +102,9 @@ export function PlanNoteBox({
     <div role="note" className="flex flex-col gap-2 rounded-card border-3 border-ink bg-sky-tint p-3.5">
       {note.fallback && (
         <p className="m-0 font-bold">
-          Our helper was resting, so here's an offline plan. Tap Try again for a fresh one.
+          {note.mixed
+            ? 'Our helper rested for part of it, so the offline planner made some panels. Tap Try again for a fresh plan.'
+            : "Our helper was resting, so here's an offline plan. Tap Try again for a fresh one."}
         </p>
       )}
       {lines.map((line) => (

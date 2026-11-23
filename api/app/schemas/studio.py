@@ -10,10 +10,12 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.schemas.comic import PanelRead, SceneRead
+from app.schemas.comic import SceneRead
 from app.schemas.common import (
     MAX_COMIC_CAST,
     MAX_PANEL_CAST,
+    MAX_SCENES,
+    MAX_SYNOPSIS,
     BubbleType,
     Expression,
     Pose,
@@ -30,7 +32,7 @@ class PlannedScene(BaseModel):
 
 
 class ScenePlan(BaseModel):
-    scenes: list[PlannedScene] = Field(min_length=2, max_length=4)
+    scenes: list[PlannedScene] = Field(min_length=2, max_length=MAX_SCENES)
 
 
 class PlannedCharacter(BaseModel):
@@ -54,7 +56,8 @@ class PlannedPanel(BaseModel):
 
 
 class PanelPlan(BaseModel):
-    panels: list[PlannedPanel] = Field(min_length=4, max_length=8)
+    # A whole comic (up to 30 panels) or one part of it (planned a part at a time).
+    panels: list[PlannedPanel] = Field(min_length=1, max_length=30)
 
 
 class PlanRequest(BaseModel):
@@ -75,22 +78,12 @@ class ScenesPlanned(BaseModel):
     label: str
 
 
-class PanelsPlanned(BaseModel):
-    panels: list[PanelRead]
-    # How many edited or drawn panels were kept as they were.
-    kept: int
-    left_out_places: list[str]
-    source: PlanSource
-    fallback: bool
-    label: str
-
-
 BuddyAction = Literal["idea", "spelling", "name_scene"]
 
 
 class BuddyRequest(BaseModel):
     action: BuddyAction
-    text: str = Field(default="", max_length=600)
+    text: str = Field(default="", max_length=MAX_SYNOPSIS)  # the synopsis, at most
     comic_id: str
 
 

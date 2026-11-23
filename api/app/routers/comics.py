@@ -24,7 +24,7 @@ from app.schemas.comic import (
     SceneRead,
     SceneWrite,
 )
-from app.schemas.common import ComicStatus, FieldNote
+from app.schemas.common import MAX_SCENES, ComicStatus, FieldNote
 from app.schemas.job import JobStarted
 from app.services import comic_maker, looks, pdf_export, recheck, safety
 from app.services.bubbles import layout
@@ -33,8 +33,6 @@ from app.services.recheck import STORY_LABELS
 from app.services.storage import Storage
 
 router = APIRouter(prefix="/api", tags=["comics"], responses=ERROR_RESPONSES)
-
-MAX_SCENES = 8
 
 
 def get_comic(session: Session, user: User, comic_id: str) -> Comic:
@@ -115,6 +113,14 @@ def comic_reads(session: Session, comics: list[Comic], storage: Storage) -> list
         },  # fmt: skip
     )
     all_bgs = {bid for ids in used_bgs.values() for bid in ids}
+    planning: dict[str, str] = {}
+    if ids:
+        stmt = select(Job).where(
+            Job.kind == "panel_plan",
+            col(Job.target_id).in_(ids),
+            col(Job.status).in_(("queued", "running")),
+        )
+        planning = {j.target_id: j.id for j in session.exec(stmt.order_by(col(Job.created_at)))}
     chars = {
         ch.id: character_routes.to_read(ch)
         for ch in session.exec(select(Character).where(col(Character.id).in_(all_chars)))
@@ -144,6 +150,7 @@ def comic_reads(session: Session, comics: list[Comic], storage: Storage) -> list
                     if cid in pinned
                 },
                 "text_check": c.text_check or "checked",
+                "plan_job_id": planning.get(c.id),
             }
         )
         for c in comics

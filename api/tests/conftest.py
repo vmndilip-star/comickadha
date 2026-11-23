@@ -2,6 +2,7 @@ import json
 import shutil
 import time
 from collections.abc import Iterator
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +39,7 @@ def make_settings(storage: Path, **overrides: Any) -> Settings:
         "image_provider": "mock",
         "builder_reveal_seconds": 0,
         "panel_reveal_seconds": 0,
+        "plan_reveal_seconds": 0,
         "recheck_seconds": 0,
     }
     return Settings(_env_file=None, **(values | overrides))
@@ -125,3 +127,33 @@ def sse_events(
                 events.append((current["id"], current["type"], current["data"]))
                 current = {}
     return events
+
+
+@dataclass
+class Planned:
+    """POST plan-panels as the tests knew it before it became a job (Phase 7 part C): the error
+    response if the plan didn't start, else a 200 with the finished job's summary and the panels
+    as saved. `events` is the job's whole event stream."""
+
+    status_code: int
+    body: dict[str, Any]
+    job_id: str | None = None
+    events: list[tuple[int, str, dict[str, Any]]] = field(default_factory=list)
+
+    def json(self) -> dict[str, Any]:
+        return self.body
+
+
+def plan_panels(client: TestClient, comic_id: str, start_over: bool = False) -> Planned:
+    """Starts the panel plan job and waits for it."""
+    res = client.post(f"/api/studio/{comic_id}/plan-panels", json={"start_over": start_over})
+    if res.status_code != 202:
+        return Planned(res.status_code, res.json())
+    job_id: str = res.json()["job_id"]
+    wait_for_job(client, job_id)
+    events = sse_events(client, job_id)
+    _id, kind, data = events[-1]
+    if kind != "done":
+        return Planned(500, {"code": "job_failed", "message": data.get("message")}, job_id, events)
+    panels = client.get(f"/api/comics/{comic_id}").json()["panels"]
+    return Planned(200, {**data, "panels": panels}, job_id, events)

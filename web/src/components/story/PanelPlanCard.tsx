@@ -56,7 +56,7 @@ export function PanelPlanCard({ number, panel, looks, place, cast, editing, onEd
         className="relative aspect-[4/3] w-full overflow-hidden border-b-3 border-ink"
         style={{ backgroundColor: place?.tint }}
       >
-        {thumb && <img src={thumb} alt="" className="absolute inset-0 size-full object-cover" draggable={false} />}
+        {thumb && <img src={thumb} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" draggable={false} />}
         {panel.characters.map((pc) => {
           const character = cast.find((c) => c.id === pc.id)
           if (!character) return null

@@ -25,7 +25,8 @@ FAILED_MESSAGE = "Oops, the drawing didn't work. Tap Lock to try again!"
 INTERRUPTED_MESSAGE = "Oops, the drawing got interrupted. Tap Lock to try again!"
 # Places have "Paint it again", not Lock (decision 90).
 PLACE_INTERRUPTED = "Oops, the painting got interrupted. Tap Paint it again!"
-INTERRUPTED_BY_KIND = {"background_image": PLACE_INTERRUPTED}
+PLAN_INTERRUPTED = "Oops, planning got interrupted. Tap Plan my panels to try again!"
+INTERRUPTED_BY_KIND = {"background_image": PLACE_INTERRUPTED, "panel_plan": PLAN_INTERRUPTED}
 PANEL_INTERRUPTED = "Oops, this panel got interrupted. Tap Try again!"
 KEEPALIVE_SECONDS = 15.0
 FINAL_EVENTS = ("done", "error")
@@ -205,6 +206,8 @@ def fail_interrupted_jobs(engine: Engine) -> int:
             if job.kind == "comic":
                 fail_rendering_panels(session, job.target_id, PANEL_INTERRUPTED)
                 continue
+            if job.kind == "panel_plan":
+                continue  # the parts saved so far stay; planning again replaces them
             target = (
                 session.get(Character, job.target_id)
                 if job.kind == "character_sheet"

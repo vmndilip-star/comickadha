@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoading } from '@/components/layout/PageLoading'
@@ -6,10 +6,11 @@ import { BackgroundLibrary } from '@/components/story/BackgroundLibrary'
 import { CastPicker } from '@/components/story/CastPicker'
 import { MoodPicker } from '@/components/story/MoodPicker'
 import { PanelPlanCard } from '@/components/story/PanelPlanCard'
+import { SceneGroup } from '@/components/story/SceneGroup'
 import { SceneRow } from '@/components/story/SceneRow'
 import { Stepper } from '@/components/story/Stepper'
 import { SafetyNote, StoryBuddy } from '@/components/story/StoryBuddy'
-import { LockedNudge, PlanningLoader, PlanNoteBox } from '@/components/story/StudioNotes'
+import { LockedNudge, PlanningLoader, PlanNoteBox, PlanProgressCard } from '@/components/story/StudioNotes'
 import { SynopsisForm } from '@/components/story/SynopsisForm'
 import { Button, ButtonLink } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -17,7 +18,7 @@ import { EmptySlot } from '@/components/ui/EmptySlot'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { SaveStatus } from '@/components/ui/SaveStatus'
 import { allDrawn, byRecent, castFor, placesFor } from '@/lib/comic'
-import { MAX_SCENES, moveScene, readyToPlan, waitingLines } from '@/lib/studio'
+import { MAX_SCENES, moveScene, panelsByScene, readyToPlan, waitingLines } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore, useStartComic } from '@/store/comics'
 import { useFieldErrors } from '@/store/fieldErrors'
@@ -101,6 +102,8 @@ function Studio({ comic }: { comic: Comic }) {
   const updatePanel = useComicsStore((s) => s.updatePanel)
   const plan = useStudioStore((s) => s.plan)
   const planning = useStudioStore((s) => s.planning)
+  const planProgress = useStudioStore((s) => s.planProgress[comic.id])
+  const resumePlan = useStudioStore((s) => s.resumePlan)
   const note = useStudioStore((s) => s.notes[comic.id])
   const stepMessage = useStudioStore((s) => s.stepMessage[comic.id])
   const errors = useFieldErrors((s) => s.errors)
@@ -108,6 +111,7 @@ function Studio({ comic }: { comic: Comic }) {
   const [editingScene, setEditingScene] = useState<string | null>(null)
   const [editingPanel, setEditingPanel] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<PlanKind | null>(null)
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set())
   const make = useMakingStore((s) => s.make)
   const [starting, setStarting] = useState(false)
   const navigate = useNavigate()
@@ -148,11 +152,22 @@ function Studio({ comic }: { comic: Comic }) {
     if (next > comic.studio_step) update(comic.id, { studio_step: next })
   }
 
+  // After a refresh: a panel plan still being made carries on, its scenes filling in (part C).
+  useEffect(() => resumePlan(comic.id, comic.plan_job_id), [resumePlan, comic.id, comic.plan_job_id])
+
   const runPlan = async (kind: PlanKind, startOver = false) => {
-    const result = await plan(comic.id, kind, startOver)
+    // Panels: step 3 opens as soon as the plan starts, so each scene shows the moment it's ready.
+    const result = await plan(comic.id, kind, startOver, () => goTo(3))
     if (result === 'ok') goTo(kind === 'scenes' ? 2 : 3)
     if (result === 'confirm') setConfirming(kind)
   }
+
+  const toggleScene = (id: string) =>
+    setCollapsed((was) => {
+      const next = new Set(was)
+      if (!next.delete(id)) next.add(id)
+      return next
+    })
 
   const updateScene = (scene: Scene) => {
     clearError(`scenes.${scene.id}`)
@@ -184,7 +199,13 @@ function Studio({ comic }: { comic: Comic }) {
 
       <div className="flex flex-wrap items-start gap-6">
         <section className="relative flex min-w-0 flex-[999_1_560px] flex-col gap-5.5 rounded-hero border-3 border-ink bg-surface p-5 shadow-hero sm:p-7">
-          {planning && <PlanningLoader text={LOADER_TEXT[planning]} lines={waitingLines(allCast.map((c) => c.name))} />}
+          {planning === 'scenes' && <PlanningLoader text={LOADER_TEXT.scenes} lines={waitingLines(allCast.map((c) => c.name))} />}
+          {planning === 'panels' && (
+            <PlanProgressCard
+              progress={planProgress ?? { jobId: '', stage: 'planning', done: 0, of: 0 }}
+              lines={waitingLines(allCast.map((c) => c.name))}
+            />
+          )}
           {stepMessage && <FieldMessage message={stepMessage} />}
 
           {step === 1 && (
@@ -280,20 +301,31 @@ function Studio({ comic }: { comic: Comic }) {
               <p className="m-0 font-semibold text-muted">
                 Check each panel. Tap Edit panel to change the words, faces, poses and where everyone stands.
               </p>
-              {comic.panels.length ? (
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-3.5">
-                  {comic.panels.map((panel, i) => (
-                    <PanelPlanCard
-                      key={panel.id}
-                      number={i + 1}
-                      panel={panel}
-                      looks={comic.looks}
-                      place={allPlaces.find((p) => p.id === panel.background_id)}
-                      cast={allCast}
-                      editing={editingPanel === panel.id}
-                      onEdit={() => setEditingPanel(editingPanel === panel.id ? null : panel.id)}
-                      onChange={(fn) => updatePanel(comic.id, panel.id, fn)}
-                    />
+              {comic.panels.length || planning === 'panels' ? (
+                <div className="flex flex-col gap-4">
+                  {panelsByScene(comic.panels, comic.scenes, comic.panel_count).map((group) => (
+                    <SceneGroup
+                      key={group.id}
+                      group={group}
+                      placeName={allPlaces.find((p) => p.id === group.scene?.background_id)?.name}
+                      collapsed={collapsed.has(group.id)}
+                      onToggle={() => toggleScene(group.id)}
+                      planning={planning === 'panels'}
+                    >
+                      {group.panels.map((panel) => (
+                        <PanelPlanCard
+                          key={panel.id}
+                          number={panel.idx + 1}
+                          panel={panel}
+                          looks={comic.looks}
+                          place={allPlaces.find((p) => p.id === panel.background_id)}
+                          cast={allCast}
+                          editing={editingPanel === panel.id}
+                          onEdit={() => setEditingPanel(editingPanel === panel.id ? null : panel.id)}
+                          onChange={(fn) => updatePanel(comic.id, panel.id, fn)}
+                        />
+                      ))}
+                    </SceneGroup>
                   ))}
                 </div>
               ) : (

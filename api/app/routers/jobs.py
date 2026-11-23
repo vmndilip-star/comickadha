@@ -20,7 +20,7 @@ def _owned_job(session: Session, user: User, job: Job | None) -> Job:
     target: Character | Background | Comic | None
     if job.kind == "character_sheet":
         target = session.get(Character, job.target_id)
-    elif job.kind == "comic":
+    elif job.kind in ("comic", "panel_plan"):
         target = session.get(Comic, job.target_id)
     else:
         target = session.get(Background, job.target_id)
@@ -48,8 +48,9 @@ async def job_events(
     after: int | None = None,
     last_event_id: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
 ) -> StreamingResponse:
-    """Server-sent events: progress | cell_ready | panel_ready | panel_failed | done | error
-    (panel_ready and panel_failed come from "Make my comic!" jobs).
+    """Server-sent events: progress | cell_ready | panel_ready | panel_failed | scene_planned |
+    done | error (panel_ready and panel_failed come from "Make my comic!" jobs, scene_planned from
+    panel plans).
 
     Replays every event after `after` (or the browser's Last-Event-ID on reconnect), then streams
     live ones until the job ends.

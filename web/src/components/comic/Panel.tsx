@@ -52,7 +52,7 @@ export function Panel(props: PanelProps) {
       style={{ backgroundColor: place?.tint }}
     >
       {panel.art_url ? (
-        <img key={panel.art_url} src={panel.art_url} alt={description} draggable={false} className="absolute inset-0 size-full object-cover" />
+        <img key={panel.art_url} src={panel.art_url} alt={description} loading="lazy" decoding="async" draggable={false} className="absolute inset-0 size-full object-cover" />
       ) : (
         <Sketch panel={panel} looks={looks} place={place} cast={cast} label={description} />
       )}
@@ -143,7 +143,7 @@ function Sketch({ panel, looks, place, cast, label }: Pick<PanelProps, 'panel' |
   const thumb = place?.thumb_url ?? place?.image_url
   return (
     <div role="img" aria-label={label} className="absolute inset-0 opacity-60 grayscale-[40%]">
-      {thumb && <img src={thumb} alt="" draggable={false} className="absolute inset-0 size-full object-cover" />}
+      {thumb && <img src={thumb} alt="" loading="lazy" decoding="async" draggable={false} className="absolute inset-0 size-full object-cover" />}
       {panel.characters.map((pc) => {
         const character = cast.find((c) => c.id === pc.id)
         if (!character) return null

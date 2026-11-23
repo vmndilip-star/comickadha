@@ -21,7 +21,11 @@ TRAITS: tuple[str, ...] = get_args(Trait)
 LockStatus = Literal["draft", "generating", "locked", "failed"]
 
 Mood = Literal["mystery", "funny", "adventure", "spooky"]
-PanelCount = Literal[4, 6, 8]
+# Short comics 4, 6, 8; long ones 10 to 30 (Phase 7 part C). The default stays 6.
+PanelCount = Literal[4, 6, 8, 10, 16, 20, 25, 30]
+MAX_SCENES = 8
+# The story a kid writes: room for a 30-panel comic's 8 scenes (Phase 7 part C; was 600).
+MAX_SYNOPSIS = 1000
 StudioStep = Literal[1, 2, 3]
 ComicStatus = Literal["draft", "finished"]
 # Who designed a character in the Create character flow (the badge on its card).
