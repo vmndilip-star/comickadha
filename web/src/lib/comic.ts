@@ -9,6 +9,12 @@ export function castFor(comic: Comic, live: Character[]): Character[] {
   return [...live, ...comic.characters.filter((c) => !ids.has(c.id))]
 }
 
+/** The characters picked for this comic, in the order picked: the only names the rotating loading
+ * lines may use (live test 2: they named characters who weren't in the story). */
+export function pickedCast(comic: Pick<Comic, 'cast_ids'>, cast: Character[]): Character[] {
+  return comic.cast_ids.map((id) => cast.find((c) => c.id === id)).filter((c): c is Character => c !== undefined)
+}
+
 /** Same as castFor, for places. */
 export function placesFor(comic: Comic, live: Background[]): Background[] {
   const ids = new Set(live.map((p) => p.id))

@@ -3,6 +3,7 @@ import { createFromAnswers } from '@/api/builder'
 import { createCharacter } from '@/api/characters'
 import { ApiError } from '@/api/client'
 import { normalize } from '@/avatar/spec'
+import { applyFollowUp } from '@/lib/createFlow'
 import type { Character, Created } from '@/types'
 import { useCastStore } from './cast'
 import { useCreateFlow } from './createFlow'
@@ -49,20 +50,23 @@ describe('the Create character flow', () => {
 
     await flow().design()
     expect(flow().step).toBe('follow_up')
-    designed.mockResolvedValue(result({ follow_up: null }))
     await flow().answer({ target: 'colors.hair', value: 'grey' })
-    expect(designed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ follow_up_answer: { target: 'colors.hair', value: 'grey' }, look: spec }),
-    )
+    // Applied here: no second design call, and the first answer's words stay (live test 2).
+    expect(designed).toHaveBeenCalledTimes(1)
+    const grey = applyFollowUp(spec, { target: 'colors.hair', value: 'grey' })
+    expect(flow().result?.spec).toEqual(grey)
+    expect(flow().result?.name_ideas).toEqual(['Nana Joy', 'Grandpa Bo'])
+    expect(flow().result?.intro_line).toBe('Meet Nana Joy, who knits the cosiest jumpers!')
     expect(flow().step).toBe('name')
-    flow().setAnswers({ name: 'Nana Joy', role: 'friend' })
+    flow().setAnswers({ name: 'Granny Rose', role: 'friend' })
     expect(saved).not.toHaveBeenCalled()
 
-    saved.mockResolvedValue({ id: 'c1', name: 'Nana Joy', spec } as unknown as Character)
+    saved.mockResolvedValue({ id: 'c1', name: 'Granny Rose', spec } as unknown as Character)
     expect(await flow().reveal()).toBe(true)
 
     expect(saved).toHaveBeenCalledTimes(1)
-    expect(saved).toHaveBeenCalledWith({ name: 'Nana Joy', spec: { ...spec, role: 'friend' }, designed_by: 'meta' })
+    expect(saved).toHaveBeenCalledWith({ name: 'Granny Rose', spec: { ...grey, role: 'friend' }, designed_by: 'meta' })
+    expect(flow().intro).toBe('Meet Granny Rose, who knits the cosiest jumpers!') // the picked name
     expect(flow().step).toBe('reveal')
     expect(useCastStore.getState().characters.map((c) => c.id)).toEqual(['c1'])
   })

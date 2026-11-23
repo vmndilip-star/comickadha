@@ -166,11 +166,17 @@ Phase 7 part C (2026-11-22):
 
 109. The synopsis limit is 1,000 characters for every comic (was 600; `MAX_SYNOPSIS`), so a 30-panel comic's 8 scenes have room; Story Buddy's spelling check takes the same. The title stays 60. SQLite doesn't enforce column lengths, so no migration (a Postgres database would need its column widened).
 
-110. Token limits re-measured with long comics (one real 16-panel and one 30-panel plan, 33 calls, $0.42): 8 scenes took 5,464 completion tokens and 68 s (the old limit was 6,000 and 35 s), classifier batches up to 3,627 (limit 4,000), panel parts up to 5,711 and 33.7 s. New limits, about twice the largest seen: scenes 11,000 / 90 s, panels 11,500 / 70 s, classifier 7,500 / 45 s, and the image check 2,000 (the real `seed --paint` run reached 999 of 1,500) (`ai_limits.py`). No reply was cut off and no part fell back in those runs.
+110. Token limits re-measured with long comics (one real 16-panel and one 30-panel plan, 33 calls, $0.42): 8 scenes took 5,464 completion tokens and 68 s (the old limit was 6,000 and 35 s), classifier batches up to 3,627 (limit 4,000), panel parts up to 5,711 and 33.7 s. New limits, about twice the largest seen: scenes 11,000 / 140 s (90 s at first; live test 2 then saw scene planning take about 85 s), panels 11,500 / 85 s (70 s at first: about twice the slowest single scene call, 33.7 s, then 41.4 s in the live test 2 check), classifier 7,500 / 45 s, and the image check 2,000 (the real `seed --paint` run reached 999 of 1,500) (`ai_limits.py`). No reply was cut off and no part fell back in those runs.
 
 Docs (2026-11-22):
 
 111. Phase prompts are no longer kept in the repo (`docs/phases/` is gone): `docs/decisions.md` and the git history are the record. `docs/character-safety.md`, the safety policy, stays.
+
+Live test 2 (2026-11-22, "Sniffy and the Missing Moon Cake", 20 panels):
+
+112. Create character: the reveal's intro line introduces the name the kid picked. The API swaps any name idea it mentions for the kid's name (or the first idea), and the prompt asks Meta to use its first idea; the web's `revealCharacter` (`introFor`) swaps it for the picked name. Name ideas never repeat a name in use (the kid's own characters and the starters, `names_in_use`): each one, from Meta or the offline helper, is swapped for a fresh offline idea (`fresh_names`; the offline lists skip names in use too), in Create, the Lab's Name ideas and the helper's suggestions. A follow-up answer is applied in the browser (`applyFollowUp`, the same rules as the API's `apply_choice`, dress and leggings included) with no second design call, keeping the first answer's name ideas, intro line and catchphrase; the API applies a look-plus-answer request with `apply_choice` and sends nothing to Meta. The Create loader rotates the Studio's waiting lines.
+113. The rotating loading lines (Studio planning, Story Buddy) name only the characters picked for the comic (`pickedCast`), never others from the kid's cast or the starters.
+114. Catchphrases are optional: the planner prompt and each part's brief say to use one only where it truly fits the moment, at most once in the whole comic, never forced (leaving it out is fine). The offline planner says one only on a moment with no feeling of its own, and "vanish", "stole" and "steal" now count as sad moments.
 
 ## Phase history
 

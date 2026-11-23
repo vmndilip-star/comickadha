@@ -8,7 +8,7 @@ raw suggestion shape as the Meta helper, so both go through the same checks.
 import random
 import re
 import zlib
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from typing import Any, get_args
 
 from PIL import Image
@@ -283,8 +283,10 @@ def ideas(spec: dict[str, Any], name: str, seed: int) -> Raw:
     }
 
 
-def _names(body_type: str, seed: int, count: int = 3) -> list[str]:
-    pool = NAMES.get(body_type, NAMES["kid"])
+def _names(body_type: str, seed: int, count: int = 3, avoid: Collection[str] = ()) -> list[str]:
+    """`count` names from the offline list for this body type, skipping any in `avoid` (lower case:
+    the kid's own characters and the starters)."""
+    pool = [n for n in NAMES.get(body_type, NAMES["kid"]) if n.lower() not in avoid]
     return random.Random(seed).sample(pool, k=min(count, len(pool)))
 
 
@@ -362,9 +364,12 @@ def from_drawing(image: Image.Image, spec: dict[str, Any]) -> Raw:
     }
 
 
-def offline_names(body_type: str, seed: int, count: int = 3) -> list[str]:
-    """Made-up names from the offline list (the safe default for unusable name ideas)."""
-    return _names(body_type, seed, count)
+def offline_names(
+    body_type: str, seed: int, count: int = 3, avoid: Collection[str] = ()
+) -> list[str]:
+    """Made-up names from the offline list (the safe default for unusable name ideas), never one
+    in `avoid` (lower case)."""
+    return _names(body_type, seed, count, avoid)
 
 
 def catchphrase_for(traits: Sequence[str], body_type: str) -> str:

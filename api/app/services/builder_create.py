@@ -34,7 +34,7 @@ from app.schemas.builder import CatalogChoice, Created, CreateRequest
 from app.schemas.common import TRAITS
 from app.services import character_safety, helper_meta, helper_offline, safety
 from app.services.ai_guard import RESTING, Guard, label
-from app.services.builder_helper import build_spec
+from app.services.builder_helper import build_spec, fresh_names, named, names_in_use
 
 Raw = dict[str, Any]
 Spec = dict[str, Any]
@@ -58,6 +58,7 @@ MAX_QUESTION = 120
 MAX_UNMATCHED = 60
 SAFE_CATCHPHRASE = "Let's go on an adventure!"
 SAFE_REPLY = "Here's your new character!"
+ANSWERED_REPLY = "Done! I changed just that."
 NO_AGE = "Only people have an age. Leave the age out for robots and animals."
 WRONG_FACE = "That face doesn't fit this kind of character. Pick another one!"
 WRONG_CHOICE = "That choice isn't in our parts box. Pick one of the options!"
@@ -105,6 +106,10 @@ class Creator:
         self._check_request(req, body, cat)
         if req.name:
             character_safety.check_name(self.session, self.user_id, TARGET, req.name)
+        self.taken = names_in_use(self.session, self.user_id)
+        look = self._look(req, body)
+        if look is not None and req.follow_up_answer is not None:
+            return self._answered(req, body, look, req.follow_up_answer)
         description, notes = "", []
         if req.description:
             checked = character_safety.check_description(
@@ -118,17 +123,9 @@ class Creator:
             self.guard.check_input(TARGET, kid_words, labels=LABELS)
 
         age = (req.age or DEFAULT_AGE) if req.kind == "person" else None
-        look = self._look(req, body)
-        # With a look, that's the character so far, minus its personality (never sent to Meta).
-        base = (
-            normalize({**look, "personality": {"traits": [], "catchphrase": ""}, "role": req.role})
-            if look
-            else self._base(body, age, req)
-        )
-        answer = req.follow_up_answer
-        # The answer isn't part of the seed: answering a question keeps the same character.
-        inputs = [body, age, req.face_shape, description, req.name]
-        seed = zlib.crc32(json.dumps(inputs).encode())
+        base = self._base(body, age, req)
+        seed = self._seed(req, body, age, description)
+        answer = req.follow_up_answer  # an answer without a look goes into a fresh design
         raw, source, fallback = self.guard.ask(
             lambda llm: helper_meta.create(
                 llm,
@@ -140,7 +137,7 @@ class Creator:
                 name=req.name,
                 role=req.role,
                 base=base,
-                keep=look is not None,
+                keep=False,
             ),
             lambda: helper_offline.create(
                 body, age, description, base, name=req.name, answered=answer is not None, seed=seed
@@ -149,7 +146,40 @@ class Creator:
             texts=lambda _r: {},  # every text is checked field by field in _finish
             target=TARGET,
         )
-        return self._finish(req, body, base, raw, source, fallback, notes, seed, look)
+        return self._finish(req, body, base, raw, source, fallback, notes, seed)
+
+    @staticmethod
+    def _seed(req: CreateRequest, body: str, age: str | None, description: str) -> int:
+        return zlib.crc32(json.dumps([body, age, req.face_shape, description, req.name]).encode())
+
+    def _answered(
+        self, req: CreateRequest, body: str, look: Spec, answer: CatalogChoice
+    ) -> Created:
+        """A follow-up answer: the character so far with just that choice applied (apply_choice).
+        Nothing is designed again and no model is asked (live test 2: a second Meta design took
+        about 40 s to change the eyes). The words were the first answer's (the web keeps them), so
+        this sends back the look's own catchphrase and offline name ideas."""
+        spec = apply_choice({**look, "role": req.role}, answer)
+        traits = spec["personality"]["traits"]
+        catchphrase = spec["personality"]["catchphrase"] or self._fallback_catchphrase(traits, body)
+        spec["personality"] = {**spec["personality"], "catchphrase": catchphrase}
+        names = fresh_names([], self.taken, body, self._seed(req, body, req.age, ""))
+        return Created.model_validate(
+            {
+                "spec": spec,
+                "name_ideas": names,
+                "catchphrase": catchphrase,
+                "intro_line": f"Meet {req.name or names[0]}, ready for adventure!",
+                "follow_up": None,
+                "role_suggestion": helper_offline.role_for(traits),
+                "notes": [],
+                "reply": ANSWERED_REPLY,
+                "unmatched": [],
+                "source": "mock",
+                "fallback": False,
+                "label": label("mock"),
+            }
+        )
 
     # ---- request ----------------------------------------------------------------------------
 
@@ -202,7 +232,6 @@ class Creator:
         fallback: bool,
         notes: list[str],
         seed: int,
-        look: Spec | None = None,
     ) -> Created:
         raw = {**raw, "body_type": body}
         given = raw.get("parts")
@@ -224,12 +253,6 @@ class Creator:
             spec = normalize({**spec, "parts": {**spec["parts"], "face_shape": req.face_shape}})
         if req.follow_up_answer:
             spec = apply_choice(spec, req.follow_up_answer)
-        if look is not None and req.follow_up_answer is not None:
-            # No drift, whatever the model did: the look as sent, with only the answered choice
-            # applied. Traits stay too (they're from the list); words come from this answer.
-            kept = apply_choice({**look, "role": req.role}, req.follow_up_answer)
-            traits = look["personality"]["traits"] or spec["personality"]["traits"]
-            spec = {**kept, "personality": {**spec["personality"], "traits": traits}}
         role = str(raw.get("role_suggestion") or "")
         role_suggestion = (
             role if role in ROLES else helper_offline.role_for(spec["personality"]["traits"])
@@ -326,10 +349,13 @@ class Creator:
             if follow_up and any(k.startswith("follow_up") for k in bad):
                 follow_up = None
 
-        if not names:
-            pool = helper_offline.offline_names(body, seed)
-            names = [n for n in pool if not character_safety.name_problem(n)]
+        # Never a name already in use (the kid's cast or a starter), Meta's or the offline helper's.
+        offered = list(names)
+        names = fresh_names(names, self.taken, body, seed)
         who = name or names[0]
+        # The intro introduces the name the kid picked (or the first idea), never another one.
+        raw_names = [str(n).strip() for n in raw.get("name_ideas") or [] if str(n).strip()]
+        intro = named(intro, who, [*raw_names, *offered, *names]) if intro else ""
         return {
             "names": names,
             "catchphrase": catchphrase or self._fallback_catchphrase(traits, body),

@@ -5,6 +5,7 @@ import { createCharacter } from '@/api/characters'
 import {
   DESIGN_KEYS,
   NO_ANSWERS,
+  applyFollowUp,
   nextStep,
   prevStep,
   requestFor,
@@ -30,13 +31,16 @@ interface CreateFlowState {
   errors: FieldErrors
   /** Made at the reveal, and only there. */
   character: Character | null
+  /** The reveal's intro line, built from the name the kid picked. */
+  intro: string | null
   reset: () => void
   setAnswers: (patch: Partial<Answers>) => void
   next: () => void
   back: () => void
   /** Asks the helper with the answers so far, then moves on (to the question, or the name). */
   design: () => Promise<boolean>
-  /** Answers the helper's question (or skips it with null). */
+  /** Answers the helper's question (or skips it with null): the choice is applied here, with no
+   * second design call (the first answer's words stay). */
   answer: (choice: CatalogChoice | null) => Promise<void>
   /** "Skip, surprise me!": designs with what's been answered (if not done yet), then reveals. */
   surprise: () => Promise<void>
@@ -77,6 +81,7 @@ export const useCreateFlow = create<CreateFlowState>()((set, get) => {
     saving: false,
     errors: {},
     character: null,
+    intro: null,
 
     reset: () =>
       set({
@@ -88,6 +93,7 @@ export const useCreateFlow = create<CreateFlowState>()((set, get) => {
         saving: false,
         errors: {},
         character: null,
+        intro: null,
       }),
 
     setAnswers: (patch) =>
@@ -121,8 +127,11 @@ export const useCreateFlow = create<CreateFlowState>()((set, get) => {
     answer: async (choice) => {
       const { result } = get()
       if (choice && result) {
-        set((s) => ({ answers: { ...s.answers, follow_up_answer: choice } }))
-        if (!(await ask(result.spec))) return
+        // Only the picked choice changes (live test 2: asking Meta to design again took ~40 s).
+        set((s) => ({
+          answers: { ...s.answers, follow_up_answer: choice },
+          result: { ...result, spec: applyFollowUp(result.spec, choice) },
+        }))
       }
       set({ step: 'name' })
     },
@@ -137,9 +146,10 @@ export const useCreateFlow = create<CreateFlowState>()((set, get) => {
       if (!result) return false
       set({ saving: true })
       try {
-        const character = await createCharacter(revealCharacter(result, answers))
+        const { intro_line, ...body } = revealCharacter(result, answers)
+        const character = await createCharacter(body)
         useCastStore.getState().insert(character)
-        set({ character, step: 'reveal' })
+        set({ character, intro: intro_line, step: 'reveal' })
         return true
       } catch (error) {
         // A name that can't be used goes back to the name step, with the message under the box.

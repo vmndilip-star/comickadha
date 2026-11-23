@@ -147,6 +147,8 @@ def test_the_planner_prompt_has_the_rules() -> None:
 
     assert "thinking pose has a think bubble or no bubble" in text
     assert "catchphrase at most once in the whole comic" in text
+    assert "Catchphrases are optional" in text and "Never force one in" in text  # live test 2
+    assert "pose and face fit what they say and feel" in text  # advice, not a check (live test 2)
     assert "same first two words at most twice" in text
     assert "different reactions" in text
 

@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { normalize } from '@/avatar/spec'
-import type { FollowUp } from '@/types'
-import { NO_ANSWERS, castFull, nextStep, prevStep, requestFor, stepsFor, type Answers } from './createFlow'
+import { normalize, palette } from '@/avatar/spec'
+import type { Created, FollowUp } from '@/types'
+import {
+  NO_ANSWERS,
+  applyFollowUp,
+  castFull,
+  introFor,
+  nextStep,
+  prevStep,
+  requestFor,
+  revealCharacter,
+  stepsFor,
+  type Answers,
+} from './createFlow'
 
 const QUESTION: FollowUp = {
   question: 'What colour should their hair be?',
@@ -72,3 +83,49 @@ describe('the cast', () => {
     expect([castFull(2), castFull(3)]).toEqual([false, true])
   })
 })
+
+describe('the reveal (live test 2)', () => {
+  it('introduces the name the kid picked, not the idea the helper wrote it with', () => {
+    expect(introFor('Meet Biscuit, the best sniffer in town!', 'Sniffy', ['Biscuit', 'Rocket'])).toBe('Meet Sniffy, the best sniffer in town!')
+    expect(introFor('Meet Nana Joy, who knits!', 'Granny Bo', ['Nana Joy'])).toBe('Meet Granny Bo, who knits!')
+    expect(introFor('Meet Leo! Leopold waves.', 'Zed', ['Leo'])).toBe('Meet Zed! Leopold waves.') // whole names only
+    expect(introFor('Meet Zap-9 (beep!)', 'Bolt', ['Zap-9'])).toBe('Meet Bolt (beep!)')
+    expect(introFor('Meet Rocket, a speedy pup!', 'Rocket', ['Biscuit', 'Rocket'])).toBe('Meet Rocket, a speedy pup!')
+  })
+
+  it('builds the saved character and its intro from the picked name', () => {
+    const result = {
+      spec: normalize({ body_type: 'dog' }),
+      name_ideas: ['Biscuit', 'Rocket'],
+      intro_line: 'Meet Biscuit, ready to sniff!',
+      role_suggestion: 'sidekick',
+      source: 'meta',
+    } as unknown as Created
+    const out = revealCharacter(result, answers({ name: 'Sniffy' }))
+    expect(out.name).toBe('Sniffy')
+    expect(out.intro_line).toBe('Meet Sniffy, ready to sniff!')
+    expect(revealCharacter(result, answers({})).intro_line).toBe('Meet Biscuit, ready to sniff!') // no name: the first idea
+  })
+})
+
+describe('a follow-up answer (live test 2)', () => {
+  const kid = normalize({ body_type: 'kid', parts: { top: 'tshirt' } })
+
+  it('changes only the picked colour or part, here, with no second design', () => {
+    const grey = palette('hair', 'kid').find((e) => e.id === 'grey')!.hex
+    const haired = applyFollowUp(kid, { target: 'colors.hair', value: 'grey' })
+    expect(haired.colors.hair).toBe(grey)
+    expect({ ...haired, colors: { ...haired.colors, hair: kid.colors.hair } }).toEqual(kid)
+
+    const eyes = applyFollowUp(kid, { target: 'eyes', value: 'sparkle' })
+    expect(eyes.parts.eyes).toBe('sparkle')
+    expect({ ...eyes.parts, eyes: kid.parts.eyes }).toEqual(kid.parts)
+  })
+
+  it('brings leggings with a dress, as the API does, and ignores a choice that does not fit', () => {
+    const dressed = applyFollowUp(kid, { target: 'top', value: 'dress' })
+    expect([dressed.parts.top, dressed.parts.bottom]).toEqual(['dress', 'leggings'])
+    expect(applyFollowUp(kid, { target: 'face_shape', value: 'cat' })).toEqual(kid)
+  })
+})
+

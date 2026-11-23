@@ -27,8 +27,10 @@ from app.services.story_planner import (
     StoryContext,
     check_panels,
     dialogue_clashes,
+    mood_for,
     offline_panels,
     opening,
+    part_brief,
     plan_parts,
     repair_dialogue,
     scene_shares,
@@ -171,6 +173,19 @@ def test_a_scene_at_the_same_place_links_without_naming_it_again() -> None:
     for part in plan_parts(story)[1:]:
         captions = [b.text for b in plan.panels[part.first].bubbles if b.speaker == "narrator"]
         assert captions[0] in SAME_PLACE  # "A little later...", never "Back at" the same kitchen
+
+
+def test_catchphrases_are_offered_only_where_they_fit() -> None:
+    """Live test 2: "Mystery solved!" came right after the cake vanished. A catchphrase is an
+    option the planner may skip, and the offline planner never puts one on a sad moment."""
+    story = ctx(16)
+    part = next(p for p in plan_parts(story) if p.catchphrases)
+
+    brief = " ".join(part_brief(story, part))
+
+    assert "only where one truly fits the moment (otherwise leave it out)" in brief
+    assert mood_for("The moon cake vanishes from the table")[1] == "sad"
+    assert mood_for("A squirrel stole the map")[1] == "sad"
 
 
 # ---- the comic-wide pass ----------------------------------------------------------------------

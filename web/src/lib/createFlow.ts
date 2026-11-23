@@ -3,6 +3,7 @@
  * kind of character gets, what goes to POST /builder/create, and how the reveal is assembled.
  * Nothing here talks to the API; store/createFlow.ts does.
  */
+import { applyPart } from '@/avatar/builder'
 import { normalize, palette, type FullSpec } from '@/avatar/spec'
 import {
   MAX_CAST,
@@ -148,12 +149,48 @@ export function choicePreview(spec: AvatarSpec, choice: CatalogChoice): FullSpec
   return normalize({ ...spec, parts: { ...spec.parts, [choice.target]: choice.value } })
 }
 
-/** What the reveal saves: the name typed or picked (else the first idea) and the chosen role. */
-export function revealCharacter(result: Created, answers: Answers): { name: string; spec: AvatarSpec; designed_by: DesignedBy } {
+/**
+ * A follow-up answer applied here (live test 2): the picked part or palette colour on the character
+ * so far, nothing else changed (a dress brings its leggings, as the API's apply_choice does). No
+ * second design call, so the first answer's name ideas, intro line and catchphrase stay.
+ */
+export function applyFollowUp(spec: AvatarSpec, choice: CatalogChoice): FullSpec {
+  const full = normalize(spec)
+  if (choice.target.startsWith('colors.')) {
+    const slot = choice.target.slice('colors.'.length)
+    const entry = palette(slot, full.body_type).find((e) => e.id === choice.value)
+    return entry ? { ...full, colors: { ...full.colors, [slot]: entry.hex } } : full
+  }
+  const applied = applyPart(full, choice.target, choice.value)
+  return applied.ok ? applied.spec : full
+}
+
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * The intro line with the name the kid picked: the helper wrote it with one of its name ideas
+ * ("Meet Biscuit…"), so any idea it mentions becomes the picked name ("Meet Sniffy…").
+ */
+export function introFor(intro: string, name: string, ideas: string[]): string {
+  const others = [...new Set(ideas)].filter((idea) => idea && idea !== name).sort((a, b) => b.length - a.length)
+  return others.reduce(
+    (line, idea) => line.replace(new RegExp(`(?<![\\p{L}\\p{N}_])${escapeRegExp(idea)}(?![\\p{L}\\p{N}_])`, 'gu'), name),
+    intro,
+  )
+}
+
+/** What the reveal saves (the name typed or picked, else the first idea, and the chosen role),
+ * and the intro line it shows, built from that name. */
+export function revealCharacter(
+  result: Created,
+  answers: Answers,
+): { name: string; spec: AvatarSpec; designed_by: DesignedBy; intro_line: string } {
+  const name = answers.name.trim() || result.name_ideas[0] || 'New hero'
   return {
-    name: answers.name.trim() || result.name_ideas[0] || 'New hero',
+    name,
     spec: { ...result.spec, role: answers.role ?? result.role_suggestion },
     designed_by: result.source === 'meta' ? 'meta' : 'offline',
+    intro_line: introFor(result.intro_line, name, result.name_ideas),
   }
 }
 

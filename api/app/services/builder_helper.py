@@ -8,15 +8,19 @@ Every suggestion is turned into a full spec that the catalog can draw (normalize
 
 import logging
 import random
-from collections.abc import Callable
+import re
+import zlib
+from collections.abc import Callable, Collection, Iterable
 from typing import Any
 
 from PIL import Image
-from sqlmodel import Session
+from sqlalchemy import and_, or_
+from sqlmodel import Session, col, select
 
 from app.avatar.catalog import load_catalog
 from app.avatar.spec import nearest, normalize, palette, with_leggings
 from app.errors import ApiError
+from app.models import Character
 from app.providers.llm import LLMError, LLMProvider
 from app.schemas.builder import Ideas, Suggestion
 from app.services import character_safety, helper_meta, helper_offline, safety
@@ -112,6 +116,43 @@ def _respectful(raw: Raw) -> Raw:
     return raw
 
 
+def names_in_use(session: Session, user_id: str) -> set[str]:
+    """The names a name idea must not repeat (lower case): the kid's own characters and the
+    starter characters, so a new character never shares a name with one already in a story."""
+    stmt = select(Character.name).where(
+        or_(
+            and_(col(Character.user_id) == user_id, col(Character.deleted_at).is_(None)),
+            col(Character.starter).is_(True),
+        )
+    )
+    return {name.strip().lower() for name in session.exec(stmt)}
+
+
+def fresh_names(
+    names: Iterable[str], taken: Collection[str], body_type: str, seed: int, count: int = 3
+) -> list[str]:
+    """Name ideas that no character already has, Meta's or the offline helper's alike: each name in
+    use is swapped for a fresh one from the offline list (never one in use either), and an empty
+    list gets `count` of them. (Unsafe names are dropped before this, as before.)"""
+    given = list(dict.fromkeys(names))[:count]
+    kept = [n for n in given if n.strip().lower() not in taken]
+    want = len(given) if kept else count
+    if len(kept) < want:
+        avoid = set(taken) | {n.lower() for n in kept}
+        pool = helper_offline.NAMES.get(body_type, helper_offline.NAMES["kid"])
+        spare = helper_offline.offline_names(body_type, seed, count=len(pool), avoid=avoid)
+        kept += [n for n in spare if not character_safety.name_problem(n)][: want - len(kept)]
+    return kept
+
+
+def named(intro: str, who: str, names: Iterable[str]) -> str:
+    """The intro line with the character's name: any name idea it mentions becomes `who` (the
+    name the kid picked, or the first idea), so it never introduces a name the kid didn't pick."""
+    for name in sorted({n for n in names if n and n != who}, key=len, reverse=True):
+        intro = re.sub(rf"(?<!\w){re.escape(name)}(?!\w)", who, intro)
+    return intro
+
+
 def _texts(raw: Raw) -> tuple[list[str], str, str, list[str]]:
     names = [str(n).strip()[:24] for n in raw.get("name_ideas", []) if str(n).strip()][:3]
     reply = str(raw.get("reply", "")).strip()[:200]
@@ -134,6 +175,11 @@ class Helper:
     def __init__(self, llm: LLMProvider | None, session: Session, user_id: str) -> None:
         self.llm = llm
         self.guard = Guard(llm, session, user_id)
+
+    @property
+    def taken(self) -> set[str]:
+        """Names already in use: never suggested again (the kid's cast and the starters)."""
+        return names_in_use(self.guard.session, self.guard.user_id)
 
     @property
     def source(self) -> str:
@@ -179,6 +225,7 @@ class Helper:
             check=lambda r: (r.get("name_ideas") and isinstance(r.get("traits"), list)) or None,
         )
         names, reply, catchphrase, _ = _texts(raw)
+        names = fresh_names([n for n in names if n != name], self.taken, spec["body_type"], seed)
         traits = [t for t in raw.get("traits", []) if t in TRAITS][:3]
         if fallback:
             reply = f"{RESTING} {reply}"
@@ -251,6 +298,9 @@ class Helper:
     def _finish(self, spec: dict[str, Any], raw: Raw, source: str, fallback: bool) -> Suggestion:
         new, changed = build_spec(spec, raw)
         names, reply, _, unmatched = _texts(raw)
+        # Never a name already in use: each one swapped for a fresh idea (as many as before).
+        seed = zlib.crc32("|".join(names).encode())
+        names = fresh_names(names, self.taken, new["body_type"], seed, count=len(names))
         if fallback:
             reply = f"{RESTING} {reply}".strip()
         # The offline helper echoes the kid's words (already checked); check the rest cheaply.

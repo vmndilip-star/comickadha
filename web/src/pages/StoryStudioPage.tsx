@@ -17,7 +17,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { EmptySlot } from '@/components/ui/EmptySlot'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { SaveStatus } from '@/components/ui/SaveStatus'
-import { allDrawn, byRecent, castFor, placesFor } from '@/lib/comic'
+import { allDrawn, byRecent, castFor, pickedCast, placesFor } from '@/lib/comic'
 import { MAX_SCENES, moveScene, panelsByScene, readyToPlan, waitingLines } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore, useStartComic } from '@/store/comics'
@@ -125,6 +125,8 @@ function Studio({ comic }: { comic: Comic }) {
   // For showing what the comic already uses, including deleted characters and places.
   const allCast = castFor(comic, usable)
   const allPlaces = placesFor(comic, places)
+  // The fun loading lines name only the characters picked for this comic.
+  const lines = waitingLines(pickedCast(comic, allCast).map((c) => c.name))
   const editing = comic.scenes.find((s) => s.id === editingScene)
   const notes = Object.fromEntries(comic.safety_notes.map((n) => [n.field, n.message]))
   // Decision 14: Make my comic! needs every panel planned and everyone in them locked.
@@ -199,11 +201,11 @@ function Studio({ comic }: { comic: Comic }) {
 
       <div className="flex flex-wrap items-start gap-6">
         <section className="relative flex min-w-0 flex-[999_1_560px] flex-col gap-5.5 rounded-hero border-3 border-ink bg-surface p-5 shadow-hero sm:p-7">
-          {planning === 'scenes' && <PlanningLoader text={LOADER_TEXT.scenes} lines={waitingLines(allCast.map((c) => c.name))} />}
+          {planning === 'scenes' && <PlanningLoader text={LOADER_TEXT.scenes} lines={lines} />}
           {planning === 'panels' && (
             <PlanProgressCard
               progress={planProgress ?? { jobId: '', stage: 'planning', done: 0, of: 0 }}
-              lines={waitingLines(allCast.map((c) => c.name))}
+              lines={lines}
             />
           )}
           {stepMessage && <FieldMessage message={stepMessage} />}

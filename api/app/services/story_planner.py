@@ -459,7 +459,7 @@ RULES: list[tuple[tuple[str, ...], str, str, str, str]] = [
      "jump", "laughing", "Ha ha! This is the best!", "talk"),
     (("win", "won", "saved", "hooray", "celebrat", "festival", "yay", "solved"),
      "celebrate", "laughing", "Hooray! We did it!", "shout"),
-    (("sad", "lost", "cry", "miss", "sorry", "gone", "disappear"),
+    (("sad", "lost", "cry", "miss", "sorry", "gone", "disappear", "vanish", "stole", "steal"),
      "front", "sad", "Oh no... where did it go?", "talk"),
     (("angry", "grumpy", "mad", "cross", "unfair", "forgot"),
      "hands_on_hips", "angry", "Hmph! That's not fair!", "shout"),
@@ -862,8 +862,12 @@ def part_brief(
         )
     sayers = [m for m in ctx.cast if m.id in part.catchphrases]
     if sayers:
-        offers = "; ".join(f"{m.name} may say {m.catchphrase!r} once here" for m in sayers)
-        out.append(f"Catchphrases: {offers}. Nobody else says their catchphrase in this part.")
+        offers = "; ".join(f"{m.name}: {m.catchphrase!r}" for m in sayers)
+        out.append(
+            "Catchphrases you may use in this part, at most once each and only where one truly "
+            f"fits the moment (otherwise leave it out): {offers}. Nobody else says their "
+            "catchphrase here."
+        )
     else:
         out.append("Nobody says their catchphrase in this part: they belong to other scenes.")
     taken = [

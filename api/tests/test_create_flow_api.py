@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from app.avatar import spec as avatar_spec
 from app.services.safety import REAL_PERSON
 from tests.conftest import own_cast
-from tests.fakes import server_error, suggestion, use_meta, user_text
+from tests.fakes import server_error, suggestion, use_meta
 
 GINGER = {"target": "colors.hair", "value": "ginger"}
 
@@ -66,20 +66,16 @@ def test_answering_offline_keeps_the_same_character(client: TestClient) -> None:
         "colors": {**first["spec"]["colors"], "hair": hex_of("hair", "ginger")},
     }
     assert second["spec"] == expected
-    assert second["name_ideas"] == first["name_ideas"]  # the same seed: same names
     assert second["follow_up"] is None
 
 
-def test_meta_can_only_change_the_answered_choice(client: TestClient) -> None:
-    """The model ignores "keep everything" and redraws the character: the server keeps the look."""
+def test_a_follow_up_answer_never_asks_meta_again(client: TestClient) -> None:
+    """Live test 2: a second Meta design took about 40 s to change only the eyes. The answer is
+    applied with apply_choice: nothing else changes and nothing is sent to Meta."""
     look = avatar_spec.validate({"body_type": "kid"})
     look["personality"] = {"traits": ["calm", "honest"], "catchphrase": "Pickled onions forever"}
     look["extras"] = ["backpack"]
     fake = use_meta(client)
-    drifted = meta_reply(traits=["silly"], extras=["cape", "glasses_star"])
-    drifted["parts"] |= {"hair": "afro", "top": "hoodie", "headwear": "cap"}
-    drifted["colors"] |= {"hair": "blue", "top": "red", "skin": drifted["colors"]["skin"]}
-    fake.replies["character_create"] = drifted
 
     made = create(client, look=look, follow_up_answer=GINGER).json()
 
@@ -89,10 +85,70 @@ def test_meta_can_only_change_the_answered_choice(client: TestClient) -> None:
         k: v for k, v in look["colors"].items() if k != "hair"
     }
     assert spec["colors"]["hair"] == hex_of("hair", "ginger")
-    assert spec["personality"]["traits"] == ["calm", "honest"]
-    sent = " ".join(user_text(c) for c in fake.calls)
-    assert "Pickled onions" not in sent and "calm" not in sent  # personality never reaches Meta
-    assert "Change ONLY what the child's answer is about" in sent
+    assert spec["personality"] == look["personality"]  # the first answer's words stay
+    assert fake.calls == []  # no design call, and no classifier call either: nothing sent
+    assert made["follow_up"] is None
+
+
+# ---- the intro line and name ideas (live test 2) ----------------------------------------------
+
+
+def test_the_intro_line_introduces_the_kids_name(client: TestClient) -> None:
+    fake = use_meta(client)
+    fake.replies["character_create"] = meta_reply(intro_line="Meet Nova, a brave kid!")
+
+    made = create(client, name="Sniffy").json()
+
+    assert made["intro_line"] == "Meet Sniffy, a brave kid!"
+
+
+def test_name_ideas_never_repeat_a_name_in_use(client: TestClient) -> None:
+    """Live test 2: "Biscuit" (a starter) was suggested. Names in use: the kid's cast and the
+    starters, Meta's ideas and the offline helper's alike; the intro follows the first idea."""
+    fake = use_meta(client)
+    fake.replies["character_create"] = meta_reply(
+        name_ideas=["Biscuit", "Mira", "Juno"], intro_line="Meet Biscuit, the best sniffer!"
+    )
+
+    made = create(client).json()
+
+    in_use = {c["name"].lower() for c in client.get("/api/characters").json()}
+    assert made["name_ideas"][0] == "Juno" and len(made["name_ideas"]) == 3
+    assert not {n.lower() for n in made["name_ideas"]} & in_use
+    assert made["intro_line"] == "Meet Juno, the best sniffer!"
+
+
+def test_offline_name_ideas_skip_starters_and_the_kids_cast(client: TestClient) -> None:
+    robo = next(c for c in own_cast(client) if c["name"] == "Robo-Tik")
+    assert client.patch(f"/api/characters/{robo['id']}", json={"name": "Rocket"}).status_code == 200
+
+    seen: set[str] = set()
+    for i in range(12):
+        made = client.post(
+            "/api/builder/create", json={"kind": "dog", "description": f"a fluffy dog number {i}"}
+        ).json()
+        seen |= set(made["name_ideas"])
+        assert len(made["name_ideas"]) == 3
+    assert "Biscuit" not in seen and "Rocket" not in seen  # a starter and the kid's own
+
+
+def test_lab_name_ideas_skip_names_in_use(client: TestClient) -> None:
+    dog = avatar_spec.validate({"body_type": "dog"})
+    for _ in range(12):
+        offline = client.post("/api/builder/ideas", json={"spec": dog, "name": ""}).json()
+        assert "Biscuit" not in offline["name_ideas"] and len(offline["name_ideas"]) == 3
+    fake = use_meta(client)
+    fake.replies["character_ideas"] = {
+        "name_ideas": ["Biscuit", "Whiskers", "Nova"],
+        "traits": ["kind"],
+        "catchphrase": "Woof!",
+        "reply": "How about these?",
+    }
+
+    meta = client.post("/api/builder/ideas", json={"spec": dog, "name": ""}).json()
+
+    assert meta["name_ideas"][0] == "Nova" and len(meta["name_ideas"]) == 3
+    assert not {"Biscuit", "Whiskers"} & set(meta["name_ideas"])
 
 
 def test_a_dress_answer_brings_its_leggings(client: TestClient) -> None:

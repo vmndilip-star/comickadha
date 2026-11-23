@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { BuddySpeech } from '@/components/ui/BuddySpeech'
 import { Confetti } from '@/components/ui/Confetti'
 import { FieldMessage } from '@/components/ui/FieldMessage'
+import { RotatingLine } from '@/components/ui/RotatingLine'
 import { normalize } from '@/avatar/spec'
 import { cn } from '@/lib/cn'
 import {
@@ -25,6 +26,7 @@ import {
   type Step,
 } from '@/lib/createFlow'
 import { ROLE_LABEL, TRAIT_LABEL } from '@/lib/labels'
+import { waitingLines } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useCreateFlow } from '@/store/createFlow'
 import type { CatalogChoice, HelperInfo } from '@/types'
@@ -137,15 +139,21 @@ export function CreateFlow() {
         )}
       </fieldset>
 
-      {flow.designing && (
-        <div role="status" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-hero bg-surface/90 p-6 text-center">
-          <span aria-hidden className="animate-wiggle text-[44px]">✏️</span>
-          <span className="font-display text-[28px] tracking-[1px]">
-            {meta ? 'Meta AI is designing your character…' : 'Our helper is designing your character…'}
-          </span>
-        </div>
-      )}
+      {flow.designing && <DesigningOverlay meta={meta} />}
     </section>
+  )
+}
+
+/** While the helper designs (about 45 s with Meta): the same rotating fun lines as the Studio. */
+export function DesigningOverlay({ meta }: { meta: boolean }) {
+  return (
+    <div role="status" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-hero bg-surface/90 p-6 text-center">
+      <span aria-hidden className="animate-wiggle text-[44px]">✏️</span>
+      <span className="font-display text-[28px] tracking-[1px]">
+        {meta ? 'Meta AI is designing your character…' : 'Our helper is designing your character…'}
+      </span>
+      <RotatingLine lines={waitingLines([])} className="text-lg" />
+    </div>
   )
 }
 
@@ -423,6 +431,7 @@ function Next({ disabled, onClick }: { disabled: boolean; onClick: () => void })
 function Reveal({ meta }: { meta: boolean }) {
   const character = useCreateFlow((s) => s.character)
   const result = useCreateFlow((s) => s.result)
+  const intro = useCreateFlow((s) => s.intro)
   const setLocked = useCastStore((s) => s.setLocked)
   const navigate = useNavigate()
   const [locking, setLocking] = useState(false)
@@ -442,7 +451,7 @@ function Reveal({ meta }: { meta: boolean }) {
         <Avatar spec={character.spec} size={240} label={character.name} />
       </div>
       <div className="relative max-w-[520px] rounded-card border-3 border-ink bg-white px-5 py-3 text-[19px] font-extrabold shadow-sm">
-        {result.intro_line}
+        {intro ?? result.intro_line}
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         {character.spec.personality.traits.map((t) => (

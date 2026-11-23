@@ -110,7 +110,7 @@ Keep this table (full version in `docs/architecture.md`) current when a prompt c
 
 ## Decisions still in force (details in `docs/decisions.md`)
 
-Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83, 110 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89, 107 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93, 99, 100, 102 · Places: 7, 8, 21, 90, 96 · Studio: 6, 13, 44–47, 52, 53, 97, 98, 101, 103–106, 108, 109 · Comics and Reader: 2, 4, 5, 14, 23, 56–64, 95 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94, 111. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
+Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83, 110 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89, 107 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93, 99, 100, 102, 112 · Places: 7, 8, 21, 90, 96 · Studio: 6, 13, 44–47, 52, 53, 97, 98, 101, 103–106, 108, 109, 113, 114 · Comics and Reader: 2, 4, 5, 14, 23, 56–64, 95 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94, 111. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
 
 ## Future features
 

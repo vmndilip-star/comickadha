@@ -16,7 +16,9 @@ calls), image check 472-654 (6.0 s), Story Buddy idea 1,095-1,567 (9.6 s), spell
 Re-measured on 2026-11-22 with long comics (Phase 7 part C, decision 110: a 16- and a 30-panel
 plan, 33 calls): scenes 2,904-5,464 (68.1 s for 8 scenes, maybe with one client retry), panels a
 part at a time 4,028-5,711 (33.7 s), classifier batches of up to 20 texts 571-3,627 (22.4 s);
-`seed --paint` (3 places): image check 661-999 (7.1 s), classifier 505-599 (3.9 s).
+`seed --paint` (3 places): image check 661-999 (7.1 s), classifier 505-599 (3.9 s). Live test 2:
+scene planning took about 85 s (against 90 s), so its timeout is now 140 s. The live test 2 check
+(a 10-panel plan) had a single scene's panel call take 41.4 s, the slowest yet: panels now 85 s.
 """
 
 from dataclasses import dataclass
@@ -42,8 +44,8 @@ LIMITS: dict[str, Limit] = {
     "buddy_idea": Limit(3200, 20.0),
     "buddy_spelling": Limit(3600, 25.0),
     "buddy_name_scene": Limit(2600, 20.0),
-    "plan_scenes": Limit(11000, 90.0),  # was 6000/35 s: 8 scenes reached 5,464 and 68 s
-    "plan_panels": Limit(11500, 70.0),  # one call per part (at most PANELS_PER_CALL panels)
+    "plan_scenes": Limit(11000, 140.0),  # 8 scenes: 5,464 tokens; 68 s, then 85 s (live test 2)
+    "plan_panels": Limit(11500, 85.0),  # one call per part; slowest single scene call 41.4 s
 }
 
 # Long comics (Phase 7 part C): one call can't write 30 panels, so the panel plan is written one
