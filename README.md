@@ -2,7 +2,7 @@
 
 Comickatha lets kids under 16 make their own comics. They design up to three characters and a few places, lock them so they look the same everywhere, write a short story, and Comickatha turns it into comic panels they can edit and export as a PDF.
 
-**Status:** Phase 5 of 6. Kids create characters in a guided, step-by-step flow (or build them Bitmoji-style in the Character Lab), then write a story in the Story Studio: the planner turns it into scenes and a panel plan with their real characters in every pose. "Make my comic!" draws every panel live (place, characters facing each other, speech bubbles pointing at the speaker), and the Reader lets them drag bubbles, change words, faces, poses and places to stand, finish the comic and download a PDF. A Story Buddy asks questions to help them think, and story text is safety-checked (personal details stay secret). Everything runs offline by default, so no API keys are needed. With Meta's model API switched on, the helpers, Story Buddy, planner and safety checks use Muse Spark, and places are painted by Muse Image, with every picture checked before a kid sees it.
+**Status:** Phase 5 of 6. Kids create characters in a guided, step-by-step flow (or build them Bitmoji-style in the Character Lab, or start straight away with 12 ready-made starter characters), then write a story in the Story Studio: the planner turns it into scenes and a panel plan with their real characters in every pose. "Make my comic!" draws every panel live (place, characters facing each other, speech bubbles pointing at the speaker), and the Reader lets them drag bubbles, change words, faces, poses and places to stand, finish the comic and download a PDF. A Story Buddy asks questions to help them think, and story text is safety-checked (personal details stay secret). Everything runs offline by default, so no API keys are needed. With Meta's model API switched on, the helpers, Story Buddy, planner and safety checks use Muse Spark, and places are painted by Muse Image, with every picture checked before a kid sees it.
 
 ## Quick start
 
@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-Reset to the demo data (one kid, 3 characters, 3 places, 3 comics): `uv run python -m app.seed` from `api/`.
+Reset to the demo data (one kid, 3 characters, 3 places, 3 comics, plus the 12 starter characters every kid gets): `uv run python -m app.seed` from `api/`.
 
 The demo places start as placeholder art. With Meta switched on (see below), `uv run python -m app.seed --paint` repaints them with Muse Image through the same checks as Lock (about $0.01–0.02 a place; it backs up `api/storage` first and refuses to run with `IMAGE_PROVIDER=mock`).
 

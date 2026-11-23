@@ -5,7 +5,9 @@ from typing import Annotated, Literal, get_args
 
 from pydantic import AfterValidator, BaseModel, StringConstraints
 
-MAX_CAST = 3
+MAX_CAST = 3  # a kid's own characters (starter characters don't count)
+MAX_COMIC_CAST = 5  # characters in one comic, own and starters mixed
+MAX_PANEL_CAST = 3  # characters in one panel: left, center, right
 
 Role = Literal["hero", "sidekick", "friend"]
 CharacterKind = Literal["kid", "grown_up", "animal", "robot"]

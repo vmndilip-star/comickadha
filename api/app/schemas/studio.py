@@ -11,14 +11,21 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.schemas.comic import PanelRead, SceneRead
-from app.schemas.common import BubbleType, Expression, Pose, Position
+from app.schemas.common import (
+    MAX_COMIC_CAST,
+    MAX_PANEL_CAST,
+    BubbleType,
+    Expression,
+    Pose,
+    Position,
+)
 
 PlanSource = Literal["meta", "mock"]
 
 
 class PlannedScene(BaseModel):
     background_id: str
-    character_ids: list[str] = Field(min_length=1, max_length=3)
+    character_ids: list[str] = Field(min_length=1, max_length=MAX_COMIC_CAST)
     summary: str = Field(min_length=1, max_length=200)
 
 
@@ -42,7 +49,7 @@ class PlannedBubble(BaseModel):
 class PlannedPanel(BaseModel):
     scene_id: str
     beat: str = Field(min_length=1, max_length=120)
-    characters: list[PlannedCharacter] = Field(min_length=1, max_length=3)
+    characters: list[PlannedCharacter] = Field(min_length=1, max_length=MAX_PANEL_CAST)
     bubbles: list[PlannedBubble] = Field(default=[], max_length=3)
 
 

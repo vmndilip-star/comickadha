@@ -6,6 +6,8 @@ from app.schemas.avatar import AvatarSpec
 from app.schemas.background import BackgroundRead
 from app.schemas.character import CharacterRead
 from app.schemas.common import (
+    MAX_COMIC_CAST,
+    MAX_PANEL_CAST,
     BubbleType,
     ComicStatus,
     Expression,
@@ -48,7 +50,7 @@ class SceneWrite(BaseModel):
     # Send the id to keep a scene; leave it out (or send a new UUID) to create one.
     id: str | None = Field(default=None, pattern=r"^[0-9a-f-]{36}$")
     background_id: str
-    character_ids: list[str] = Field(default_factory=list, max_length=3)
+    character_ids: list[str] = Field(default_factory=list, max_length=MAX_COMIC_CAST)
     summary: str = Field(default="", max_length=200)
 
 
@@ -62,7 +64,7 @@ class SceneRead(BaseModel):
 
 class PanelUpdate(BaseModel):
     beat: str | None = Field(default=None, max_length=120)
-    characters: list[PanelCharacter] | None = Field(default=None, max_length=3)
+    characters: list[PanelCharacter] | None = Field(default=None, max_length=MAX_PANEL_CAST)
     bubbles: list[Bubble] | None = Field(default=None, max_length=3)
 
 
@@ -99,7 +101,7 @@ class ComicUpdate(BaseModel):
     synopsis: str | None = Field(default=None, max_length=600)
     mood: Mood | None = None
     panel_count: PanelCount | None = None
-    cast_ids: list[str] | None = Field(default=None, max_length=3)
+    cast_ids: list[str] | None = Field(default=None, max_length=MAX_COMIC_CAST)
     studio_step: StudioStep | None = None
     status: ComicStatus | None = None
 

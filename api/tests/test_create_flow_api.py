@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.avatar import spec as avatar_spec
 from app.services.safety import REAL_PERSON
+from tests.conftest import own_cast
 from tests.fakes import server_error, suggestion, use_meta, user_text
 
 GINGER = {"target": "colors.hair", "value": "ginger"}
@@ -122,7 +123,7 @@ def test_metas_role_is_used_when_it_is_a_real_role(client: TestClient) -> None:
 
 
 def free_a_slot(client: TestClient) -> None:
-    for c in client.get("/api/characters").json()[1:]:
+    for c in own_cast(client)[1:]:
         client.delete(f"/api/characters/{c['id']}")
 
 

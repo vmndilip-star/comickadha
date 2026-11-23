@@ -26,6 +26,7 @@ from app.services.builder_sheet import BuilderSheets
 from app.services.character_sheet import SheetProvider
 from app.services.jobs import JobRunner, fail_interrupted_jobs
 from app.services.storage import LocalStorage
+from app.starters import ensure_starters
 
 log = logging.getLogger(__name__)
 
@@ -91,11 +92,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.storage = LocalStorage(settings.media_dir)
         app.state.sheet_provider = make_sheet_provider(settings)
         app.state.jobs = JobRunner(engine, asyncio.get_running_loop())
-        if settings.seed_on_startup:
-            with Session(engine) as session:
-                mock = MockImageProvider()
-                sheets = make_sheet_provider(settings, reveal=False)
-                seed(session, app.state.storage, mock, sheets=sheets)
+        with Session(engine) as session:
+            sheets = make_sheet_provider(settings, reveal=False)
+            if settings.seed_on_startup:
+                seed(session, app.state.storage, MockImageProvider(), sheets=sheets)
+            # The 12 starter characters are for every kid, seeded demo data or not (part B).
+            if added := ensure_starters(session, app.state.storage, sheets):
+                log.info("added %d starter character(s)", added)
         rechecks = (
             asyncio.create_task(recheck_loop(app, settings.recheck_seconds))
             if settings.recheck_seconds > 0

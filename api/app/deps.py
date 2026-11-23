@@ -14,6 +14,7 @@ from app.providers.llm import LLMProvider
 from app.services.character_sheet import SheetProvider
 from app.services.jobs import JobRunner
 from app.services.storage import Storage
+from app.starters import STARTER_USER_ID
 
 
 def get_engine(request: Request) -> Engine:
@@ -57,8 +58,10 @@ JobsDep = Annotated[JobRunner, Depends(get_jobs)]
 
 
 def get_current_user(session: SessionDep) -> User:
-    """No auth in the hackathon build: the one seeded profile is the current kid."""
-    user = session.exec(select(User).order_by(col(User.created_at))).first()
+    """No auth in the hackathon build: the one seeded profile is the current kid (never the
+    starter cast profile that owns the starter characters)."""
+    stmt = select(User).where(User.id != STARTER_USER_ID).order_by(col(User.created_at))
+    user = session.exec(stmt).first()
     if user is None:
         raise ApiError(
             503, "no_profile", "Comickatha isn't set up yet. Ask a grown-up to run the seed script."

@@ -65,7 +65,10 @@ export type Pose = PanelCharacter['pose']
 export type Position = PanelCharacter['position']
 export type BubbleType = Bubble['type']
 
+/** A kid's own characters (the 12 starter characters don't count). */
 export const MAX_CAST = 3
+/** Characters in one comic, own and starters mixed. A panel still holds 3. */
+export const MAX_COMIC_CAST = 5
 
 /** Narrator bubbles use this speaker id. Other speakers are character ids. */
 export const NARRATOR = 'narrator'

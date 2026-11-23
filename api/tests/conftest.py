@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 from app.config import Settings
 from app.main import create_app
 from app.seed import GARDEN, KITCHEN, MANGO, MIRA, RAJU, ROBO, ROBO_DAY, SPACE, SPACE_PICNIC
+from app.starters import STARTER_IDS
 
 # Re-exported so tests read naturally.
 IDS = {
@@ -51,11 +52,30 @@ def seeded_storage(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return storage
 
 
+# What each test's copy keeps of a starter character's sheet: the API reads only the manifest
+# (comics draw every character from its frozen spec, never from sheet images).
+STARTER_FILES = {"manifest.json", "thumb.png"}
+
+
+def copy_storage(source: Path, target: Path) -> None:
+    """Copies the seeded database and media, but only the manifest and thumbnail of each starter
+    character's sheet: their 22 cells (12 x 26 files) would make every test's copy 10 times slower.
+    Starters can't change, and test_starters checks that a fresh install draws every cell."""
+
+    def ignore(folder: str, names: list[str]) -> list[str]:
+        parts = Path(folder).relative_to(source).parts
+        if len(parts) == 4 and parts[:2] == ("media", "characters") and parts[2] in STARTER_IDS:
+            return [name for name in names if name not in STARTER_FILES]  # media/characters/<id>/v1
+        return []
+
+    shutil.copytree(source, target, ignore=ignore)
+
+
 @pytest.fixture
 def settings(tmp_path: Path, seeded_storage: Path) -> Settings:
     """A fresh copy of the seeded SQLite file and media folder per test."""
     storage = tmp_path / "storage"
-    shutil.copytree(seeded_storage, storage)
+    copy_storage(seeded_storage, storage)
     return make_settings(storage)
 
 
@@ -63,6 +83,11 @@ def settings(tmp_path: Path, seeded_storage: Path) -> Settings:
 def client(settings: Settings) -> Iterator[TestClient]:
     with TestClient(create_app(settings)) as c:
         yield c
+
+
+def own_cast(client: TestClient) -> list[dict[str, Any]]:
+    """The kid's own characters from GET /api/characters (the starter characters left out)."""
+    return [c for c in client.get("/api/characters").json() if not c["starter"]]
 
 
 def app_state(client: TestClient) -> Any:

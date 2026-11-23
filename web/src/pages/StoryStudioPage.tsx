@@ -94,6 +94,7 @@ const START_OVER: Record<PlanKind, { title: string; message: string; confirm: st
 function Studio({ comic }: { comic: Comic }) {
   const [params, setParams] = useSearchParams()
   const characters = useCastStore((s) => s.characters)
+  const starters = useCastStore((s) => s.starters)
   const places = usePlacesStore((s) => s.places)
   const update = useComicsStore((s) => s.update)
   const setScenes = useComicsStore((s) => s.setScenes)
@@ -111,12 +112,14 @@ function Studio({ comic }: { comic: Comic }) {
   const [starting, setStarting] = useState(false)
   const navigate = useNavigate()
 
-  const ready = readyToPlan(comic, characters, places)
+  // Everyone a story can use: the kid's own characters and the starter characters.
+  const usable = [...characters, ...starters]
+  const ready = readyToPlan(comic, usable, places)
   const requested = parseStep(params.get('step'), comic.studio_step)
   // Steps 2 and 3 wait for a locked character and a locked place.
   const step: StudioStep = ready.ok ? requested : 1
   // For showing what the comic already uses, including deleted characters and places.
-  const allCast = castFor(comic, characters)
+  const allCast = castFor(comic, usable)
   const allPlaces = placesFor(comic, places)
   const editing = comic.scenes.find((s) => s.id === editingScene)
   const notes = Object.fromEntries(comic.safety_notes.map((n) => [n.field, n.message]))
@@ -202,6 +205,7 @@ function Studio({ comic }: { comic: Comic }) {
               />
               <CastPicker
                 characters={characters}
+                starters={starters}
                 selectedIds={comic.cast_ids}
                 onChange={(cast_ids) => {
                   clearError('cast')

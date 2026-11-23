@@ -24,6 +24,7 @@ from pydantic import BaseModel, ValidationError
 from app.avatar.catalog import load_catalog
 from app.prompts import render
 from app.providers.llm import LLMError, LLMProvider
+from app.schemas.common import MAX_PANEL_CAST
 from app.schemas.studio import (
     PanelPlan,
     PlannedBubble,
@@ -212,12 +213,20 @@ def dialogue_problems(plan: PanelPlan, ctx: StoryContext) -> list[str]:
 def check_panels(plan: PanelPlan, ctx: StoryContext) -> list[str]:
     problems: list[str] = []
     poses, expressions = set(catalog_poses()), set(catalog_expressions())
-    scene_ids = {s.id for s in ctx.scenes}
+    scene_cast = {s.id: (n, set(s.character_ids)) for n, s in enumerate(ctx.scenes, start=1)}
     if len(plan.panels) != ctx.panel_count:
         problems.append(f"there must be exactly {ctx.panel_count} panels, not {len(plan.panels)}")
     for i, panel in enumerate(plan.panels, start=1):
-        if panel.scene_id not in scene_ids:
+        if panel.scene_id not in scene_cast:
             problems.append(f"panel {i}: scene_id must be one of the scenes")
+        else:
+            n, in_scene = scene_cast[panel.scene_id]
+            for c in panel.characters:
+                if c.id in ctx.cast_ids and c.id not in in_scene:
+                    name = member.name if (member := ctx.member(c.id)) else c.id
+                    problems.append(
+                        f"panel {i}: {name} isn't in scene {n}; use only that scene's characters"
+                    )
         ids = [c.id for c in panel.characters]
         if len(set(ids)) != len(ids):
             problems.append(f"panel {i}: a character appears twice")
@@ -297,9 +306,9 @@ def offline_scenes(ctx: StoryContext) -> ScenePlan:
         place = _place_for(text, ctx, ctx.places[i % len(ctx.places)])
         mentioned = [c for c in cast if c.name.lower() in text.lower()]
         if mentioned:
-            members = mentioned[:3]
+            members = mentioned
         elif len(cast) <= 2 or i == 0:
-            members = cast[:3]
+            members = cast[:MAX_PANEL_CAST]
         else:
             members = [cast[i % len(cast)], cast[(i + 1) % len(cast)]]
         summary = _shorten(text, 180) if text else _template_summary(i, n, members, place)
@@ -308,13 +317,11 @@ def offline_scenes(ctx: StoryContext) -> ScenePlan:
                 background_id=place.id, character_ids=[m.id for m in members], summary=summary
             )
         )
-    # Everyone in the cast appears at least once.
+    # Everyone in the cast appears at least once: anyone left out joins the smallest scene (a
+    # scene holds the whole cast if need be; a panel shows at most 3 of them).
     for member in cast:
         if not any(member.id in s.character_ids for s in scenes):
-            room = next((s for s in scenes if len(s.character_ids) < 3), scenes[-1])
-            if len(room.character_ids) >= 3:
-                room.character_ids.pop()
-            room.character_ids.append(member.id)
+            min(scenes, key=lambda s: len(s.character_ids)).character_ids.append(member.id)
     return ScenePlan(scenes=scenes)
 
 
@@ -420,6 +427,18 @@ def _beats(
     return [_capitalised(_shorten(p, 100)) for p in (parts + extra)[:k]]
 
 
+def on_stage(members: list[T], lead: T, turn: int) -> list[T]:
+    """Who is in a panel: the whole scene if it fits (3), else 3 of them taking turns from panel
+    to panel so everyone gets on stage, always with the lead, in the scene's order."""
+    if len(members) <= MAX_PANEL_CAST:
+        return members
+    start = turn * MAX_PANEL_CAST
+    shown = [members[(start + k) % len(members)] for k in range(MAX_PANEL_CAST)]
+    if lead not in shown:
+        shown[-1] = lead
+    return sorted(shown, key=members.index)
+
+
 class Voices:
     """What each character has said so far, so the offline planner keeps the dialogue rules: a
     catchphrase once, the same two opening words at most OPENING_MAX times, never twice in a row."""
@@ -474,14 +493,15 @@ def offline_panels(ctx: StoryContext) -> PanelPlan:
     panels: list[PlannedPanel] = []
     voices = Voices()
     for scene, count in zip(scenes, counts, strict=True):
-        members = [m for cid in scene.character_ids if (m := ctx.member(cid))][:3] or ctx.cast[:1]
+        members = [m for cid in scene.character_ids if (m := ctx.member(cid))] or ctx.cast[:1]
         place = ctx.place(scene.background_id) or Place(scene.background_id, "the scene")
-        positions = POSITIONS_FOR[len(members)]
         for j, beat in enumerate(_beats(scene.summary, count, members, place, len(panels))):
             pose, expression, line, kind = mood_for(beat)
             # The one the beat is about leads (and speaks); otherwise take turns.
             named = [m for m in members if m.name.lower() in beat.lower()]
             lead = named[0] if named else members[j % len(members)]
+            shown = on_stage(members, lead, j)
+            positions = POSITIONS_FOR[len(shown)]
             characters = [
                 PlannedCharacter(
                     id=m.id,
@@ -489,7 +509,7 @@ def offline_panels(ctx: StoryContext) -> PanelPlan:
                     expression=expression,
                     position=positions[k],
                 )
-                for k, m in enumerate(members)
+                for k, m in enumerate(shown)
             ]
             index = len(panels)
             if index == 0:

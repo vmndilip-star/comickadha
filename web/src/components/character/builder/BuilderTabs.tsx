@@ -17,13 +17,15 @@ export type RenderSticker = (item: DragItem, render: (handle?: DragHandle) => Re
 interface BuilderTabsProps {
   builder: Builder
   name: string
+  /** A starter character: read-only for every kid, so the note points at Make it mine. */
+  starter?: boolean
   /** Drag-and-drop wraps each sticker and paint blob here; without it they are tap-only. */
   renderSticker?: RenderSticker
 }
 
 const tapOnly: RenderSticker = (_item, render) => render()
 
-export function BuilderTabs({ builder, name, renderSticker = tapOnly }: BuilderTabsProps) {
+export function BuilderTabs({ builder, name, starter = false, renderSticker = tapOnly }: BuilderTabsProps) {
   const [tabId, setTabId] = useState(TABS[1]!.id)
   const tab = TABS.find((t) => t.id === tabId) ?? TABS[0]!
   const { spec, disabled } = builder
@@ -147,7 +149,9 @@ export function BuilderTabs({ builder, name, renderSticker = tapOnly }: BuilderT
     <section aria-label={`Build ${name || 'your character'}`} className="flex min-w-0 flex-col gap-3">
       {disabled && (
         <p className="m-0 rounded-tile border-3 border-ink bg-mint px-3.5 py-2.5 font-bold">
-          {name || 'This character'} is locked. Tap “Locked · tap to edit” to unlock and change the look.
+          {starter
+            ? `${name} is a starter character, the same for every kid. Tap Make it mine to get your own copy to change.`
+            : `${name || 'This character'} is locked. Tap Unlock to edit to change the look.`}
         </p>
       )}
       <div role="tablist" aria-label="Builder tabs" className="flex flex-wrap gap-1.5">

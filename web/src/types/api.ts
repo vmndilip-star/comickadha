@@ -69,7 +69,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Characters */
+        /**
+         * List Characters
+         * @description The kid's own characters, then the starter characters (`starter: true`).
+         */
         get: operations["list_characters_api_characters_get"];
         put?: never;
         /** Create Character */
@@ -141,6 +144,27 @@ export interface paths {
          * @description Back to editing. The sheet files stay; locking again draws a new version.
          */
         post: operations["unlock_character_api_characters__character_id__unlock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/characters/{character_id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copy Character
+         * @description Make it mine: copies a starter character into the kid's own cast as an editable draft.
+         *     The copy counts toward their 3 characters (cast_full still applies).
+         */
+        post: operations["copy_character_api_characters__character_id__copy_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -941,6 +965,11 @@ export interface components {
             manifest: components["schemas"]["CharacterManifest"] | null;
             /** Last Job Id */
             last_job_id: string | null;
+            /**
+             * Starter
+             * @default false
+             */
+            starter: boolean;
             /**
              * Deleted
              * @default false
@@ -2067,6 +2096,55 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CharacterRead"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    copy_character_api_characters__character_id__copy_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                character_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

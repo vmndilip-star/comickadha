@@ -5,13 +5,14 @@ import { LabBuilder } from '@/components/character/builder/LabBuilder'
 import { useBuilder } from '@/components/character/builder/useBuilder'
 import { CreateCharacterButton } from '@/components/character/CreateCharacterButton'
 import { LabActionBar } from '@/components/character/LabActionBar'
-import { CastSlotList } from '@/components/character/CastSlotList'
+import { CastSlotList, StarterGrid } from '@/components/character/CastSlotList'
 import { CharacterStage } from '@/components/character/CharacterStage'
 import { PersonalityPanel } from '@/components/character/PersonalityPanel'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { PageLoading } from '@/components/layout/PageLoading'
 import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { castFull } from '@/lib/createFlow'
 import { characterSaveKey, useCastStore } from '@/store/cast'
 import { useStartComic } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
@@ -22,10 +23,12 @@ export function CharacterLabPage() {
   const { id } = useParams()
   const status = useDataStatus()
   const characters = useCastStore((s) => s.characters)
+  const starters = useCastStore((s) => s.starters)
 
   if (status !== 'ready') return <PageLoading status={status} layout="split" />
 
-  const character = characters.find((c) => c.id === id)
+  // A starter opens here too, in the locked view with Make it mine.
+  const character = characters.find((c) => c.id === id) ?? starters.find((c) => c.id === id)
   if (!character) {
     const first = characters[0]
     if (first) return <Navigate to={`/characters/${first.id}`} replace />
@@ -35,6 +38,10 @@ export function CharacterLabPage() {
         <div className="flex flex-col items-start gap-4 rounded-hero border-3 border-ink bg-surface p-7 shadow-hero">
           <p className="m-0 text-lg font-semibold">Your cast is empty. Who's your first hero?</p>
           <CreateCharacterButton variant="button" />
+          <p className="m-0 font-semibold">Or start a story right away with a starter character.</p>
+          <div className="w-full max-w-md">
+            <StarterGrid starters={starters} />
+          </div>
         </div>
       </>
     )
@@ -47,6 +54,7 @@ function CharacterLab({ character, characters }: { character: Character; charact
   const update = useCastStore((s) => s.update)
   const setLocked = useCastStore((s) => s.setLocked)
   const remove = useCastStore((s) => s.remove)
+  const makeItMine = useCastStore((s) => s.makeItMine)
   const flush = useSaveStore((s) => s.flush)
   const startComic = useStartComic()
   const navigate = useNavigate()
@@ -65,6 +73,13 @@ function CharacterLab({ character, characters }: { character: Character; charact
     setLocking(true)
     await setLocked(character.id, !locked)
     setLocking(false)
+  }
+
+  const copyStarter = async () => {
+    setLocking(true)
+    const mine = await makeItMine(character.id)
+    setLocking(false)
+    if (mine) navigate(`/characters/${mine}`)
   }
 
   const deleteCharacter = async () => {
@@ -127,11 +142,18 @@ function CharacterLab({ character, characters }: { character: Character; charact
               Use in a story →
             </Button>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <Button size="sm" onClick={() => setConfirmingDelete(true)}>
-              Delete {character.name || 'character'}
-            </Button>
-          </div>
+          {character.starter ? (
+            <p className="m-0 font-semibold text-muted">
+              {character.name} is a starter character: the same for every kid, ready for any story. Tap Make it mine
+              for your own copy to change.
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button size="sm" onClick={() => setConfirmingDelete(true)}>
+                Delete {character.name || 'character'}
+              </Button>
+            </div>
+          )}
         </aside>
       </div>
 
@@ -141,6 +163,14 @@ function CharacterLab({ character, characters }: { character: Character; charact
         status={character.status}
         busy={locking}
         onToggleLock={() => void toggleLock()}
+        starter={
+          character.starter
+            ? {
+                onMakeItMine: () => void copyStarter(),
+                copyBlocked: castFull(characters.length) ? 'Your cast is full! Delete one of yours to make room.' : null,
+              }
+            : undefined
+        }
       />
 
       <ConfirmDialog

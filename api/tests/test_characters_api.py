@@ -1,10 +1,10 @@
 from fastapi.testclient import TestClient
 
-from tests.conftest import IDS, wait_for_job
+from tests.conftest import IDS, own_cast, wait_for_job
 
 
 def test_fourth_character_returns_cast_full(client: TestClient) -> None:
-    assert len(client.get("/api/characters").json()) == 3
+    assert len(own_cast(client)) == 3
 
     res = client.post("/api/characters", json={"name": "Zara"})
 
@@ -17,15 +17,14 @@ def test_fourth_character_returns_cast_full(client: TestClient) -> None:
 def test_deleting_a_character_frees_a_slot(client: TestClient) -> None:
     assert client.delete(f"/api/characters/{IDS['robo']}").status_code == 204
 
-    listed = client.get("/api/characters").json()
-    assert [c["name"] for c in listed] == ["Mira", "Raju"]
+    assert [c["name"] for c in own_cast(client)] == ["Mira", "Raju"]
     # Still resolves by id (for comics that use it), flagged as deleted.
     assert client.get(f"/api/characters/{IDS['robo']}").json()["deleted"] is True
 
     res = client.post("/api/characters", json={"name": "Zara"})
     assert res.status_code == 201
     assert res.json()["status"] == "draft"
-    assert len(client.get("/api/characters").json()) == 3
+    assert len(own_cast(client)) == 3
 
 
 def test_patch_locked_character_returns_409(client: TestClient) -> None:

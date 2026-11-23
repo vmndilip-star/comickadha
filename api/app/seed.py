@@ -1,7 +1,8 @@
 """Demo data: one kid, 3 characters, 3 places and 3 comics.
 
 `seed()` is idempotent: it does nothing if the seeded profile already exists.
-`uv run python -m app.seed` resets the database and media files back to this data.
+`uv run python -m app.seed` resets the database and media files back to this data (the 12
+starter characters, app/starters.py, come back with it).
 """
 
 import sys
@@ -38,6 +39,7 @@ from app.services.character_sheet import SheetProvider, SheetSpec
 from app.services.image_gen import PlaceSpec, build_place, place_check, save_place
 from app.services.jobs import JobFailed
 from app.services.storage import LocalStorage, Storage
+from app.starters import ensure_starters
 
 # Fixed namespace so seeded ids (and URLs) stay the same after every reset.
 _NS = uuid.UUID("6f1d2c4e-8b7a-4c1e-9d3f-2a5b6c7d8e9f")
@@ -396,12 +398,13 @@ def seed(
 
     `provider` paints the places; `sheets` draws the locked characters (default: the builder).
     """
+    sheets = sheets or BuilderSheets()
     if reset:
         wipe(session, storage)
+        ensure_starters(session, storage, sheets)  # the wipe took the starter characters too
     if session.get(User, USER_ID) is not None:
         return False
     provider = provider or MockImageProvider()
-    sheets = sheets or BuilderSheets()
     now = utcnow()
 
     # No ORM relationships are declared, so flush parents before children (SQLite enforces FKs).
@@ -594,7 +597,7 @@ def main() -> None:
     storage = LocalStorage(settings.media_dir)
     with Session(engine) as session:
         seed(session, storage, MockImageProvider(), reset=True)
-    print("Reset Comickatha: 1 kid, 3 characters, 3 places, 3 comics.")
+    print("Reset Comickatha: 1 kid, 3 characters, 3 places, 3 comics, 12 starter characters.")
 
 
 if __name__ == "__main__":

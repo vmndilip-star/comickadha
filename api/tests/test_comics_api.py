@@ -45,7 +45,10 @@ def test_cast_must_come_from_active_characters(client: TestClient) -> None:
     res = client.patch(f"/api/comics/{IDS['mango']}", json={"cast_ids": ["not-a-character"]})
 
     assert res.status_code == 422
-    assert res.json() == {"code": "invalid", "message": "Pick characters from your cast."}
+    assert res.json() == {
+        "code": "invalid",
+        "message": "Pick characters from your cast or the starter characters.",
+    }
 
 
 def test_deleted_comic_is_hidden(client: TestClient) -> None:

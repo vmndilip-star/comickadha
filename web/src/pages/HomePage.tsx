@@ -5,6 +5,7 @@ import { CastCard } from '@/components/home/CastCard'
 import { ContinueCard } from '@/components/home/ContinueCard'
 import { HeroBanner } from '@/components/home/HeroBanner'
 import { PlaceTile } from '@/components/home/PlaceTile'
+import { StarterCastLink } from '@/components/home/StarterCastLink'
 import { StorySpark } from '@/components/home/StorySpark'
 import { PageLoading } from '@/components/layout/PageLoading'
 import { SectionHeader } from '@/components/layout/SectionHeader'
@@ -19,6 +20,7 @@ import { MAX_CAST } from '@/types'
 
 export function HomePage() {
   const cast = useCastStore((s) => s.characters)
+  const starters = useCastStore((s) => s.starters)
   const places = usePlacesStore((s) => s.places)
   const comics = useComicsStore((s) => s.comics)
   const [creatingPlace, setCreatingPlace] = useState(false)
@@ -48,6 +50,7 @@ export function HomePage() {
           ))}
           {cast.length < MAX_CAST && <CreateCharacterButton className="min-h-[132px] rounded-card" />}
         </div>
+        <StarterCastLink starters={starters} />
       </section>
 
       <section className="flex flex-col gap-4">

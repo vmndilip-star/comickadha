@@ -10,13 +10,16 @@ interface LabActionBarProps {
   /** Lock or unlock is on its way. */
   busy: boolean
   onToggleLock: () => void
+  /** A starter character: read-only, with Make it mine (a copy in the kid's own cast) instead of
+   * Unlock. `copyBlocked` says why it can't be copied right now (a full cast). */
+  starter?: { onMakeItMine: () => void; copyBlocked: string | null }
 }
 
 /**
  * The Lab's bottom bar: Undo, Redo, the save status and Lock. Sticky at the bottom of the screen
  * on phones and small screens, so Lock is always in reach; under the builder on wide screens.
  */
-export function LabActionBar({ characterId, name, status, busy, onToggleLock }: LabActionBarProps) {
+export function LabActionBar({ characterId, name, status, busy, onToggleLock, starter }: LabActionBarProps) {
   const undo = useLabStore((s) => s.undo)
   const redo = useLabStore((s) => s.redo)
   const editable = status === 'draft' || status === 'failed'
@@ -52,7 +55,16 @@ export function LabActionBar({ characterId, name, status, busy, onToggleLock }: 
         </button>
       </div>
       <SaveStatus className="flex-1 text-center" />
-      {status === 'locked' && (
+      {starter && (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <span className="rounded-pill border-3 border-ink bg-ink px-3 py-1.5 font-extrabold text-white">Starter</span>
+          <Button variant="primary" disabled={busy || starter.copyBlocked !== null} onClick={starter.onMakeItMine}>
+            {busy ? 'One moment…' : 'Make it mine'}
+          </Button>
+          {starter.copyBlocked && <p className="m-0 w-full text-right text-label font-bold text-muted">{starter.copyBlocked}</p>}
+        </div>
+      )}
+      {status === 'locked' && !starter && (
         <div className="flex items-center gap-2">
           <span className="rounded-pill border-3 border-ink bg-ink px-3 py-1.5 font-extrabold text-white">Locked</span>
           <Button disabled={busy} onClick={onToggleLock}>

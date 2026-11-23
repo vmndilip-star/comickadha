@@ -30,6 +30,9 @@ class Character(SQLModel, table=True):
     last_job_id: str | None = None
     # "meta" or "offline" when the Create character flow made it; cleared by the first look edit.
     designed_by: str | None = Field(default=None, max_length=8)
+    # True for the ready-made starter characters (app/starters.py), which kids can't change.
+    # None or False: a kid's own character (older databases get the column empty).
+    starter: bool | None = None
     deleted_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

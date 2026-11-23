@@ -20,7 +20,10 @@ const KIND_OF_BODY: Record<BodyType, CharacterKind> = {
 }
 
 interface CastState {
+  /** The kid's own characters (their 3 cast slots). */
   characters: Character[]
+  /** The 12 ready-made starter characters: locked, the same for every kid, read-only. */
+  starters: Character[]
   status: LoadStatus
   load: (force?: boolean) => Promise<void>
   /** Returns the new id, or null if it failed (e.g. the cast is full). */
@@ -35,6 +38,13 @@ interface CastState {
   /** Reconnects to sheets still being drawn (after a refresh or coming back to the page). */
   resumeJobs: () => void
   remove: (id: string) => Promise<boolean>
+  /** Make it mine: copies a starter into the kid's own cast as a draft. Returns the new id. */
+  makeItMine: (starterId: string) => Promise<string | null>
+}
+
+/** Splits GET /characters (own characters, then starters) into the two lists. */
+export function splitCast(all: Character[]): Pick<CastState, 'characters' | 'starters'> {
+  return { characters: all.filter((c) => !c.starter), starters: all.filter((c) => c.starter) }
 }
 
 const edits = editCounter()
@@ -70,6 +80,7 @@ export const useCastStore = create<CastState>()((set, get) => {
 
   return {
     characters: [],
+    starters: [],
     status: 'idle',
 
     load: async (force = false) => {
@@ -77,7 +88,7 @@ export const useCastStore = create<CastState>()((set, get) => {
       if (status === 'loading' || (status === 'ready' && !force)) return
       set({ status: 'loading' })
       try {
-        set({ characters: await api.listCharacters(), status: 'ready' })
+        set({ ...splitCast(await api.listCharacters()), status: 'ready' })
       } catch (error) {
         set({ status: 'error' })
         toast.error(error)
@@ -137,6 +148,18 @@ export const useCastStore = create<CastState>()((set, get) => {
     resumeJobs: () => {
       for (const c of get().characters) {
         if (c.status === 'generating' && c.last_job_id) watchSheet(c.id, c.last_job_id)
+      }
+    },
+
+    makeItMine: async (starterId) => {
+      try {
+        const mine = await api.copyCharacter(starterId)
+        set((s) => ({ characters: [...s.characters, mine] }))
+        toast.success(`${mine.name} is yours now! Change anything you like.`)
+        return mine.id
+      } catch (error) {
+        toast.error(error)
+        return null
       }
     },
 

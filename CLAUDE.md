@@ -80,15 +80,15 @@ Run `gen:types` after any change to `api/app/schemas/` or a router signature, th
 - **Every generated picture is checked** by the vision model before it is saved or shown (`safety.check_image` in the place job); mock pictures are drawn locally.
 - **Old comics never change.** Panels pin a `sheet_version` and draw from its frozen look (`CharacterVersion`); re-locking keeps old versions; deletes are soft and comics keep what they use; locked places can't be repainted (no place versions yet).
 - **Kid-friendly errors.** Every API error is `{code, message, field?}` with a message written for kids; the web shows it inline under `field` or as a toast, never raw.
-- **At most 3 characters** (409 `cast_full`); only locked characters and places go into a comic.
+- **At most 3 own characters** (409 `cast_full`); the 12 starter characters are read-only (409 `starter`) and don't count; a comic has up to 5 characters, a panel at most 3; only locked characters and places go into a comic.
 - **No secrets** in code or logs. Model names come from `.env`; `-contributor` models are refused at startup.
 - Every prompt is a file in `api/app/prompts/` (checked at startup); every Meta call's token limit and timeout is in `api/app/services/ai_limits.py`.
 
 ## Architecture map
 
-- **API** (`api/app/`, FastAPI, Python 3.11, uv): `main.py` (`create_app`: providers → prompts → backup → tables → seed), `config.py` (`Settings`), `deps.py` (the one seeded kid; no auth), `errors.py`, `models/` (SQLModel tables), `schemas/` (Pydantic; `Literal`s become TS unions), `routers/` (`profile`, `characters`, `builder`, `backgrounds`, `comics`, `studio`, `jobs`, `media`; `/api/health` in `main.py`).
+- **API** (`api/app/`, FastAPI, Python 3.11, uv): `main.py` (`create_app`: providers → prompts → backup → tables → seed), `config.py` (`Settings`), `deps.py` (the one seeded kid, never the starter cast profile; no auth), `errors.py`, `models/` (SQLModel tables), `schemas/` (Pydantic; `Literal`s become TS unions), `routers/` (`profile`, `characters`, `builder`, `backgrounds`, `comics`, `studio`, `jobs`, `media`; `/api/health` in `main.py`).
 - **AI and safety**: `providers/` (`MetaLLMProvider` for text and vision, `MuseImageProvider`, `MockImageProvider`), `services/ai_guard.py` (the one safe path to Meta, with offline fallback), `services/kid_fields.py` (checks a prompt's kid words in one classifier call), `services/safety.py` (local checks, classifier, image check), `services/character_safety.py`, `services/ai_limits.py`.
-- **Characters**: `avatar/` (catalog, compose, rig, resvg render, spec; TypeScript twin in `web/src/avatar/`, kept equal by golden files), Lab helper (`builder_helper.py`, `helper_meta.py`, `helper_offline.py`), Create (`builder_create.py`), Lock (`character_sheet.py` job + `builder_sheet.py`), pinned looks (`looks.py`).
+- **Characters**: `avatar/` (catalog, compose, rig, resvg render, spec; TypeScript twin in `web/src/avatar/`, kept equal by golden files), Lab helper (`builder_helper.py`, `helper_meta.py`, `helper_offline.py`), Create (`builder_create.py`), Lock (`character_sheet.py` job + `builder_sheet.py`), pinned looks (`looks.py`), the 12 starter characters (`app/starters.py`, `ensure_starters` at startup).
 - **Places**: `routers/backgrounds.py`, `services/image_gen.py` (paint → image check → save).
 - **Story and comics**: `story_planner.py` (scenes, then panels), `story_buddy.py`, `recheck.py` (decision 55), `stage.py` + `bubbles.py` (panel geometry), `compositor.py` (art, final.png, cover), `lettering.py`, `comic_maker.py` (Make my comic! job), `pdf_export.py`.
 - **Jobs and storage**: `services/jobs.py` (`JobRunner`, SSE with replay), `storage.py`, `backup.py`, `db.py` (`add_missing_columns`), `seed.py`.
@@ -110,7 +110,7 @@ Keep this table (full version in `docs/architecture.md`) current when a prompt c
 
 ## Decisions still in force (details in `docs/decisions.md`)
 
-Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93 · Places: 7, 8, 21, 90, 96 · Studio: 6, 13, 44–47, 52, 53, 97, 98 · Comics and Reader: 2, 4, 5, 14, 23, 56–64, 95 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
+Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93, 99, 100, 102 · Places: 7, 8, 21, 90, 96 · Studio: 6, 13, 44–47, 52, 53, 97, 98, 101 · Comics and Reader: 2, 4, 5, 14, 23, 56–64, 95 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
 
 ## Future features
 

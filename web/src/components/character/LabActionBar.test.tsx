@@ -35,6 +35,21 @@ describe('the Lab action bar', () => {
   it('waits for a name before Lock', () => {
     expect(bar('draft', ' ')).toMatch(/<button[^>]*disabled=""[^>]*>Lock character/)
   })
+
+  it('offers Make it mine for a starter character, never Unlock', () => {
+    const starter = (copyBlocked: string | null) =>
+      renderToStaticMarkup(
+        <LabActionBar characterId="z1" name="Zara" status="locked" busy={false} onToggleLock={() => undefined} starter={{ onMakeItMine: () => undefined, copyBlocked }} />,
+      )
+    const html = starter(null)
+    expect(html).toContain('>Starter<')
+    expect(html).toMatch(/<button(?![^>]*disabled="")[^>]*>Make it mine/)
+    expect(html).not.toContain('Unlock to edit')
+
+    const full = starter('Your cast is full! Delete one of yours to make room.')
+    expect(full).toMatch(/<button[^>]*disabled=""[^>]*>Make it mine/)
+    expect(full).toContain('Your cast is full!')
+  })
 })
 
 describe('the Create character button', () => {

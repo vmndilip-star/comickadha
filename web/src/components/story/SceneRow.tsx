@@ -4,7 +4,7 @@ import { Pill } from '@/components/ui/Pill'
 import { TextArea } from '@/components/ui/TextArea'
 import { joinWithAnd } from '@/lib/format'
 import { useFieldError } from '@/store/fieldErrors'
-import type { Background, Character, Scene } from '@/types'
+import { MAX_COMIC_CAST, type Background, type Character, type Scene } from '@/types'
 
 interface SceneRowProps {
   index: number
@@ -38,7 +38,7 @@ export function SceneRow(props: SceneRowProps) {
       ...scene,
       character_ids: scene.character_ids.includes(id)
         ? scene.character_ids.filter((x) => x !== id)
-        : [...scene.character_ids, id].slice(0, 3),
+        : [...scene.character_ids, id].slice(0, MAX_COMIC_CAST),
     })
 
   return (

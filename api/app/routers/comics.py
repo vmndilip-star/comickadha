@@ -154,24 +154,15 @@ def comic_read(session: Session, comic: Comic, storage: Storage) -> ComicRead:
     return comic_reads(session, [comic], storage)[0]
 
 
-def _owned_ids(
-    session: Session, user: User, model: type[Character] | type[Background], ids: list[str]
-) -> set[str]:
+def _owned_place_ids(session: Session, user: User, ids: list[str]) -> set[str]:
     if not ids:
         return set()
-    stmt = select(model.id).where(model.user_id == user.id, col(model.id).in_(ids))
+    stmt = select(Background.id).where(Background.user_id == user.id, col(Background.id).in_(ids))
     return set(session.exec(stmt))
 
 
-def _active_character_ids(session: Session, user: User, ids: list[str]) -> set[str]:
-    if not ids:
-        return set()
-    stmt = select(Character.id).where(
-        Character.user_id == user.id,
-        col(Character.id).in_(ids),
-        col(Character.deleted_at).is_(None),
-    )
-    return set(session.exec(stmt))
+# Comics may use the kid's own characters and the starter characters (part B).
+_usable_character_ids = character_routes.usable_character_ids
 
 
 # ---- comics -------------------------------------------------------------------------------------
@@ -230,10 +221,10 @@ def update_comic(
         )  # drop duplicates, keep order
         # Characters already in the comic may stay even if deleted; new ones must be active.
         added = [i for i in cast_ids if i not in comic.cast_ids]
-        if _owned_ids(session, user, Character, cast_ids) != set(cast_ids) or (
-            _active_character_ids(session, user, added) != set(added)
+        if _usable_character_ids(session, user, cast_ids) != set(cast_ids) or (
+            _usable_character_ids(session, user, added, active=True) != set(added)
         ):
-            raise invalid("Pick characters from your cast.")
+            raise invalid("Pick characters from your cast or the starter characters.")
         changes["cast_ids"] = cast_ids
     if changes.get("status") == "finished":
         _require_drawn(session, comic, "finish")
@@ -290,10 +281,10 @@ def replace_scenes(
     if len(sent_ids) != len(set(sent_ids)):
         raise invalid("Two scenes have the same id. Please refresh and try again.")
     bg_ids = {w.background_id for w in body}
-    if _owned_ids(session, user, Background, list(bg_ids)) != bg_ids:
+    if _owned_place_ids(session, user, list(bg_ids)) != bg_ids:
         raise invalid("Pick a place from your places for every scene.")
     char_ids = {cid for w in body for cid in w.character_ids}
-    if _owned_ids(session, user, Character, list(char_ids)) != char_ids:
+    if _usable_character_ids(session, user, list(char_ids)) != char_ids:
         raise invalid("Pick characters from your cast for every scene.")
 
     existing = {s.id: s for s in session.exec(select(Scene).where(Scene.comic_id == comic.id))}
@@ -367,7 +358,7 @@ def update_panel(
     characters = panel.characters
     if body.characters is not None:
         ids = {c.id for c in body.characters}
-        if _owned_ids(session, user, Character, list(ids)) != ids:
+        if _usable_character_ids(session, user, list(ids)) != ids:
             raise invalid("Pick characters from your cast for this panel.")
         positions = [c.position for c in body.characters]
         if len(set(positions)) != len(positions):

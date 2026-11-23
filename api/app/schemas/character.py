@@ -37,6 +37,8 @@ class CharacterRead(BaseModel):
     manifest: CharacterManifest | None
     # The latest lock job: reconnect to its events after a refresh.
     last_job_id: str | None
+    # A ready-made starter character: read-only for every kid ("Make it mine" copies it).
+    starter: bool = False
     # Deleted characters still resolve by id for comics that use them.
     deleted: bool = False
     created_at: UtcDatetime

@@ -12,7 +12,9 @@ export function useBuilder(character: Character, disabled: boolean) {
 
   return useMemo(() => {
     const locked = () => {
-      say(`${character.name || 'This character'} is locked. Unlock first to change the look!`, 'oops')
+      const name = character.name || 'This character'
+      // Starters stay the same for every kid: their own copy (Make it mine) is the one to change.
+      say(character.starter ? `${name} is a starter character. Tap Make it mine to change your own copy!` : `${name} is locked. Unlock first to change the look!`, 'oops')
       return true
     }
     const run = (result: Result) => {
@@ -31,7 +33,7 @@ export function useBuilder(character: Character, disabled: boolean) {
       body: (bodyType: BodyTypeId) => (disabled ? locked() : commit(setBodyType(spec, bodyType))),
       commit,
     }
-  }, [apply, say, spec, disabled, character.id, character.name])
+  }, [apply, say, spec, disabled, character.id, character.name, character.starter])
 }
 
 export type Builder = ReturnType<typeof useBuilder>

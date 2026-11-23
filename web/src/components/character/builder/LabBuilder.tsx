@@ -58,7 +58,7 @@ export function LabBuilder({ character, builder, expression, onExpression, locke
           <div className="flex min-w-0 flex-col gap-4">
             {/* Locked: the sheet replaces the preview, so the buddy speaks above the tabs instead. */}
             {lockedView && <BuddyBubble />}
-            <BuilderTabs builder={builder} name={character.name} renderSticker={renderSticker} />
+            <BuilderTabs builder={builder} name={character.name} starter={character.starter} renderSticker={renderSticker} />
             {!lockedView && <ExpressionGrid character={character} selected={expression} onSelect={onExpression} />}
           </div>
         </div>
