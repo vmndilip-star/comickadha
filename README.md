@@ -73,7 +73,6 @@ The PDF uses one page size, 8.27 × 11 in (A4's width, Letter's height). **Print
 | `docs/architecture.md` | The architecture in detail |
 | `docs/decisions.md` | Every design decision, numbered, in order |
 | `docs/character-safety.md` | The character safety policy: what kids can ask for, what the helpers may answer, and the checks |
-| `docs/phases/` | Each phase's prompt, saved as given |
 
 ## Checks
 

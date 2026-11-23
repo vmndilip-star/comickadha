@@ -11,7 +11,7 @@ Details live in `docs/architecture.md` (full architecture) and `docs/decisions.m
 - Commit only when asked. No secrets in code: `.env` is gitignored; `.env.example` is committed and holds placeholders only (`your-key-here`).
 - Secret check: `.githooks/pre-commit` runs `scripts/check_secrets.py --staged` and blocks a commit that stages `.env` or anything shaped like an API key. Enable it once per clone with `git config core.hooksPath .githooks`. Scan everything tracked with `python scripts/check_secrets.py`.
 - Keep this file, `docs/architecture.md` and `docs/decisions.md` current when the code or a decision changes (new decisions go at the end of `docs/decisions.md`, numbered on).
-- Save every phase prompt as given to `docs/phases/<name>.md` before starting work on it.
+- Phase prompts aren't kept in the repo: `docs/decisions.md` and the git history are the record of what each phase asked for and decided.
 - Testing in the browser: never use the dev servers on 8010/5173 or `api/storage`. Run a test API with `STORAGE_DIR` pointing at a throwaway folder (e.g. port 8021) and `API_PROXY_TARGET=http://localhost:8021 npx vite --port 5176`.
 
 ## Run it (Windows PowerShell)
@@ -110,7 +110,7 @@ Keep this table (full version in `docs/architecture.md`) current when a prompt c
 
 ## Decisions still in force (details in `docs/decisions.md`)
 
-Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83, 110 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89, 107 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93, 99, 100, 102 · Places: 7, 8, 21, 90, 96 · Studio: 6, 13, 44–47, 52, 53, 97, 98, 101, 103–106, 108, 109 · Comics and Reader: 2, 4, 5, 14, 23, 56–64, 95 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
+Providers and AI: 1, 15 (Claude still an option), 24, 27, 43, 50, 81, 82, 83, 110 · Safety: 10, 31, 48, 51, 55, 71, 72, 84, 85, 86, 89, 107 · Characters and Lab: 12, 29, 32, 34–36, 38–42, 66–70, 73–79, 87, 92, 93, 99, 100, 102 · Places: 7, 8, 21, 90, 96 · Studio: 6, 13, 44–47, 52, 53, 97, 98, 101, 103–106, 108, 109 · Comics and Reader: 2, 4, 5, 14, 23, 56–64, 95 · Data: 16, 19, 20, 45, 54, 60, 91 · Design and build: 9, 11, 37, 57, 58, 94, 111. Superseded or history only: 3, 17, 18, 22, 25, 26, 28, 30, 33, 49, 65, 80, 88.
 
 ## Future features
 
