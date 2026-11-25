@@ -4,6 +4,7 @@ import { EXPRESSION_LABEL, POSE_LABEL } from '@/lib/labels'
 import { lockedManifest } from '@/lib/sheet'
 import type { Character, Expression, Pose } from '@/types'
 import { ExpressionGrid } from './ExpressionGrid'
+import { PortraitCard } from './PortraitCard'
 import { PoseGrid } from './PoseGrid'
 import { SheetProgress } from './SheetProgress'
 import { SheetStage } from './SheetStage'
@@ -26,14 +27,17 @@ export function CharacterStage(props: CharacterStageProps) {
 
   const lockedView = manifest && (
     <div className="flex flex-col gap-4">
-      <div
-        className="halftone relative flex h-[340px] items-center justify-center rounded-2xl border-3 border-ink"
-        style={{ backgroundColor: character.spec.colors.card }}
-      >
-        <span className="absolute top-3.5 left-3.5 z-10 rounded-pill border-3 border-ink bg-surface px-3 py-1 text-label font-extrabold">
-          {EXPRESSION_LABEL[expression]} · {POSE_LABEL[pose]}
-        </span>
-        <SheetStage character={character} manifest={manifest} pose={pose} expression={expression} />
+      <div className="flex flex-wrap items-start gap-4">
+        <div
+          className="halftone relative flex h-[340px] min-w-0 flex-[2_1_320px] items-center justify-center rounded-2xl border-3 border-ink"
+          style={{ backgroundColor: character.spec.colors.card }}
+        >
+          <span className="absolute top-3.5 left-3.5 z-10 rounded-pill border-3 border-ink bg-surface px-3 py-1 text-label font-extrabold">
+            {EXPRESSION_LABEL[expression]} · {POSE_LABEL[pose]}
+          </span>
+          <SheetStage character={character} manifest={manifest} pose={pose} expression={expression} />
+        </div>
+        <PortraitCard character={character} className="min-w-0 flex-[1_1_220px]" />
       </div>
       <ExpressionGrid character={character} selected={expression} onSelect={props.onExpression} />
       <PoseGrid manifest={manifest} selected={pose} onSelect={props.onPose} />

@@ -1,17 +1,20 @@
 from fastapi.testclient import TestClient
 
-from tests.conftest import IDS, own_cast, wait_for_job
+from app.schemas.common import MAX_CAST
+from tests.conftest import IDS, fill_cast, own_cast, wait_for_job
 
 
-def test_fourth_character_returns_cast_full(client: TestClient) -> None:
+def test_a_kid_can_make_any_number_of_characters_up_to_the_limit(client: TestClient) -> None:
     assert len(own_cast(client)) == 3
+    assert client.post("/api/characters", json={"name": "Zara"}).status_code == 201  # a 4th
+    fill_cast(client)
 
-    res = client.post("/api/characters", json={"name": "Zara"})
+    res = client.post("/api/characters", json={"name": "One too many"})
 
     assert res.status_code == 409
     body = res.json()
     assert body["code"] == "cast_full"
-    assert "3 characters" in body["message"]
+    assert f"{MAX_CAST} characters" in body["message"] and MAX_CAST == 40
 
 
 def test_deleting_a_character_frees_a_slot(client: TestClient) -> None:

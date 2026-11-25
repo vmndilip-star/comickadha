@@ -2,9 +2,10 @@ import { Link } from 'react-router'
 import { CharacterAvatar } from './CharacterAvatar'
 import { CreateCharacterButton } from './CreateCharacterButton'
 import { cn } from '@/lib/cn'
+import { castCountNote } from '@/lib/createFlow'
 import { characterTagline } from '@/lib/format'
 import { useCastStore } from '@/store/cast'
-import { MAX_CAST, type Character, type LockStatus } from '@/types'
+import type { Character, LockStatus } from '@/types'
 
 const STATUS_LABEL: Record<LockStatus, string> = {
   draft: 'Still designing',
@@ -20,12 +21,16 @@ export function CastSlotList({ selectedId }: { selectedId: string }) {
   return (
     <aside aria-label="Cast slots" className="flex max-w-full flex-[1_1_220px] flex-col gap-3.5">
       <CreateCharacterButton className="min-h-14 rounded-2xl" />
-      {characters.map((c) => (
-        <CastSlot key={c.id} character={c} selected={c.id === selectedId} />
-      ))}
-      <p className="mt-1 mb-0 text-label font-semibold text-muted">
-        You can have {MAX_CAST} characters. Delete one to free a slot.
-      </p>
+      {/* Kids can have up to MAX_CAST characters: a long cast scrolls here, so the starters stay in
+          reach. The padding keeps the selected card's offset shadow inside the scroll box. */}
+      <ul aria-label="Your characters" className="m-0 flex max-h-[min(60vh,560px)] list-none flex-col gap-3.5 overflow-y-auto p-0 pr-1.5 pb-1.5">
+        {characters.map((c) => (
+          <li key={c.id}>
+            <CastSlot character={c} selected={c.id === selectedId} />
+          </li>
+        ))}
+      </ul>
+      <p className="mt-1 mb-0 text-label font-semibold text-muted">{castCountNote(characters.length)}</p>
       <StarterGrid starters={starters} selectedId={selectedId} />
     </aside>
   )

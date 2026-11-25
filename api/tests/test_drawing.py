@@ -113,7 +113,7 @@ def test_the_upload_is_never_written_to_disk_or_the_database(
 
     after = snapshot(settings.storage_dir)
     new_files = set(after) - set(before)
-    assert all(name.startswith("comickatha.db") for name in new_files), new_files
+    assert all(name.startswith("comickadha.db") for name in new_files), new_files
     media = {k for k in after if k.startswith("media")}
     assert media == {k for k in before if k.startswith("media")}
     for name, data in after.items():

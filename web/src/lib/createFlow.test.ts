@@ -4,6 +4,7 @@ import type { Created, FollowUp } from '@/types'
 import {
   NO_ANSWERS,
   applyFollowUp,
+  castCountNote,
   castFull,
   introFor,
   nextStep,
@@ -79,8 +80,13 @@ describe('the request', () => {
 })
 
 describe('the cast', () => {
-  it('is full at three', () => {
-    expect([castFull(2), castFull(3)]).toEqual([false, true])
+  it('has room for any number of characters up to 40', () => {
+    expect([castFull(3), castFull(39), castFull(40)]).toEqual([false, false, true])
+  })
+
+  it('says how many so far, and when it is full', () => {
+    expect(castCountNote(5)).toBe('You have 5 of 40 characters.')
+    expect(castCountNote(40)).toBe('Your cast is full: 40 characters! Delete one to make room for someone new.')
   })
 })
 

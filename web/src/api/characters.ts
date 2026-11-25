@@ -10,5 +10,7 @@ export const deleteCharacter = (id: string) => request<void>('DELETE', `/charact
 /** Starts drawing the character sheet; follow the job's events. */
 export const lockCharacter = (id: string) => request<JobStarted>('POST', `/characters/${id}/lock`)
 export const unlockCharacter = (id: string) => request<Character>('POST', `/characters/${id}/unlock`)
+/** Paints the locked character's portrait (decision 132), or paints it again; follow the job. */
+export const paintPortrait = (id: string) => request<JobStarted>('POST', `/characters/${id}/portrait`)
 /** Make it mine: an editable draft copy of a starter character in the kid's own cast. */
 export const copyCharacter = (id: string) => request<Character>('POST', `/characters/${id}/copy`)

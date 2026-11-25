@@ -96,8 +96,38 @@ SAFE_PICTURE = {
     "has_text_or_logos": False,
     "is_scary": False,
 }
-# The safety checks say "safe" unless a test says otherwise.
-DEFAULTS: dict[str, Reply] = {"safety_verdicts": all_safe, "image_safety": SAFE_PICTURE}
+
+
+def same_look(call: dict[str, Any], **changes: Any) -> dict[str, Any]:
+    """A look-check reply: every expected character (the numbered lines) is painted as drawn, with
+    `changes` applied to each one (e.g. skin_tone="lighter")."""
+    count = len(re.findall(r"^\d+\. ", user_text(call), re.MULTILINE))
+    character = {
+        "skin_tone": "same",
+        "hair_kept": True,
+        "head_covering_kept": True,
+        "clothing_colours_kept": True,
+        "accessories_kept": True,
+        "head_x": 0.5,
+        "head_y": 0.3,
+    } | changes
+    return {
+        "characters_in_painting": count,
+        "extra_characters": False,
+        "characters": [dict(character) for _ in range(count)],
+        "props_visible": re.findall(r"^- (.+)$", user_text(call), re.MULTILINE),
+    }
+
+
+# The safety checks (and the look check) say "fine" unless a test says otherwise.
+DEFAULTS: dict[str, Reply] = {
+    "safety_verdicts": all_safe,
+    "image_safety": SAFE_PICTURE,
+    "look_check": same_look,
+    # Asking for single panels again (Phase 8) is "down" unless a test answers it: the planner
+    # then repairs the panel by hand.
+    "panel_fix": server_error(),
+}
 
 
 def picture(**flags: bool) -> dict[str, bool]:

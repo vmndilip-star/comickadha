@@ -1,8 +1,10 @@
 """Offline image provider: simple, recognisable placeholder art so the app runs with no API keys.
 
 It reads the same place prompt a real model gets (its Place and Palette lines), paints a simple
-scene in the place's tint, and is deterministic for a given prompt, size and seed. Any other prompt
-gets a plain card with the prompt's first line.
+scene in the place's tint, and is deterministic for a given prompt, size and seed. A "painted"
+Style line with a reference picture (portraits and panels, decisions 131-133) gets that picture
+restyled: flatter colours, ink lines and a warm tint, with nothing moved, so heads stay where they
+were. Any other prompt gets a plain card with the prompt's first line.
 """
 
 import io
@@ -11,7 +13,9 @@ import re
 import time
 from dataclasses import dataclass, field
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageOps
+
+from app.services import imaging
 
 INK = (26, 26, 26)
 WHITE = (255, 255, 255)
@@ -43,6 +47,8 @@ def shade(color: RGB, factor: float) -> RGB:
 class Request:
     palette: dict[str, str] = field(default_factory=dict)
     place: str | None = None
+    time: str | None = None  # "sunset" or "night": the same place at that time of day
+    style: str | None = None  # "inked and painted ...": restyle the reference picture
 
 
 def _line(prompt: str, label: str) -> str | None:
@@ -55,7 +61,10 @@ def parse(prompt: str) -> Request:
     palette = dict(
         kv.split("=", 1) for kv in (p.strip() for p in palette_line.split(";")) if "=" in kv
     )
-    return Request(palette=palette, place=_line(prompt, "Place"))
+    time = (_line(prompt, "Time of day") or "").split(" ")[0].strip(".,:").lower() or None
+    return Request(
+        palette=palette, place=_line(prompt, "Place"), time=time, style=_line(prompt, "Style")
+    )
 
 
 # ---- drawing ------------------------------------------------------------------------------------
@@ -102,8 +111,25 @@ class MockImageProvider:
             time.sleep(self.delay_seconds)  # pretend to be a slow image API, so progress is visible
         req = parse(prompt)
         if req.place:
-            return _png(self._place(req, size, random.Random(seed)))
+            image = self._place(req, size, random.Random(seed))
+            return _png(imaging.time_tint(image, req.time) if req.time else image)
+        if req.style and "painted" in req.style.lower() and reference_images:
+            return _png(self._restyle(reference_images[0], size))
         return _png(self._card(prompt, size))
+
+    def _restyle(self, reference: bytes, size: tuple[int, int]) -> Image.Image:
+        """The reference as a "painting": fitted to the size, fewer colours, ink lines on the
+        edges and a warm tint. Same input, same output; nothing moves."""
+        source = Image.open(io.BytesIO(reference)).convert("RGBA")
+        flat = Image.new("RGB", source.size, (255, 248, 236))
+        flat.paste(source, mask=source.getchannel("A"))
+        image = ImageOps.fit(flat, size, method=Image.Resampling.LANCZOS)
+        edges = image.convert("L").filter(ImageFilter.FIND_EDGES)
+        ink = edges.point(lambda v: 0 if v > 48 else 255).convert("RGB")
+        painted = ImageChops.multiply(ImageOps.posterize(image, 3), ink)
+        painted = Image.blend(painted, Image.new("RGB", size, (255, 226, 180)), 0.14)
+        _label(ImageDraw.Draw(painted), (56, size[1] - 30), "MOCK", 18)
+        return painted
 
     def _place(self, req: Request, size: tuple[int, int], rng: random.Random) -> Image.Image:
         width, height = size

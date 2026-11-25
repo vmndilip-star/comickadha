@@ -9,13 +9,14 @@ import { PageLoading } from '@/components/layout/PageLoading'
 import { Confetti } from '@/components/ui/Confetti'
 import { SaveStatus } from '@/components/ui/SaveStatus'
 import type { Box } from '@/lib/bubbles'
-import { castFor, placesFor } from '@/lib/comic'
-import { moveCharacter, withPose } from '@/lib/studio'
+import { castFor, pickedCast, placesFor } from '@/lib/comic'
+import { addToPanel, moveCharacter, removeFromPanel, withPose } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
 import { useMaking, useMakingStore } from '@/store/making'
 import { usePlacesStore } from '@/store/places'
+import { usePropsStore } from '@/store/props'
 import { useReaderStore } from '@/store/reader'
 import { toast } from '@/store/toast'
 import type { Panel } from '@/types'
@@ -36,6 +37,7 @@ export function ReaderPage() {
   const make = useMakingStore((s) => s.make)
   const resume = useMakingStore((s) => s.resume)
   const reader = useReaderStore()
+  const library = usePropsStore((s) => s.props)
   const [busy, setBusy] = useState<Busy>(null)
   const [trying, setTrying] = useState<Record<string, boolean>>({})
   const [confetti, setConfetti] = useState(0)
@@ -203,6 +205,7 @@ export function ReaderPage() {
                   bubbles: p.bubbles.map((b) => (b.id === bubbleId ? { ...b, ...patch } : b)),
                 }))
               }
+              onCaption={(update) => updatePanel(comic.id, panel.id, update)}
               onCharacter={(characterId, patch) =>
                 changeCharacters(panel, (p) => {
                   const next = { ...p, characters: p.characters.map((c) => (c.id === characterId ? { ...c, ...patch } : c)) }
@@ -213,6 +216,12 @@ export function ReaderPage() {
               onPosition={(characterId, position) =>
                 changeCharacters(panel, (p) => ({ ...p, characters: moveCharacter(p.characters, characterId, position) }))
               }
+              onProps={(props) => changeCharacters(panel, (p) => ({ ...p, props }))}
+              onSize={(size) => changeCharacters(panel, (p) => ({ ...p, size }))}
+              comicCast={pickedCast(comic, cast)}
+              onAddCharacter={(character) => changeCharacters(panel, (p) => addToPanel(p, character))}
+              onRemoveCharacter={(id) => changeCharacters(panel, (p) => removeFromPanel(p, id))}
+              library={library}
               onUndo={undo}
               onPrev={() => reader.selectPanel(comic.panels[index - 1]?.id ?? panel.id)}
               onNext={() => reader.selectPanel(comic.panels[index + 1]?.id ?? panel.id)}

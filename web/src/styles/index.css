@@ -117,3 +117,20 @@
   background-image: radial-gradient(var(--ck-sun-dot) 1.5px, transparent 1.6px);
   background-size: 14px 14px;
 }
+
+/* The home hero's group poster: a pale sky with soft sunburst rays behind the cast. */
+@utility poster-sky {
+  background-image:
+    repeating-conic-gradient(
+      from 0deg at 50% 72%,
+      color-mix(in srgb, var(--ck-surface) 50%, transparent) 0deg 6deg,
+      transparent 6deg 18deg
+    ),
+    linear-gradient(180deg, var(--ck-sky) 0%, var(--ck-sky-tint) 65%, var(--ck-surface) 100%);
+}
+
+/* A bold ink contour around a drawn character, so characters standing in a crowd stay apart. */
+@utility poster-ink {
+  filter: drop-shadow(2px 0 0 var(--ck-ink)) drop-shadow(-2px 0 0 var(--ck-ink))
+    drop-shadow(0 2px 0 var(--ck-ink)) drop-shadow(0 -2px 0 var(--ck-ink));
+}

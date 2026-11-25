@@ -1,16 +1,10 @@
-import { Avatar } from '@/components/character/Avatar'
 import { Button } from '@/components/ui/Button'
-import type { Box } from '@/lib/bubbles'
+import { FRAMES, aspectOf, type Box } from '@/lib/bubbles'
 import { cn } from '@/lib/cn'
-import { lookFor } from '@/lib/comic'
-import type { Background, Character, Comic, Panel as PanelData, Position } from '@/types'
+import type { Background, Character, Comic, Panel as PanelData } from '@/types'
 import { BubbleLayer } from './BubbleLayer'
-
-const STAND: Record<Position, string> = {
-  left: 'left-[6%]',
-  center: 'left-1/2 -translate-x-1/2',
-  right: 'right-[6%]',
-}
+import { PlaceBackdrop } from './PlaceBackdrop'
+import { StageView } from './StageView'
 
 interface PanelProps {
   number: number
@@ -45,11 +39,11 @@ export function Panel(props: PanelProps) {
       aria-label={`Panel ${number}`}
       onClick={editing ? props.onSelect : undefined}
       className={cn(
-        '@container relative m-0 aspect-[4/3] w-full overflow-hidden rounded-[4px] border-4 border-ink bg-surface',
+        '@container relative m-0 w-full overflow-hidden rounded-[4px] border-4 border-ink bg-surface',
         selected && 'outline-5 outline-offset-3 outline-pow-blue',
         editing && !selected && 'cursor-pointer',
       )}
-      style={{ backgroundColor: place?.tint }}
+      style={{ backgroundColor: place?.tint, aspectRatio: aspectOf(panel.shown_size) }}
     >
       {panel.art_url ? (
         <img key={panel.art_url} src={panel.art_url} alt={description} loading="lazy" decoding="async" draggable={false} className="absolute inset-0 size-full object-cover" />
@@ -63,6 +57,7 @@ export function Panel(props: PanelProps) {
         selectedId={props.selectedBubbleId}
         onSelect={props.onSelectBubble}
         onBox={props.onBubbleBox}
+        frame={FRAMES[panel.shown_size]}
       />
 
       {busy && (
@@ -143,16 +138,8 @@ function Sketch({ panel, looks, place, cast, label }: Pick<PanelProps, 'panel' |
   const thumb = place?.thumb_url ?? place?.image_url
   return (
     <div role="img" aria-label={label} className="absolute inset-0 opacity-60 grayscale-[40%]">
-      {thumb && <img src={thumb} alt="" loading="lazy" decoding="async" draggable={false} className="absolute inset-0 size-full object-cover" />}
-      {panel.characters.map((pc) => {
-        const character = cast.find((c) => c.id === pc.id)
-        if (!character) return null
-        return (
-          <span key={pc.id} className={cn('absolute bottom-0 w-[36%] [&_svg]:h-auto [&_svg]:w-full', STAND[pc.position])}>
-            <Avatar spec={lookFor(looks, pc, character)} pose={pc.pose} expression={pc.expression} size="100%" className="aspect-square" />
-          </span>
-        )
-      })}
+      <PlaceBackdrop url={panel.place_url ?? thumb} tone={panel.place_url ? panel.place_tone : null} />
+      <StageView panel={panel} looks={looks} cast={cast} />
     </div>
   )
 }

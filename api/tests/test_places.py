@@ -20,7 +20,9 @@ def test_locking_a_place_paints_its_image(client: TestClient) -> None:
     assert place["version"] == 1
     assert imaging.load(client.get(place["image_url"]).content).size == (1024, 768)
     assert client.get(place["thumb_url"]).status_code == 200
-    assert [kind for _, kind, _ in sse_events(client, job_id)][-2:] == ["cell_ready", "done"]
+    kinds = [kind for _, kind, _ in sse_events(client, job_id)]
+    assert "cell_ready" in kinds and kinds[-1] == "done"
+    assert place["times"] == ["day", "sunset", "night"]  # Phase 8: painted at every time of day
 
 
 def test_an_unsafe_place_is_blocked(client: TestClient) -> None:

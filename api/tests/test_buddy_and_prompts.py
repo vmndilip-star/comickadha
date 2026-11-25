@@ -114,10 +114,10 @@ def test_every_prompt_loads_including_the_moved_ones() -> None:
     loaded = prompts.load_all()
     assert set(prompts.REQUIRED) <= set(loaded)
     helper = prompts.render("builder_helper", catalog="CATALOG HERE")
-    assert helper.startswith("You are the friendly helper in Comickatha")
+    assert helper.startswith("You are the friendly helper in Comickadha")
     assert "CATALOG HERE" in helper and "{" not in helper
     classifier = prompts.render("safety_classifier")
-    assert classifier.startswith("You check text for Comickatha")
+    assert classifier.startswith("You check text for Comickadha")
     assert classifier.endswith("Reply with one verdict for each numbered text, in order.")
 
 
@@ -146,17 +146,17 @@ def test_backup_copies_the_database_and_media_and_keeps_five(
     kept = sorted(p.name for p in backups_dir(storage).iterdir())
     assert len(kept) == 5 and kept[-1] == made[-1].name  # type: ignore[union-attr]
     newest = made[-1]
-    assert newest is not None and (newest / "comickatha.db").exists()
+    assert newest is not None and (newest / "comickadha.db").exists()
     assert sorted(p.name for p in (newest / "media").rglob("*.png")) == sorted(
         p.name for p in (storage / "media").rglob("*.png")
     )
-    with sqlite3.connect(newest / "comickatha.db") as copy:
+    with sqlite3.connect(newest / "comickadha.db") as copy:
         assert copy.execute("pragma integrity_check").fetchone()[0] == "ok"
     assert f"Backed up {storage} to {newest}" in capsys.readouterr().out
 
 
 def test_startup_backs_up_before_migrating_an_older_database(settings: Settings) -> None:
-    db = settings.storage_dir / "comickatha.db"
+    db = settings.storage_dir / "comickadha.db"
     with sqlite3.connect(db) as conn:
         conn.execute("ALTER TABLE panel DROP COLUMN edited_at")  # as before Phase 4
 
@@ -165,7 +165,7 @@ def test_startup_backs_up_before_migrating_an_older_database(settings: Settings)
 
     backups = list(backups_dir(settings.storage_dir).iterdir())
     assert len(backups) == 1 and backups[0].name.endswith("before-migration")
-    with sqlite3.connect(backups[0] / "comickatha.db") as copy:  # the copy is the old database
+    with sqlite3.connect(backups[0] / "comickadha.db") as copy:  # the copy is the old database
         columns = [row[1] for row in copy.execute("pragma table_info(panel)")]
     assert "edited_at" not in columns
     with sqlite3.connect(db) as conn:  # and the live one was migrated

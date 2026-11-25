@@ -6,6 +6,8 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.services.ai_limits import PAINTS_PER_DAY, PANEL_PAINTS_PER_KID, PORTRAIT_PAINTS_PER_KID
+
 API_DIR = Path(__file__).resolve().parent.parent
 REPO_DIR = API_DIR.parent
 
@@ -43,6 +45,13 @@ class Settings(BaseSettings):
     # (a picture took 10-19 s in Phase 6a; decision 82).
     meta_image_model: str = ""
     meta_image_timeout_seconds: float = 60.0
+    # Painted portraits and panels (decisions 131-134). False: no paint buttons, and no image
+    # model calls for portraits, panels or places (pictures already painted still show).
+    painting_enabled: bool = True
+    # Daily caps, counted per image model call (retries included); the mock doesn't count.
+    portrait_paints_per_kid: int = PORTRAIT_PAINTS_PER_KID
+    panel_paints_per_kid: int = PANEL_PAINTS_PER_KID
+    paints_per_day: int = PAINTS_PER_DAY
 
     # Holds the SQLite file and the media/ folder.
     storage_dir: Path = API_DIR / "storage"
@@ -56,7 +65,7 @@ class Settings(BaseSettings):
 
     @property
     def resolved_database_url(self) -> str:
-        return self.database_url or f"sqlite:///{(self.storage_dir / 'comickatha.db').as_posix()}"
+        return self.database_url or f"sqlite:///{(self.storage_dir / 'comickadha.db').as_posix()}"
 
     @property
     def resolved_vision_model(self) -> str:

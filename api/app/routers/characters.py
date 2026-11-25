@@ -6,16 +6,26 @@ from sqlalchemy import or_
 from sqlmodel import Session, col, select
 
 from app.avatar import spec as avatar_spec
-from app.deps import EngineDep, JobsDep, SessionDep, SheetsDep, StorageDep, UserDep
+from app.deps import (
+    EngineDep,
+    JobsDep,
+    LLMDep,
+    ProviderDep,
+    SessionDep,
+    SettingsDep,
+    SheetsDep,
+    StorageDep,
+    UserDep,
+)
 from app.errors import ERROR_RESPONSES, ApiError, invalid, not_found
 from app.models import Character, User
 from app.models.base import utcnow
 from app.schemas.avatar import AvatarSpec
 from app.schemas.character import CharacterCreate, CharacterRead, CharacterUpdate
-from app.schemas.common import MAX_CAST
+from app.schemas.common import MAX_CAST, ErrorBody
 from app.schemas.job import JobStarted
 from app.schemas.manifest import CharacterManifest
-from app.services import character_safety, character_sheet, safety
+from app.services import character_safety, character_sheet, painting, portraits, safety
 
 router = APIRouter(prefix="/api/characters", tags=["characters"], responses=ERROR_RESPONSES)
 
@@ -71,14 +81,22 @@ def get_character(
     return character
 
 
-def to_read(character: Character) -> CharacterRead:
+def to_read(character: Character, portrait_jobs: dict[str, str] | None = None) -> CharacterRead:
     return CharacterRead.model_validate(
         {
             **character.model_dump(),
             "starter": bool(character.starter),
             "deleted": character.deleted_at is not None,
+            "show_portrait": character.show_portrait is not False,
+            "portrait_job_id": (portrait_jobs or {}).get(character.id),
         }
     )
+
+
+def to_reads(session: Session, characters: list[Character]) -> list[CharacterRead]:
+    """Reads with each running portrait job, found in one query."""
+    running = portraits.running_portrait_jobs(session, [c.id for c in characters])
+    return [to_read(c, running) for c in characters]
 
 
 def not_starter(character: Character) -> None:
@@ -139,7 +157,7 @@ def _room_in_cast(session: Session, user: User) -> list[Character]:
 @router.get("")
 def list_characters(session: SessionDep, user: UserDep) -> list[CharacterRead]:
     """The kid's own characters, then the starter characters (`starter: true`)."""
-    return [to_read(c) for c in [*active_characters(session, user), *starter_characters(session)]]
+    return to_reads(session, [*active_characters(session, user), *starter_characters(session)])
 
 
 @router.post("", status_code=201)
@@ -159,7 +177,7 @@ def create_character(body: CharacterCreate, session: SessionDep, user: UserDep) 
 @router.get("/{character_id}")
 def read_character(character_id: str, session: SessionDep, user: UserDep) -> CharacterRead:
     """Also returns deleted characters (deleted: true), so old comics can still show them."""
-    return to_read(get_character(session, user, character_id, include_deleted=True))
+    return to_reads(session, [get_character(session, user, character_id, include_deleted=True)])[0]
 
 
 @router.patch("/{character_id}")
@@ -168,6 +186,11 @@ def update_character(
 ) -> CharacterRead:
     character = get_character(session, user, character_id)
     not_starter(character)
+    if body.show_portrait is not None:
+        # What the cards show, never the look: fine while locked (decision 132).
+        character.show_portrait = body.show_portrait
+        if body.name is None and body.spec is None:
+            return _save(session, character)
     if character.status == "generating":
         raise _busy(character)
     if character.status == "locked":
@@ -207,10 +230,15 @@ def lock_character(
     jobs: JobsDep,
     sheets: SheetsDep,
     storage: StorageDep,
+    provider: ProviderDep,
+    llm: LLMDep,
+    settings: SettingsDep,
 ) -> JobStarted:
     """Checks the words are kid-safe, then draws the character sheet as a job (follow it over SSE).
 
-    The builder draws all 22 cells from the parts library in a couple of seconds.
+    The builder draws all 22 cells from the parts library in a couple of seconds. Once the lock is
+    saved, the portrait starts as its own job (decision 132; its id is in the done event) when
+    painting is on and today's caps allow: the lock never waits or fails for it.
     """
     character = get_character(session, user, character_id)
     not_starter(character)
@@ -246,10 +274,103 @@ def lock_character(
             engine=engine,
             sheets=sheets,
             storage=storage,
+            after=_portrait_after_lock(
+                session, settings, jobs, engine, provider, storage, llm, user, character.id
+            ),
         ),
         on_error=lambda _message: character_sheet.mark_failed(engine, spec.id),
     )
     return JobStarted(job_id=job.id, kind="character_sheet", target_id=character.id)
+
+
+def _portrait_after_lock(
+    session: Session,
+    settings: SettingsDep,
+    jobs: JobsDep,
+    engine: EngineDep,
+    provider: ProviderDep,
+    storage: StorageDep,
+    llm: LLMDep,
+    user: User,
+    character_id: str,
+) -> partial[str | None] | None:
+    """What the lock job runs once the lock is saved: the portrait job, or nothing when painting is
+    off, today's caps are reached or a real model has no checker."""
+    if not settings.painting_enabled:
+        return None
+    if painting.needs_image_check(provider) and llm is None:
+        return None
+    if painting.daily_cap_reached(session, settings, provider, user.id, "portrait"):
+        return None
+    return partial(
+        portraits.start_portrait_job,
+        jobs,
+        character_id=character_id,
+        engine=engine,
+        provider=provider,
+        storage=storage,
+        llm=llm,
+        user_id=user.id,
+    )
+
+
+PORTRAIT_STARTER = (
+    "Starter characters get their portraits from a grown-up. Tap Make it mine to paint your own!"
+)
+PAINTING_OFF = "Painting is resting right now. Try again later!"
+
+
+@router.post(
+    "/{character_id}/portrait",
+    status_code=202,
+    responses={429: {"model": ErrorBody}, 503: {"model": ErrorBody}},
+)
+def paint_portrait(
+    character_id: str,
+    session: SessionDep,
+    user: UserDep,
+    engine: EngineDep,
+    jobs: JobsDep,
+    provider: ProviderDep,
+    storage: StorageDep,
+    llm: LLMDep,
+    settings: SettingsDep,
+) -> JobStarted:
+    """Paints the character's portrait (decision 132) as a job: also "Paint again", and how a
+    character locked before portraits gets one. The prompt carries no kid-written words, so there
+    is no words check; the picture passes the image check and the look check before it is saved."""
+    character = get_character(session, user, character_id)
+    if character.starter:
+        raise ApiError(409, "starter", PORTRAIT_STARTER)
+    if not settings.painting_enabled:
+        raise ApiError(409, "painting_off", PAINTING_OFF)
+    if character.status == "generating":
+        raise _busy(character)
+    if character.status != "locked" or character.sheet_version < 1:
+        raise ApiError(
+            409, "needs_locked", f"Lock {character.name} first, then we can paint their portrait!"
+        )
+    running = portraits.running_portrait_jobs(session, [character.id]).get(character.id)
+    if running:
+        return JobStarted(job_id=running, kind="portrait", target_id=character.id)
+    if painting.needs_image_check(provider) and llm is None:
+        raise ApiError(503, "not_checked", portraits.CHECKER_RESTING.format(name=character.name))
+    if painting.daily_cap_reached(session, settings, provider, user.id, "portrait"):
+        raise ApiError(429, "daily_limit", portraits.DAILY_LIMIT)
+    job_id = portraits.start_portrait_job(
+        jobs,
+        character_id=character.id,
+        engine=engine,
+        provider=provider,
+        storage=storage,
+        llm=llm,
+        user_id=user.id,
+    )
+    if job_id is None:  # the character changed under us
+        raise ApiError(
+            409, "needs_locked", f"Lock {character.name} first, then we can paint their portrait!"
+        )
+    return JobStarted(job_id=job_id, kind="portrait", target_id=character.id)
 
 
 @router.post("/{character_id}/unlock")
@@ -266,7 +387,7 @@ def unlock_character(character_id: str, session: SessionDep, user: UserDep) -> C
 @router.post("/{character_id}/copy", status_code=201)
 def copy_character(character_id: str, session: SessionDep, user: UserDep) -> CharacterRead:
     """Make it mine: copies a starter character into the kid's own cast as an editable draft.
-    The copy counts toward their 3 characters (cast_full still applies)."""
+    The copy counts toward their own characters (cast_full still applies)."""
     source = get_character(session, user, character_id)
     if not source.starter:
         raise invalid("Only starter characters can be copied. This one is already yours!")

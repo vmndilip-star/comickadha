@@ -17,7 +17,7 @@ export class ApiError extends Error {
 }
 
 const FALLBACK_MESSAGE = 'Oops! Something went wrong. Please try again.'
-const NETWORK_MESSAGE = "We can't reach Comickatha right now. Check your internet and try again."
+const NETWORK_MESSAGE = "We can't reach Comickadha right now. Check your internet and try again."
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
 

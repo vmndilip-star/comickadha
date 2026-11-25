@@ -1,13 +1,24 @@
 import { useState } from 'react'
 import { Avatar } from '@/components/character/Avatar'
-import { blockedTypes, THINKING_HINT, thinkingNote, withPose } from '@/lib/studio'
+import {
+  ASLEEP_HINT,
+  asleepNote,
+  blockedTypes,
+  isAsleep,
+  limitWords,
+  MAX_BUBBLE_WORDS,
+  setCaption,
+  THINKING_HINT,
+  thinkingNote,
+  withPose,
+} from '@/lib/studio'
 import { Button } from '@/components/ui/Button'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { Pill } from '@/components/ui/Pill'
 import { ThumbPicker } from '@/components/ui/ThumbPicker'
 import { cn } from '@/lib/cn'
 import { lookFor } from '@/lib/comic'
-import { BUBBLE_LABEL, EXPRESSION_LABEL, POSE_LABEL } from '@/lib/labels'
+import { BUBBLE_LABEL, EXPRESSION_LABEL, POSE_LABEL, POSITION_LABEL } from '@/lib/labels'
 import { useFieldError } from '@/store/fieldErrors'
 import {
   BUBBLE_TYPES,
@@ -22,12 +33,17 @@ import {
   type Expression,
   type Panel,
   type PanelCharacter,
+  type PanelProp,
+  type PanelSize,
   type Pose,
   type Position,
+  type PropInfo,
 } from '@/types'
 import { BUBBLE_FILL, BUBBLE_SHAPE } from './bubbleStyles'
-
-const POSITION_LABEL: Record<Position, string> = { left: 'Left', center: 'Middle', right: 'Right' }
+import { CaptionField } from './CaptionField'
+import { CastToggles } from './CastToggles'
+import { PropsEditor } from './PropsEditor'
+import { SizePicker } from './SizePicker'
 
 interface PanelInspectorProps {
   number: number
@@ -44,9 +60,21 @@ interface PanelInspectorProps {
   /** Called once before a burst of edits, so Undo restores the panel as it was. */
   onBeginEdit: () => void
   onBubble: (bubbleId: string, patch: Partial<Bubble>) => void
+  /** The caption (the narrator's box) changed: added, edited or emptied. */
+  onCaption: (update: (panel: Panel) => Panel) => void
   /** Face, pose or where they stand: the panel is drawn again. */
   onCharacter: (characterId: string, patch: Partial<Pick<PanelCharacter, 'expression' | 'pose'>>) => void
   onPosition: (characterId: string, position: Position) => void
+  /** The props it draws: the panel is drawn again. */
+  onProps: (props: PanelProp[]) => void
+  /** The prop library. */
+  library: PropInfo[]
+  /** Normal, wide or splash: the page is laid out (and the panel drawn) again. */
+  onSize: (size: PanelSize) => void
+  /** The comic's own cast, and putting one in or taking one out (the panel is drawn again). */
+  comicCast: Character[]
+  onAddCharacter: (character: Character) => void
+  onRemoveCharacter: (characterId: string) => void
   onUndo: () => void
   onPrev: () => void
   onNext: () => void
@@ -76,6 +104,16 @@ export function PanelInspector(props: PanelInspectorProps) {
             {place?.name ?? 'Unknown place'}
           </span>
         </div>
+
+        <CaptionField
+          inputId={`caption-${panel.id}`}
+          bubbles={panel.bubbles}
+          full={panel.bubbles.length >= 3}
+          onChange={(text) => {
+            props.onBeginEdit()
+            props.onCaption((p) => setCaption(p, text))
+          }}
+        />
 
         {bubble && (
           <BubbleFields
@@ -126,7 +164,8 @@ export function PanelInspector(props: PanelInspectorProps) {
               selected={current.pc.pose}
               onSelect={(p) => {
                 props.onBeginEdit()
-                setNote(withPose(panel, current.pc.id, p as Pose).switched ? thinkingNote(current.character.name) : null)
+                const switched = withPose(panel, current.pc.id, p as Pose).switched
+                setNote(switched ? (p === 'asleep' ? asleepNote(current.character.name) : thinkingNote(current.character.name)) : null)
                 props.onCharacter(current.pc.id, { pose: p as Pose })
               }}
               render={(p) => <Avatar spec={look} pose={p as Pose} expression={current.pc.expression} size={48} />}
@@ -158,6 +197,39 @@ export function PanelInspector(props: PanelInspectorProps) {
             {drawing && <p className="m-0 text-label font-bold text-muted">Drawing this panel…</p>}
           </div>
         )}
+
+        <CastToggles
+          characters={panel.characters}
+          cast={props.comicCast}
+          onAdd={(character) => {
+            props.onBeginEdit()
+            props.onAddCharacter(character)
+          }}
+          onRemove={(id) => {
+            props.onBeginEdit()
+            props.onRemoveCharacter(id)
+          }}
+        />
+
+        <SizePicker
+          size={panel.size}
+          shown={panel.shown_size}
+          onChange={(size) => {
+            props.onBeginEdit()
+            props.onSize(size)
+          }}
+        />
+
+        <PropsEditor
+          props={panel.props}
+          characters={panel.characters}
+          library={props.library}
+          nameOf={nameOf}
+          onChange={(next) => {
+            props.onBeginEdit()
+            props.onProps(next)
+          }}
+        />
 
         <div className="flex flex-wrap gap-2.5">
           <Button className="flex-auto bg-zap-coral shadow-sm" disabled title="Redraw panel arrives in Phase 6">
@@ -192,6 +264,7 @@ interface BubbleFieldsProps {
 
 function BubbleFields({ panel, bubble, nameOf, onSelectBubble, onBeginEdit, onBubble }: BubbleFieldsProps) {
   const error = useFieldError(`bubbles.${bubble.id}.text`)
+  const [cut, setCut] = useState(false)
   const speakers = panel.characters.map((c) => c.id)
   const blocked = blockedTypes(panel, bubble.speaker)
   return (
@@ -213,11 +286,15 @@ function BubbleFields({ panel, bubble, nameOf, onSelectBubble, onBeginEdit, onBu
           value={bubble.text}
           aria-invalid={error ? true : undefined}
           onFocus={onBeginEdit}
-          onChange={(e) => onBubble(bubble.id, { text: e.target.value })}
+          onChange={(e) => {
+            const limited = limitWords(e.target.value)
+            setCut(limited.cut)
+            onBubble(bubble.id, { text: limited.text })
+          }}
           className="resize-y rounded-button border-3 border-ink px-3 py-2.5 text-base font-bold"
         />
       </label>
-      <FieldMessage message={error} />
+      <FieldMessage message={error ?? (cut ? `${MAX_BUBBLE_WORDS} words is the most for one bubble.` : undefined)} />
       <div className="flex flex-col gap-2">
         <span className="text-label font-extrabold">Bubble style</span>
         <div className="flex flex-wrap gap-2">
@@ -227,7 +304,7 @@ function BubbleFields({ panel, bubble, nameOf, onSelectBubble, onBeginEdit, onBu
               type="button"
               aria-pressed={bubble.type === type}
               disabled={blocked.includes(type)}
-              title={blocked.includes(type) ? THINKING_HINT : undefined}
+              title={blocked.includes(type) ? (isAsleep(panel, bubble.speaker) ? ASLEEP_HINT : THINKING_HINT) : undefined}
               onClick={() => {
                 onBeginEdit()
                 const speaker =
@@ -244,7 +321,7 @@ function BubbleFields({ panel, bubble, nameOf, onSelectBubble, onBeginEdit, onBu
             </button>
           ))}
         </div>
-        {blocked.length > 0 && <p className="m-0 text-label font-bold text-muted">{THINKING_HINT}</p>}
+        {blocked.length > 0 && <p className="m-0 text-label font-bold text-muted">{isAsleep(panel, bubble.speaker) ? ASLEEP_HINT : THINKING_HINT}</p>}
       </div>
     </>
   )

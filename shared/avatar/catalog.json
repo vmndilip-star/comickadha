@@ -2920,7 +2920,8 @@
       "open": "<circle cx=\"0\" cy=\"0\" r=\"3.5\" fill=\"{{face_ink}}\"/><circle cx=\"1.2\" cy=\"-1.3\" r=\"1.1\" fill=\"#FFFFFF\"/>",
       "small": "<circle cx=\"0\" cy=\"0\" r=\"2\" fill=\"{{face_ink}}\"/>",
       "wide": "<circle cx=\"0\" cy=\"0\" r=\"5\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"0.3\" r=\"2.3\" fill=\"{{face_ink}}\"/>",
-      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
+      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
+      "shut": "<path d=\"M-4.2 -0.8 Q0 2.9 4.2 -0.8\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
      },
      "reviewed": true,
      "tags": []
@@ -2939,7 +2940,8 @@
       "open": "<ellipse cx=\"0\" cy=\"0\" rx=\"2.7\" ry=\"4\" fill=\"{{face_ink}}\"/><circle cx=\"1.2\" cy=\"-1.3\" r=\"1.1\" fill=\"#FFFFFF\"/>",
       "small": "<ellipse cx=\"0\" cy=\"0\" rx=\"1.6\" ry=\"2.4\" fill=\"{{face_ink}}\"/>",
       "wide": "<ellipse cx=\"0\" cy=\"0\" rx=\"4.2\" ry=\"5.6\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><ellipse cx=\"0\" cy=\"0.4\" rx=\"2\" ry=\"2.8\" fill=\"{{face_ink}}\"/>",
-      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
+      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
+      "shut": "<path d=\"M-4.2 -0.8 Q0 2.9 4.2 -0.8\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
      },
      "reviewed": true,
      "tags": []
@@ -2958,7 +2960,8 @@
       "open": "<path d=\"M-5.2 0 Q0 -4.6 5.2 0 Q0 4.6 -5.2 0 Z\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0.4\" cy=\"0\" r=\"2.3\" fill=\"{{face_ink}}\"/><circle cx=\"1.3\" cy=\"-0.9\" r=\"0.8\" fill=\"#FFFFFF\"/>",
       "small": "<path d=\"M-4.2 0 Q0 -2.8 4.2 0 Q0 2.8 -4.2 0 Z\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"0\" r=\"1.2\" fill=\"{{face_ink}}\"/>",
       "wide": "<path d=\"M-6 0 Q0 -6.5 6 0 Q0 6.5 -6 0 Z\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"0\" r=\"2.4\" fill=\"{{face_ink}}\"/>",
-      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
+      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
+      "shut": "<path d=\"M-4.2 -0.8 Q0 2.9 4.2 -0.8\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
      },
      "reviewed": true,
      "tags": []
@@ -2977,7 +2980,8 @@
       "open": "<path d=\"M-4 -0.2 A4 4 0 0 0 4 -0.2 Z\" fill=\"{{face_ink}}\"/><path d=\"M-4.6 -0.6 L4.6 -0.6\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"1.8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
       "small": "<path d=\"M-3 0 A3 3 0 0 0 3 0 Z\" fill=\"{{face_ink}}\"/><path d=\"M-3.6 -0.4 L3.6 -0.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"1.6\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
       "wide": "<circle cx=\"0\" cy=\"0\" r=\"4.8\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"0.5\" r=\"2.2\" fill=\"{{face_ink}}\"/>",
-      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
+      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
+      "shut": "<path d=\"M-4.2 -0.8 Q0 2.9 4.2 -0.8\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
      },
      "reviewed": true,
      "tags": []
@@ -2996,7 +3000,8 @@
       "open": "<circle cx=\"0\" cy=\"0\" r=\"4.3\" fill=\"{{face_ink}}\"/><circle cx=\"1.5\" cy=\"-1.5\" r=\"1.6\" fill=\"#FFFFFF\"/><circle cx=\"-1.4\" cy=\"1.5\" r=\"0.7\" fill=\"#FFFFFF\"/>",
       "small": "<circle cx=\"0\" cy=\"0\" r=\"2.6\" fill=\"{{face_ink}}\"/><circle cx=\"0.8\" cy=\"-0.8\" r=\"0.8\" fill=\"#FFFFFF\"/>",
       "wide": "<circle cx=\"0\" cy=\"0\" r=\"5.4\" fill=\"{{face_ink}}\"/><circle cx=\"2\" cy=\"-2\" r=\"2\" fill=\"#FFFFFF\"/><circle cx=\"-1.8\" cy=\"1.8\" r=\"0.9\" fill=\"#FFFFFF\"/>",
-      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
+      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
+      "shut": "<path d=\"M-4.2 -0.8 Q0 2.9 4.2 -0.8\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
      },
      "reviewed": true,
      "tags": []
@@ -3015,7 +3020,8 @@
       "open": "<circle cx=\"0\" cy=\"0\" r=\"2.5\" fill=\"{{face_ink}}\"/>",
       "small": "<circle cx=\"0\" cy=\"0\" r=\"1.6\" fill=\"{{face_ink}}\"/>",
       "wide": "<circle cx=\"0\" cy=\"0\" r=\"4.4\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><circle cx=\"0\" cy=\"0\" r=\"1.8\" fill=\"{{face_ink}}\"/>",
-      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
+      "closed": "<path d=\"M-4.2 1.4 Q0 -3.4 4.2 1.4\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
+      "shut": "<path d=\"M-4.2 -0.8 Q0 2.9 4.2 -0.8\" fill=\"none\" stroke=\"{{face_ink}}\" stroke-width=\"2.2\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
      },
      "reviewed": true,
      "tags": []
@@ -5837,6 +5843,20 @@
      "dy": -2
     }
    }
+  },
+  "sleepy": {
+   "eyes": "shut",
+   "mouth": "snore",
+   "brows": {
+    "l": {
+     "angle": -4,
+     "dy": 1
+    },
+    "r": {
+     "angle": 4,
+     "dy": 1
+    }
+   }
   }
  },
  "mouths": {
@@ -5863,6 +5883,10 @@
   "open": {
    "front": "<path d=\"M-6.5 -1.6 Q0 9.5 6.5 -1.6 Z\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M-3 4 Q0 2 3 4 Q0 6.4 -3 4 Z\" fill=\"#FF8A80\"/>",
    "side": "<path d=\"M-6.5 -1.6 Q0 9.5 6.5 -1.6 Z\" fill=\"#FFFFFF\" stroke=\"{{face_ink}}\" stroke-width=\"1.8\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><path d=\"M-3 4 Q0 2 3 4 Q0 6.4 -3 4 Z\" fill=\"#FF8A80\"/>"
+  },
+  "snore": {
+   "front": "<ellipse cx=\"0\" cy=\"1\" rx=\"2\" ry=\"2.6\" fill=\"{{face_ink}}\"/>",
+   "side": "<ellipse cx=\"0\" cy=\"1\" rx=\"2\" ry=\"2.6\" fill=\"{{face_ink}}\"/>"
   }
  },
  "face_rigs": {
@@ -7562,6 +7586,36 @@
      "layer": "back"
     }
    ]
+  },
+  "asleep": {
+   "view": "three_quarter",
+   "mirror": false,
+   "root": [
+    0,
+    16
+   ],
+   "angles": {
+    "torso": 7,
+    "head": 24,
+    "shoulder_l": 4,
+    "elbow_l": -10,
+    "shoulder_r": -2,
+    "elbow_r": -12,
+    "hip_l": -80,
+    "knee_l": 75,
+    "hip_r": -86,
+    "knee_r": 82,
+    "ankle_l": 5,
+    "ankle_r": 4
+   },
+   "expression": "sleepy",
+   "extras": [
+    {
+     "bone": "root",
+     "svg": "<rect x=\"-16\" y=\"10\" width=\"32\" height=\"7\" rx=\"2\" fill=\"#C9A27A\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><rect x=\"-13\" y=\"17\" width=\"4\" height=\"18\" rx=\"1\" fill=\"#A07A52\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/><rect x=\"9\" y=\"17\" width=\"4\" height=\"18\" rx=\"1\" fill=\"#A07A52\" stroke=\"#1A1A1A\" stroke-width=\"2.4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>",
+     "layer": "back"
+    }
+   ]
   }
  },
  "face_visible": [
@@ -7577,7 +7631,8 @@
   "hands_on_hips",
   "thinking",
   "scared_pose",
-  "celebrate"
+  "celebrate",
+  "asleep"
  ],
  "head_box": [
   -30,

@@ -26,7 +26,14 @@ INTERRUPTED_MESSAGE = "Oops, the drawing got interrupted. Tap Lock to try again!
 # Places have "Paint it again", not Lock (decision 90).
 PLACE_INTERRUPTED = "Oops, the painting got interrupted. Tap Paint it again!"
 PLAN_INTERRUPTED = "Oops, planning got interrupted. Tap Plan my panels to try again!"
-INTERRUPTED_BY_KIND = {"background_image": PLACE_INTERRUPTED, "panel_plan": PLAN_INTERRUPTED}
+PORTRAIT_INTERRUPTED = (
+    "Oops, the portrait painting got interrupted. Tap Paint portrait to try again!"
+)
+INTERRUPTED_BY_KIND = {
+    "background_image": PLACE_INTERRUPTED,
+    "panel_plan": PLAN_INTERRUPTED,
+    "portrait": PORTRAIT_INTERRUPTED,
+}
 PANEL_INTERRUPTED = "Oops, this panel got interrupted. Tap Try again!"
 KEEPALIVE_SECONDS = 15.0
 FINAL_EVENTS = ("done", "error")
@@ -208,13 +215,17 @@ def fail_interrupted_jobs(engine: Engine) -> int:
                 continue
             if job.kind == "panel_plan":
                 continue  # the parts saved so far stay; planning again replaces them
+            if job.kind == "portrait":
+                continue  # the character stays locked; Paint portrait tries again
             target = (
                 session.get(Character, job.target_id)
                 if job.kind == "character_sheet"
                 else session.get(Background, job.target_id)
             )
             if target is not None and target.status == "generating":
-                target.status = "failed"
+                # A place that already had a picture (a new version, or its times of day) keeps it.
+                kept = isinstance(target, Background) and bool(target.image_key)
+                target.status = "locked" if kept else "failed"
                 session.add(target)
         session.commit()
         return len(stuck)

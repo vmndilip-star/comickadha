@@ -16,9 +16,20 @@ from app.config import Settings, get_settings
 from app.db import init_db, make_engine, missing_columns
 from app.errors import install_error_handlers
 from app.prompts import load_all as load_prompts
+from app.props.images import ensure_images
 from app.providers import get_image_provider, get_llm_provider
 from app.providers.mock import MockImageProvider
-from app.routers import backgrounds, builder, characters, comics, jobs, media, profile, studio
+from app.routers import (
+    backgrounds,
+    builder,
+    characters,
+    comics,
+    jobs,
+    media,
+    profile,
+    props,
+    studio,
+)
 from app.seed import seed
 from app.services import recheck
 from app.services.backup import backup_storage
@@ -99,6 +110,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             # The 12 starter characters are for every kid, seeded demo data or not (part B).
             if added := ensure_starters(session, app.state.storage, sheets):
                 log.info("added %d starter character(s)", added)
+        ensure_images(app.state.storage)  # each prop state's picture, drawn once (Phase 8)
         rechecks = (
             asyncio.create_task(recheck_loop(app, settings.recheck_seconds))
             if settings.recheck_seconds > 0
@@ -112,7 +124,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # One schema per model (no -Input/-Output split) keeps the generated TypeScript names simple.
     app = FastAPI(
-        title="Comickatha API",
+        title="Comickadha API",
         version=__version__,
         lifespan=lifespan,
         separate_input_output_schemas=False,
@@ -142,6 +154,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         backgrounds.router,
         comics.router,
         studio.router,
+        props.router,
         jobs.router,
         media.router,
     ):

@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.main import create_app
+from app.schemas.common import MAX_CAST
 from app.seed import GARDEN, KITCHEN, MANGO, MIRA, RAJU, ROBO, ROBO_DAY, SPACE, SPACE_PICNIC
 from app.starters import STARTER_IDS
 
@@ -90,6 +91,13 @@ def client(settings: Settings) -> Iterator[TestClient]:
 def own_cast(client: TestClient) -> list[dict[str, Any]]:
     """The kid's own characters from GET /api/characters (the starter characters left out)."""
     return [c for c in client.get("/api/characters").json() if not c["starter"]]
+
+
+def fill_cast(client: TestClient) -> None:
+    """Adds draft characters until the kid's cast is full (MAX_CAST of their own)."""
+    for n in range(MAX_CAST - len(own_cast(client))):
+        assert client.post("/api/characters", json={"name": f"Extra {n}"}).status_code == 201
+    assert len(own_cast(client)) == MAX_CAST
 
 
 def app_state(client: TestClient) -> Any:

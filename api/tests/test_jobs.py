@@ -100,6 +100,9 @@ def test_restart_marks_running_jobs_failed(
         assert job_read["status"] == "failed"
         assert job_read["error"] == message  # places have Paint it again, characters Lock
         path = "characters" if kind == "character_sheet" else "backgrounds"
-        assert client.get(f"/api/{path}/{IDS[target]}").json()["status"] == "failed"
+        # A place that already had a picture keeps it (a new version or its times of day were
+        # being painted: Phase 8); a character sheet that didn't finish has to be locked again.
+        expected = "locked" if kind == "background_image" else "failed"
+        assert client.get(f"/api/{path}/{IDS[target]}").json()["status"] == expected
         last = sse_events(client, job_id)[-1]
         assert last[1] == "error" and last[2]["message"] == message

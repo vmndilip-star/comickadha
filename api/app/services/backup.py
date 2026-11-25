@@ -15,7 +15,7 @@ from pathlib import Path
 log = logging.getLogger(__name__)
 
 KEEP = 5
-DB_NAME = "comickatha.db"
+DB_NAME = "comickadha.db"
 
 
 def backups_dir(storage_dir: Path) -> Path:
@@ -33,7 +33,7 @@ def backup_storage(storage_dir: Path, *, reason: str = "manual", keep: int = KEE
     target.mkdir(parents=True)
     if db.exists():
         source = sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True)
-        copy = sqlite3.connect(target / DB_NAME)
+        copy = sqlite3.connect(target / db.name)
         try:
             source.backup(copy)
         finally:

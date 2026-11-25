@@ -16,7 +16,9 @@ from app.avatar.catalog import load_catalog
 from app.config import Settings
 from app.main import create_app
 from app.models import CharacterVersion
-from app.schemas.common import EXPRESSIONS, POSES, TRAITS
+from app.schemas.common import SHEET_EXPRESSIONS as EXPRESSIONS
+from app.schemas.common import SHEET_POSES as POSES
+from app.schemas.common import TRAITS
 from app.schemas.studio import PanelPlan, PlannedCharacter, PlannedPanel
 from app.services import safety
 from app.services.backup import backups_dir
@@ -31,7 +33,15 @@ from app.services.story_planner import (
     offline_panels,
 )
 from app.starters import STARTER_IDS, STARTERS, VERSION, ensure_starters
-from tests.conftest import IDS, app_state, make_settings, own_cast, plan_panels, wait_for_job
+from tests.conftest import (
+    IDS,
+    app_state,
+    fill_cast,
+    make_settings,
+    own_cast,
+    plan_panels,
+    wait_for_job,
+)
 
 MESSAGE = "Starter characters can't be changed. Tap Make it mine to get your own copy!"
 STARTER = {s["name"]: s["id"] for s in STARTERS}
@@ -101,7 +111,7 @@ def test_a_fresh_install_draws_every_starter_and_has_no_kid_yet(
 def test_an_older_database_gets_the_column_and_the_starters_after_a_backup(
     settings: Settings,
 ) -> None:
-    db = settings.storage_dir / "comickatha.db"
+    db = settings.storage_dir / "comickadha.db"
     starters_sql = "SELECT id FROM character WHERE starter = 1"
     with sqlite3.connect(db) as conn:  # as before part B: no starter column, no starters
         conn.execute(f"DELETE FROM character_version WHERE character_id IN ({starters_sql})")
@@ -148,11 +158,12 @@ def test_a_starter_can_be_read_with_its_manifest(client: TestClient) -> None:
     assert client.get(f"/api/characters/{pixel}/manifest").status_code == 200
 
 
-# ---- the kid's 3, and Make it mine ------------------------------------------------------------
+# ---- the kid's own cast, and Make it mine -----------------------------------------------------
 
 
-def test_starters_dont_count_toward_the_kids_3(client: TestClient) -> None:
+def test_starters_dont_count_toward_the_kids_cast(client: TestClient) -> None:
     assert len(own_cast(client)) == 3 and len(starters(client)) == 12
+    fill_cast(client)  # all of their own: the 12 starters still don't count
 
     full = client.post("/api/characters", json={"name": "Zed"})
     assert (full.status_code, full.json()["code"]) == (409, "cast_full")
@@ -165,20 +176,17 @@ def test_make_it_mine_copies_a_starter_as_an_editable_draft_that_counts(
     client: TestClient,
 ) -> None:
     zara = client.get(f"/api/characters/{STARTER['Zara']}").json()
-    full = client.post(f"/api/characters/{zara['id']}/copy")
-    assert (full.status_code, full.json()["code"]) == (409, "cast_full")  # 3 of their own
-
-    client.delete(f"/api/characters/{IDS['robo']}")
     res = client.post(f"/api/characters/{zara['id']}/copy")
 
     assert res.status_code == 201
     mine = res.json()
     assert mine["id"] != zara["id"] and mine["starter"] is False
     assert (mine["name"], mine["status"], mine["spec"]) == ("Zara", "draft", zara["spec"])
-    assert [c["name"] for c in own_cast(client)] == ["Mira", "Raju", "Zara"]  # it counts
+    assert [c["name"] for c in own_cast(client)] == ["Mira", "Raju", "Robo-Tik", "Zara"]  # counts
     edited = client.patch(f"/api/characters/{mine['id']}", json={"name": "Zara Two"})
     assert edited.status_code == 200 and edited.json()["name"] == "Zara Two"
     assert client.get(f"/api/characters/{zara['id']}").json()["name"] == "Zara"  # untouched
+    fill_cast(client)
     again = client.post(f"/api/characters/{STARTER['Leo']}/copy")
     assert (again.status_code, again.json()["code"]) == (409, "cast_full")
 
@@ -209,7 +217,8 @@ def test_a_comic_can_have_up_to_5_characters_own_and_starters_mixed(client: Test
     assert six.status_code == 422
 
 
-def test_a_5_character_comic_plans_and_draws_with_at_most_3_per_panel(client: TestClient) -> None:
+def test_a_5_character_comic_plans_and_draws(client: TestClient) -> None:
+    """Phase 8: no 3-character limit; a panel shows whoever it needs, up to the whole scene."""
     comic_id = client.post("/api/comics", json={"title": "Mango", "synopsis": STORY}).json()["id"]
     client.patch(f"/api/comics/{comic_id}", json={"cast_ids": FIVE, "panel_count": 8})
 
@@ -222,7 +231,7 @@ def test_a_5_character_comic_plans_and_draws_with_at_most_3_per_panel(client: Te
     in_scene = {s["id"]: set(s["character_ids"]) for s in scenes}
     for p in panels:
         ids = [c["id"] for c in p["characters"]]
-        assert 1 <= len(ids) <= 3
+        assert 1 <= len(ids) <= len(in_scene[p["scene_id"]])
         assert len({c["position"] for c in p["characters"]}) == len(ids)
         assert set(ids) <= in_scene[p["scene_id"]]
     assert {c["id"] for p in panels for c in p["characters"]} == set(FIVE)  # everyone appears
@@ -237,14 +246,15 @@ def member(name: str) -> CastMember:
     return CastMember(name.lower(), name, 1)
 
 
-def test_the_offline_planner_takes_turns_in_a_big_scene() -> None:
+def test_the_offline_planner_gives_everyone_in_a_big_scene_a_moment() -> None:
     cast = [member(n) for n in ("Ava", "Bo", "Cy", "Di", "Ed")]
     scene = SceneInfo("s1", "park", tuple(m.id for m in cast), "They all play in the park.")
     ctx = StoryContext("Park", "They play.", "funny", 4, cast, [Place("park", "Park")], [scene])
 
     plan = offline_panels(ctx)
 
-    assert all(1 <= len(p.characters) <= 3 for p in plan.panels)
+    assert all(1 <= len(p.characters) <= len(cast) for p in plan.panels)
+    assert len(plan.panels[0].characters) == len(cast)  # the scene's first panel shows everyone
     assert {c.id for p in plan.panels for c in p.characters} == {m.id for m in cast}
     assert check_panels(plan, ctx) == []
 

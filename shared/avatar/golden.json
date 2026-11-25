@@ -162,6 +162,16 @@
    "length": 9293
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "dac3a9ecea7229242d47cb696d2b0a8473a3e76114a8619335767a1d7ef61e65",
+   "length": 9241
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "kid"
@@ -274,6 +284,25 @@
    "expression": "laughing",
    "sha256": "41e043e79df940be2028e2d9f2809709feece5c0e613976cf0633e10143ad9fd",
    "length": 8145
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "kid"
+   },
+   "expression": "sleepy",
+   "sha256": "9bf02315b82c92278b503b6d418fb923fa7df9c5d45dce1fac19a4b138461adf",
+   "length": 2676
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sleepy",
+   "sha256": "f2deed158e62a0963b7623a79b32ecd5fd4d075fdf1e2cadcc18bfb85fe0c72b",
+   "length": 8007
   },
   {
    "kind": "pose",
@@ -1268,6 +1297,16 @@
    "length": 9706
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "6487897e4f720749f2389c101b97fd778182f1855a0a104554c389740bd1565d",
+   "length": 9689
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "grown_up"
@@ -1380,6 +1419,25 @@
    "expression": "laughing",
    "sha256": "496f04891ac7112f6029e6910fbcfec33a16726bbd8dced9c5c0e6124abff03f",
    "length": 8593
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "expression": "sleepy",
+   "sha256": "710554e5da2b6419f02fbc69fcde943d4a1cfe0ea21c6ace3d3fe7d208546d4e",
+   "length": 2752
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sleepy",
+   "sha256": "2d852af56c5348343e6a0b503977dd8bd76afac61d644cbd791705c32451ac23",
+   "length": 8455
   },
   {
    "kind": "pose",
@@ -2374,6 +2432,16 @@
    "length": 9156
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "52b8bd626e77741ded710b06bbed43116c334b4004aedc68648c46065e88436f",
+   "length": 9208
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "robot"
@@ -2486,6 +2554,25 @@
    "expression": "laughing",
    "sha256": "48e813c1ca3173defbba8ab862041a562a55983c131f38d3015345974743a3d0",
    "length": 8149
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "robot"
+   },
+   "expression": "sleepy",
+   "sha256": "3f728ee4f8bbb91d5858d2fc26e4766e00be409c47a63e7f216bff453e07d2a9",
+   "length": 1656
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sleepy",
+   "sha256": "6d9dc3d9bf84eb4b47797857b3ea89f9d559e1dd3801b03f3c7c3ede2f30c1d7",
+   "length": 8011
   },
   {
    "kind": "pose",
@@ -3246,6 +3333,16 @@
    "length": 10296
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "407583bc35476b6bc3e63ae5ccac5045b34a1e82a2e749620f8848cf00c0ef08",
+   "length": 10492
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "cat"
@@ -3358,6 +3455,25 @@
    "expression": "laughing",
    "sha256": "8e8017183b7811acbfb850e36c6aaadc89722c0fc7bc3d3f8f65cb331c654e7a",
    "length": 9406
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "cat"
+   },
+   "expression": "sleepy",
+   "sha256": "5325e9edf427305c8cea3ed4784cd6f6f84982cfe690e20b67ab8ad7924cc82d",
+   "length": 2617
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "cat"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sleepy",
+   "sha256": "a6d754081d5f63423ade2a775725baeec79786e3a95665988d2b6c5d138cff17",
+   "length": 9268
   },
   {
    "kind": "pose",
@@ -4105,6 +4221,16 @@
    "length": 9721
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "3a92aebf7daabd135c3e6a03896a392f820e183e8235292ad9b3a32b4d3c6015",
+   "length": 9620
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "dog"
@@ -4217,6 +4343,25 @@
    "expression": "laughing",
    "sha256": "b21bf2b65fcd13a8430de469214cb5b94fcfdbab3fef0af54fd042a325adc33c",
    "length": 8571
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "dog"
+   },
+   "expression": "sleepy",
+   "sha256": "13f7fbbc2de6d7f860dcab12b4e782ff55b53c1867743c778e8df0cb13dd536b",
+   "length": 2194
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sleepy",
+   "sha256": "6b7583e6d89124db84e30b08acb2e5df77181ff7eaf559f069a8c9a8352a1517",
+   "length": 8433
   },
   {
    "kind": "pose",
@@ -4964,6 +5109,16 @@
    "length": 9122
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "6586e3497711b4a3c05fde6423f741990bbfc3b1e3175989d99f0e9d93129201",
+   "length": 9424
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "bear"
@@ -5076,6 +5231,25 @@
    "expression": "laughing",
    "sha256": "a1c467a4e5561212d27a90afffb3e74f4b6d8103d5fa1bd64234526c9598bda0",
    "length": 8375
+  },
+  {
+   "kind": "face",
+   "spec": {
+    "body_type": "bear"
+   },
+   "expression": "sleepy",
+   "sha256": "02b56424c3ba85e4c7d6ef5969b372eb9d7a67cbe201106f7a1598272d60ccf9",
+   "length": 1975
+  },
+  {
+   "kind": "pose",
+   "spec": {
+    "body_type": "bear"
+   },
+   "pose": "three_quarter_right",
+   "expression": "sleepy",
+   "sha256": "242b0bb09bd3f6b7ff2d2de2a7a237eabf61cbb2b96379dbc3375c8053e2bf6f",
+   "length": 8237
   },
   {
    "kind": "pose",
@@ -6111,6 +6285,34 @@
    "length": 13263
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "kid",
+    "parts": {
+     "hair": "two_puffs",
+     "headwear": "cap",
+     "top": "superhero",
+     "shoes": "boots"
+    },
+    "colors": {
+     "hair": "#FF7FB0",
+     "hat": "#1F5BD1",
+     "top": "#E53935",
+     "cape": "#FFD23F"
+    },
+    "extras": [
+     "glasses_star",
+     "cape",
+     "wand",
+     "freckles"
+    ]
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "327663035653be8ac77327420f4665b2aa2860ff820f3096129f766ecb5f6205",
+   "length": 13300
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "kid",
@@ -6570,6 +6772,33 @@
    "length": 11804
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "grown_up",
+    "parts": {
+     "hair": "bun",
+     "headwear": "hijab",
+     "top": "dress",
+     "bottom": "leggings"
+    },
+    "colors": {
+     "skin": "#5E3720",
+     "hat": "#7A4FC9",
+     "top": "#3FA34D"
+    },
+    "extras": [
+     "backpack",
+     "headphones",
+     "glasses_square",
+     "blush"
+    ]
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "7cff09232f3808fc1e14db534d9d82c4963d0ca5bfc8e433047f3c5f1d628bd3",
+   "length": 11608
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "grown_up",
@@ -6980,6 +7209,30 @@
    "length": 11429
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "robot",
+    "parts": {
+     "face_shape": "screen",
+     "eyes": "sparkle",
+     "top": "hoodie",
+     "headwear": "beanie"
+    },
+    "colors": {
+     "skin": "#FF8A6B",
+     "top": "#23305E"
+    },
+    "extras": [
+     "headphones",
+     "cape"
+    ]
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "265febb900ba6bd9272b3303a181cbd86ff8dffc49c76c79d69b370d0ef716ed",
+   "length": 11492
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "robot",
@@ -7355,6 +7608,28 @@
    "length": 11284
   },
   {
+   "kind": "pose",
+   "spec": {
+    "body_type": "dog",
+    "parts": {
+     "headwear": "space_helmet",
+     "shoes": "rain_boots"
+    },
+    "colors": {
+     "skin": "#3B3B3F",
+     "shoes": "#FFD23F"
+    },
+    "extras": [
+     "backpack",
+     "wand"
+    ]
+   },
+   "pose": "asleep",
+   "expression": null,
+   "sha256": "3a096ff772ed601e7896703e42a0989cf4a9cf982247ef9aa9ab3e932a93e29a",
+   "length": 11114
+  },
+  {
    "kind": "face",
    "spec": {
     "body_type": "dog",
@@ -7527,6 +7802,12 @@
     27,
     60,
     66
+   ],
+   "asleep": [
+    71.23059943755561,
+    37.75486639432742,
+    85.42255098619029,
+    87.47532634094266
    ]
   },
   "grown_up": {
@@ -7625,6 +7906,12 @@
     19.48,
     49.19999999999999,
     54.11999999999999
+   ],
+   "asleep": [
+    79.37172452629221,
+    32.13523919754347,
+    70.04649180867602,
+    71.72976759957298
    ]
   },
   "robot": {
@@ -7723,6 +8010,12 @@
     25,
     60,
     66
+   ],
+   "asleep": [
+    71.47433812436591,
+    35.76977409104478,
+    85.42255098619032,
+    87.47532634094266
    ]
   },
   "cat": {
@@ -7821,6 +8114,12 @@
     33.199999999999996,
     63.0,
     69.30000000000001
+   ],
+   "asleep": [
+    68.68481400051677,
+    43.409592747263844,
+    89.69367853549984,
+    91.84909265798979
    ]
   },
   "dog": {
@@ -7919,6 +8218,12 @@
     33.199999999999996,
     63.0,
     69.30000000000001
+   ],
+   "asleep": [
+    68.68481400051677,
+    43.409592747263844,
+    89.69367853549984,
+    91.84909265798979
    ]
   },
   "bear": {
@@ -8017,6 +8322,12 @@
     30.119999999999997,
     64.80000000000001,
     71.28
+   ],
+   "asleep": [
+    67.57169850587097,
+    40.02777164344519,
+    92.25635506508554,
+    94.47335244821807
    ]
   }
  },

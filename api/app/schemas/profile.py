@@ -10,6 +10,8 @@ class ProfileRead(BaseModel):
     display_name: str
     avatar_color: str
     max_cast: int
+    # PAINTING_ENABLED (decision 134): false hides every paint button.
+    painting_enabled: bool = True
     # When a grown-up OK'd sending drawings to Meta AI; null if not given (or taken back).
     drawing_consent_at: UtcDatetime | None
 

@@ -17,19 +17,30 @@ from sqlmodel import Session
 from app.models import Background
 from app.models.base import utcnow
 from app.prompts import render
-from app.providers.image import ImageError, ImageProvider
+from app.providers.image import ImageProvider
 from app.providers.llm import LLMProvider
-from app.services import imaging, safety
+from app.services import imaging
 from app.services.jobs import JobContext, JobFailed
-from app.services.safety import Verdict
+from app.services.painting import (
+    Check,
+    CheckerResting,
+    image_check,
+    paint_checked,
+)
+from app.services.prop_rules import without_props
 from app.services.storage import Storage
 
 PLACE_SIZE = (1024, 768)  # 4:3, the same shape as a comic panel
 THUMB_SIDE = 320
-ATTEMPTS = 2
+# Phase 8: every place is painted at these times of day too, from the same description and the day
+# picture, so a scene at sunset or at night shows the same place in that light.
+TIMES = ("sunset", "night")
+TIME_LIGHT = {
+    "sunset": "golden evening light, an orange and pink sky, long soft shadows",
+    "night": "night time, a dark blue sky with a moon and stars, cool moonlight, a few warm lights",
+}
 
 Emit = Callable[[str, dict[str, Any], float | None], None]
-Check = Callable[[bytes], Verdict]
 
 # Places have a "Paint it again" button (and Delete) on their tile.
 CANT_PAINT = "We couldn't paint {name}. Tap Paint it again!"
@@ -37,11 +48,6 @@ CHECKER_RESTING = (
     "Our picture checker is taking a break, so {name} isn't painted yet. "
     "Tap Paint it again in a minute!"
 )
-
-
-def needs_image_check(provider: ImageProvider) -> bool:
-    """Pictures from any real image model are checked; the mock's are drawn on this machine."""
-    return provider.name != "mock"
 
 
 @dataclass(frozen=True)
@@ -60,6 +66,37 @@ class PlaceSpec:
 
 def place_prefix(background_id: str, version: int) -> str:
     return f"backgrounds/{background_id}/v{version}"
+
+
+def time_key(background_id: str, version: int, time_of_day: str, thumb: bool = False) -> str:
+    """Where a version's sunset or night picture is kept."""
+    return f"{place_prefix(background_id, version)}/{time_of_day}{'_thumb' if thumb else ''}.png"
+
+
+def painted_times(storage: Storage, bg: Background, version: int | None = None) -> list[str]:
+    """The times of day a version of the place has real pictures for ("day" always)."""
+    v = version or bg.version
+    return ["day", *(t for t in TIMES if v and storage.exists(time_key(bg.id, v, t)))]
+
+
+def place_picture(
+    storage: Storage, bg: Background, version: int | None, time_of_day: str | None = None
+) -> bytes | None:
+    """The picture a panel draws: its pinned version of the place (Phase 8: repainting a place
+    makes a new version and old panels keep theirs), at the panel's time of day: the painted
+    sunset or night picture, or until there is one, the day picture tinted on this machine. None
+    when the place has no picture."""
+    keys = []
+    if version:
+        keys.append(f"{place_prefix(bg.id, version)}/reference.png")
+    if bg.image_key:
+        keys.append(bg.image_key)
+    day = next((storage.read(k) for k in keys if storage.exists(k)), None)
+    if day is None or time_of_day not in TIMES:
+        return day
+    if version and storage.exists(time_key(bg.id, version, time_of_day)):
+        return storage.read(time_key(bg.id, version, time_of_day))
+    return imaging.to_png(imaging.time_tint(imaging.load(day), time_of_day))
 
 
 def _valid_place(png: bytes) -> Image.Image | None:
@@ -81,37 +118,9 @@ def build_place(
     check: Check | None = None,
 ) -> dict[str, str]:
     """Paints, validates and (with `check`) checks the picture, then saves it. Blocking."""
-    prompt = render(
-        "background",
-        name=spec.name,
-        description=spec.description or f"A fun place called {spec.name}.",
-        aspect="4:3",
-        tint=spec.tint,
-    )
+    prompt = place_prompt(spec)
     emit("progress", {"stage": "painting"}, 0.1)
-    png: bytes | None = None
-    for attempt in range(ATTEMPTS):
-        try:
-            image = _valid_place(
-                provider.generate(prompt, PLACE_SIZE, spec.seed + attempt * 7919, None)
-            )
-        except ImageError:
-            image = None
-        if image is None:
-            continue
-        candidate = imaging.to_png(image)
-        if check is None:
-            png = candidate
-            break
-        emit("progress", {"stage": "checking"}, 0.6)
-        verdict = check(candidate)
-        if "unavailable" in verdict.categories:
-            raise JobFailed(CHECKER_RESTING.format(name=spec.name))
-        if verdict.allowed:
-            png = candidate
-            break
-        if "text" in verdict.categories:
-            prompt = prompt + "\n\n" + render("background_no_text")
+    png = _paint(spec, prompt, provider, emit, check, spec.seed, None, 0.3)
     if png is None:
         raise JobFailed(CANT_PAINT.format(name=spec.name))
 
@@ -122,9 +131,117 @@ def build_place(
     emit(
         "cell_ready",
         {"sheet": "place", "cell": "reference", "row": 0, "col": 0, "url": storage.url(thumb_key)},
-        0.9,
+        0.4,
     )
+    paint_times(spec, provider, storage, emit, check, png)
     return {"image_key": image_key, "thumb_key": thumb_key}
+
+
+def place_prompt(spec: PlaceSpec, time_of_day: str | None = None) -> str:
+    prompt = render(
+        "background",
+        name=spec.name,
+        # Props are drawn per panel, on top of the place: never painted into it (Phase 8).
+        description=without_props(spec.description) or f"A fun place called {spec.name}.",
+        aspect="4:3",
+        tint=spec.tint,
+    )
+    if time_of_day in TIMES:
+        prompt += "\n\n" + render(
+            "background_time", time=time_of_day, light=TIME_LIGHT[time_of_day]
+        )
+    return prompt
+
+
+def _paint(
+    spec: PlaceSpec,
+    prompt: str,
+    provider: ImageProvider,
+    emit: Emit,
+    check: Check | None,
+    seed: int,
+    references: list[bytes] | None,
+    progress: float,
+) -> bytes | None:
+    """One picture, painted and (with `check`) checked, with one more try; None if none passed."""
+    try:
+        painted = paint_checked(
+            prompt,
+            PLACE_SIZE,
+            provider,
+            seed,
+            references,
+            fit=_valid_place,
+            check=check,
+            on_checking=lambda: emit("progress", {"stage": "checking"}, progress),
+        )
+    except CheckerResting as resting:
+        raise JobFailed(CHECKER_RESTING.format(name=spec.name)) from resting
+    return painted.png
+
+
+def paint_times(
+    spec: PlaceSpec,
+    provider: ImageProvider,
+    storage: Storage,
+    emit: Emit,
+    check: Check | None,
+    day: bytes,
+    only_missing: bool = False,
+) -> list[str]:
+    """The sunset and night pictures of this version, painted from the same description with the
+    day picture to copy (the same place, other light). A time that doesn't paint is skipped:
+    panels tint the day picture instead. Returns the times painted."""
+    painted: list[str] = []
+    for n, time_of_day in enumerate(TIMES):
+        key = time_key(spec.id, spec.version, time_of_day)
+        if only_missing and storage.exists(key):
+            continue
+        emit("progress", {"stage": f"painting {time_of_day}"}, 0.45 + n * 0.25)
+        seed = spec.seed + 101 * (n + 1)
+        png = _paint(
+            spec, place_prompt(spec, time_of_day), provider, emit, check, seed, [day], 0.6 + n * 0.2
+        )
+        if png is None:
+            continue
+        storage.save(key, png)
+        thumb = imaging.thumbnail(imaging.load(png), THUMB_SIDE)
+        storage.save(
+            time_key(spec.id, spec.version, time_of_day, thumb=True), imaging.to_png(thumb)
+        )
+        painted.append(time_of_day)
+    return painted
+
+
+async def run_times_job(
+    ctx: JobContext,
+    *,
+    spec: PlaceSpec,
+    engine: Engine,
+    provider: ImageProvider,
+    storage: Storage,
+    llm: LLMProvider | None = None,
+    user_id: str = "",
+) -> dict[str, Any]:
+    """Job work for POST /backgrounds/{id}/times: the sunset and night pictures a locked place's
+    version is missing (painted before Phase 8). The place stays locked throughout."""
+    check = place_check(engine, spec, provider, llm, user_id)
+    day = storage.read(f"{place_prefix(spec.id, spec.version)}/reference.png")
+    painted = await ctx.run(
+        paint_times, spec, provider, storage, ctx.emit_threadsafe, check, day, True
+    )
+    _settle(engine, spec.id)
+    return {"target_id": spec.id, "version": spec.version, "times": painted}
+
+
+def _settle(engine: Engine, background_id: str) -> None:
+    with Session(engine) as session:
+        bg = session.get(Background, background_id)
+        if bg is not None and bg.status == "generating":
+            bg.status = "locked"
+            bg.updated_at = utcnow()
+            session.add(bg)
+            session.commit()
 
 
 async def run_place_job(
@@ -149,18 +266,11 @@ def place_check(
 ) -> Check | None:
     """The image check for a real model's pictures (None for the mock's). Fails closed without an
     LLM (startup refuses that set-up anyway)."""
-    if not needs_image_check(provider):
-        return None
-    if llm is None:
-        raise JobFailed(CHECKER_RESTING.format(name=spec.name))
-    checker = llm
-
-    def check(png: bytes) -> Verdict:
-        with Session(engine) as session:
-            target = f"background:{spec.id}:v{spec.version}"
-            return safety.check_image(session, user_id, target, png, checker)
-
-    return check
+    target = f"background:{spec.id}:v{spec.version}"
+    try:
+        return image_check(engine, provider, llm, user_id, target)
+    except CheckerResting as resting:
+        raise JobFailed(CHECKER_RESTING.format(name=spec.name)) from resting
 
 
 def save_place(engine: Engine, spec: PlaceSpec, keys: dict[str, str]) -> None:
@@ -178,11 +288,13 @@ def save_place(engine: Engine, spec: PlaceSpec, keys: dict[str, str]) -> None:
         session.commit()
 
 
-def mark_failed(engine: Engine, background_id: str) -> None:
+def mark_failed(engine: Engine, background_id: str, *, was_locked: bool = False) -> None:
+    """A painting that didn't work: a new place is "failed" (Paint it again); a locked place
+    that was getting a new version stays locked with the version it had."""
     with Session(engine) as session:
         bg = session.get(Background, background_id)
         if bg is not None and bg.status == "generating":
-            bg.status = "failed"
+            bg.status = "locked" if was_locked else "failed"
             bg.updated_at = utcnow()
             session.add(bg)
             session.commit()

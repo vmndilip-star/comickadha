@@ -16,8 +16,11 @@ interface PlacesState {
   load: (force?: boolean) => Promise<void>
   /** Creates a place and starts painting it. Returns its id and job, or null if it failed. */
   add: (name: string, description: string) => Promise<NewPlace | null>
-  /** Paints a draft or failed place again (the place's Lock job). */
+  /** Paints a draft or failed place again (the place's Lock job), or a locked one as a new
+   * version (old comics keep the old picture). */
   repaint: (id: string) => Promise<void>
+  /** Paints a locked place's missing sunset and night pictures (Phase 8). */
+  paintTimes: (id: string) => Promise<void>
   /** Deletes a place (soft: comics that use it keep it). */
   remove: (id: string) => Promise<void>
   /** Reconnects to places still being painted. */
@@ -71,7 +74,19 @@ export const usePlacesStore = create<PlacesState>()((set, get) => {
       const place = get().places.find((p) => p.id === id)
       if (!place) return
       try {
-        const started = await api.lockBackground(id)
+        const started = place.status === 'locked' ? await api.repaintBackground(id) : await api.lockBackground(id)
+        replace({ ...place, status: 'generating', last_job_id: started.job_id })
+        watchPainting(id, started.job_id)
+      } catch (error) {
+        toast.error(error)
+      }
+    },
+
+    paintTimes: async (id) => {
+      const place = get().places.find((p) => p.id === id)
+      if (!place) return
+      try {
+        const started = await api.paintTimes(id)
         replace({ ...place, status: 'generating', last_job_id: started.job_id })
         watchPainting(id, started.job_id)
       } catch (error) {

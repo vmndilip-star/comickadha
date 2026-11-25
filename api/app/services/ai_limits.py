@@ -19,6 +19,12 @@ part at a time 4,028-5,711 (33.7 s), classifier batches of up to 20 texts 571-3,
 `seed --paint` (3 places): image check 661-999 (7.1 s), classifier 505-599 (3.9 s). Live test 2:
 scene planning took about 85 s (against 90 s), so its timeout is now 140 s. The live test 2 check
 (a 10-panel plan) had a single scene's panel call take 41.4 s, the slowest yet: panels now 85 s.
+
+Phase 8 (2026-11-23, the Sniffy test comic, 25 panels): with props, sizes and key moments in
+every panel, a first plan's part calls wrote 5,400-8,171 completion tokens in 51.5-76.2 s and one
+ran past the 85 s timeout (its part fell back to the offline planner); the plan again, 9 parts all
+by Meta, wrote 6,786-10,127 tokens in 56.5-95.4 s. Panels are now 20,500 / 190 s, and asking
+single panels again the same. A 20-text classifier batch took 31.5 s: 65 s now.
 """
 
 from dataclasses import dataclass
@@ -38,14 +44,21 @@ LIMITS: dict[str, Limit] = {
     "from_drawing": Limit(9000, 70.0),  # vision model
     "create": Limit(6000, 60.0),  # decision 80: 2,000-2,500 tokens, ~15 s (not re-measured)
     # The safety checks (services/safety.py).
-    "classifier": Limit(7500, 45.0),  # was 4000/30 s: a 20-text batch reached 3,627
+    "classifier": Limit(7500, 65.0),  # a 20-text batch reached 3,627 tokens; 31.5 s (Phase 8)
     "image_check": Limit(2000, 20.0),  # vision model; was 1500: seed --paint reached 999
+    # Decision 132: after the image check, one vision call compares the builder drawing with the
+    # painting (one side-by-side picture). Not measured yet (Phase A live check): set from the
+    # image check (999 tokens, 7.1 s) with room for a per-character answer.
+    "look_check": Limit(4000, 40.0),
     # Story Studio (services/story_buddy.py, services/story_planner.py).
     "buddy_idea": Limit(3200, 20.0),
     "buddy_spelling": Limit(3600, 25.0),
     "buddy_name_scene": Limit(2600, 20.0),
     "plan_scenes": Limit(11000, 140.0),  # 8 scenes: 5,464 tokens; 68 s, then 85 s (live test 2)
-    "plan_panels": Limit(11500, 85.0),  # one call per part; slowest single scene call 41.4 s
+    "plan_panels": Limit(20500, 190.0),  # one call per part; Phase 8: 10,127 tokens, 95.4 s
+    # Phase 8: only the panels of a part that broke a rule, asked for again (at most a part's
+    # worth, so the part's limit; not called in the Phase 8 run).
+    "fix_panels": Limit(20500, 190.0),
 }
 
 # Long comics (Phase 7 part C): one call can't write 30 panels, so the panel plan is written one
@@ -55,3 +68,15 @@ PLAN_PARTS_AT_ONCE = 3  # parts of one comic planned at the same time
 # The classifier checks at most this many texts per call (a 30-panel plan has about 60), so its
 # reply stays well inside its max_tokens. Every batch must answer, or the whole check fails closed.
 CLASSIFIER_BATCH = 20
+
+# Painted portraits and panels on Muse Image (decisions 131-134). A picture's own timeout is
+# META_IMAGE_TIMEOUT_SECONDS (60 s, about 3.5 times the slowest measured edit, 17.1 s).
+PAINT_ATTEMPTS = 2  # tries per picture (a blocked or look-failed picture gets one more)
+PAINT_REFERENCES = 3  # the most reference pictures one edit carries (tested in decision 82)
+REFERENCE_SIDE = 1024  # reference pictures are sent at most this many pixels on a side
+PAINT_CONCURRENCY = 3  # panels of one comic painted at the same time (Phase B)
+# Daily caps (decision 134), counted per Muse image call, retries included; .env can change
+# them (PORTRAIT_PAINTS_PER_KID, PANEL_PAINTS_PER_KID, PAINTS_PER_DAY). seed runs don't count.
+PORTRAIT_PAINTS_PER_KID = 10
+PANEL_PAINTS_PER_KID = 100
+PAINTS_PER_DAY = 1000

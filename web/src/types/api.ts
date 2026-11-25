@@ -121,9 +121,33 @@ export interface paths {
          * Lock Character
          * @description Checks the words are kid-safe, then draws the character sheet as a job (follow it over SSE).
          *
-         *     The builder draws all 22 cells from the parts library in a couple of seconds.
+         *     The builder draws all 22 cells from the parts library in a couple of seconds. Once the lock is
+         *     saved, the portrait starts as its own job (decision 132; its id is in the done event) when
+         *     painting is on and today's caps allow: the lock never waits or fails for it.
          */
         post: operations["lock_character_api_characters__character_id__lock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/characters/{character_id}/portrait": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Paint Portrait
+         * @description Paints the character's portrait (decision 132) as a job: also "Paint again", and how a
+         *     character locked before portraits gets one. The prompt carries no kid-written words, so there
+         *     is no words check; the picture passes the image check and the look check before it is saved.
+         */
+        post: operations["paint_portrait_api_characters__character_id__portrait_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -162,7 +186,7 @@ export interface paths {
         /**
          * Copy Character
          * @description Make it mine: copies a starter character into the kid's own cast as an editable draft.
-         *     The copy counts toward their 3 characters (cast_full still applies).
+         *     The copy counts toward their own characters (cast_full still applies).
          */
         post: operations["copy_character_api_characters__character_id__copy_post"];
         delete?: never;
@@ -342,6 +366,51 @@ export interface paths {
         head?: never;
         /** Update Background */
         patch: operations["update_background_api_backgrounds__background_id__patch"];
+        trace?: never;
+    };
+    "/api/backgrounds/{background_id}/repaint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Repaint Background
+         * @description Paints a locked place again as a new version (Phase 8). Panels pin the version they were
+         *     planned with, so old comics keep their picture; new plans use the new one. The place stays
+         *     usable meanwhile only for drawing what is already planned; if painting fails it stays
+         *     locked with the picture it had.
+         */
+        post: operations["repaint_background_api_backgrounds__background_id__repaint_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/backgrounds/{background_id}/times": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Paint Times
+         * @description Paints the sunset and night pictures a locked place's version is missing (Phase 8: places
+         *     painted before have only a day picture). The same words check as painting; the version stays,
+         *     so comics keep their pictures and simply get the new light.
+         */
+        post: operations["paint_times_api_backgrounds__background_id__times_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/backgrounds/{background_id}/lock": {
@@ -615,6 +684,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/props": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Props */
+        get: operations["list_props_api_props_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs/{job_id}": {
         parameters: {
             query?: never;
@@ -746,6 +832,13 @@ export interface components {
              * @default false
              */
             deleted: boolean;
+            /**
+             * Times
+             * @default [
+             *       "day"
+             *     ]
+             */
+            times: ("day" | "sunset" | "night")[];
             /**
              * Created At
              * Format: date-time
@@ -934,6 +1027,10 @@ export interface components {
             face_sheet: components["schemas"]["FaceSheet"];
             /** Thumb Url */
             thumb_url?: string | null;
+            /** Portrait Url */
+            portrait_url?: string | null;
+            /** Portrait Thumb Url */
+            portrait_thumb_url?: string | null;
         };
         /** CharacterRead */
         CharacterRead: {
@@ -979,6 +1076,13 @@ export interface components {
              */
             deleted: boolean;
             /**
+             * Show Portrait
+             * @default true
+             */
+            show_portrait: boolean;
+            /** Portrait Job Id */
+            portrait_job_id?: string | null;
+            /**
              * Created At
              * Format: date-time
              */
@@ -993,6 +1097,8 @@ export interface components {
         CharacterUpdate: {
             /** Name */
             name?: string | null;
+            /** Show Portrait */
+            show_portrait?: boolean | null;
             spec?: components["schemas"]["AvatarSpec"] | null;
         };
         /** ComicCreate */
@@ -1022,12 +1128,9 @@ export interface components {
              * Mood
              * @enum {string}
              */
-            mood: "mystery" | "funny" | "adventure" | "spooky";
-            /**
-             * Panel Count
-             * @enum {integer}
-             */
-            panel_count: 4 | 6 | 8 | 10 | 16 | 20 | 25 | 30;
+            mood: "mystery" | "funny" | "adventure" | "spooky" | "magical" | "fairy_tale" | "folk_tale" | "underwater" | "dinosaur" | "jungle_safari" | "pirate" | "space" | "robots_future" | "time_travel" | "sporty" | "school_days" | "festival" | "nature_hero";
+            /** Panel Count */
+            panel_count: number;
             /** Cast Ids */
             cast_ids: string[];
             /**
@@ -1046,6 +1149,8 @@ export interface components {
             scenes: components["schemas"]["SceneRead"][];
             /** Panels */
             panels: components["schemas"]["PanelRead"][];
+            /** Pages */
+            pages: components["schemas"]["PageRead"][];
             /** Characters */
             characters: components["schemas"]["CharacterRead"][];
             /** Backgrounds */
@@ -1083,9 +1188,9 @@ export interface components {
             /** Synopsis */
             synopsis?: string | null;
             /** Mood */
-            mood?: ("mystery" | "funny" | "adventure" | "spooky") | null;
+            mood?: ("mystery" | "funny" | "adventure" | "spooky" | "magical" | "fairy_tale" | "folk_tale" | "underwater" | "dinosaur" | "jungle_safari" | "pirate" | "space" | "robots_future" | "time_travel" | "sporty" | "school_days" | "festival" | "nature_hero") | null;
             /** Panel Count */
-            panel_count?: (4 | 6 | 8 | 10 | 16 | 20 | 25 | 30) | null;
+            panel_count?: number | null;
             /** Cast Ids */
             cast_ids?: string[] | null;
             /** Studio Step */
@@ -1369,7 +1474,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "character_sheet" | "background_image" | "comic" | "panel_plan";
+            kind: "character_sheet" | "background_image" | "comic" | "panel_plan" | "portrait";
             /** Target Id */
             target_id: string;
         };
@@ -1388,6 +1493,20 @@ export interface components {
             /** Error */
             error: string | null;
         };
+        /**
+         * PageRead
+         * @description One page of the comic, as the Reader and the PDF lay it out (services/pages.py).
+         */
+        PageRead: {
+            /** Number */
+            number: number;
+            /** Rows */
+            rows: number[][];
+            /** Splash */
+            splash: number | null;
+            /** The End */
+            the_end: boolean;
+        };
         /** PanelCharacter */
         PanelCharacter: {
             /** Id */
@@ -1402,24 +1521,45 @@ export interface components {
              * @default front
              * @enum {string}
              */
-            pose: "front" | "three_quarter_left" | "side_left" | "back" | "three_quarter_right" | "side_right" | "walk" | "run" | "point" | "sit" | "jump" | "wave" | "hands_on_hips" | "thinking" | "scared_pose" | "celebrate";
+            pose: "front" | "three_quarter_left" | "side_left" | "back" | "three_quarter_right" | "side_right" | "walk" | "run" | "point" | "sit" | "jump" | "wave" | "hands_on_hips" | "thinking" | "scared_pose" | "celebrate" | "asleep";
             /**
              * Expression
              * @default happy
              * @enum {string}
              */
-            expression: "happy" | "sad" | "angry" | "surprised" | "scared" | "laughing";
+            expression: "happy" | "sad" | "angry" | "surprised" | "scared" | "laughing" | "sleepy";
             /**
              * Position
              * @default center
              * @enum {string}
              */
-            position: "left" | "center" | "right";
+            position: "far_left" | "left" | "center" | "right" | "far_right";
             /**
              * Scale
              * @default 1
              */
             scale: number;
+        };
+        /**
+         * PanelProp
+         * @description A prop in a panel (app/props): on the ground at a spot, or held or worn by `held_by` (a
+         *     character in the panel; a turban can also be worn by the scarecrow).
+         */
+        PanelProp: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "scarecrow" | "pole" | "red_turban" | "orange_turban" | "torch" | "notebook" | "tiffin" | "laddoos" | "paw_prints";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "on_pole" | "lying_down" | "held" | "standing" | "worn" | "on_ground";
+            /** Position */
+            position?: ("far_left" | "left" | "center" | "right" | "far_right") | null;
+            /** Held By */
+            held_by?: string | null;
         };
         /** PanelRead */
         PanelRead: {
@@ -1437,6 +1577,30 @@ export interface components {
             characters: components["schemas"]["PanelCharacter"][];
             /** Bubbles */
             bubbles: components["schemas"]["Bubble"][];
+            /** Props */
+            props: components["schemas"]["PanelProp"][];
+            /**
+             * Size
+             * @enum {string}
+             */
+            size: "normal" | "wide" | "splash";
+            /**
+             * Shown Size
+             * @enum {string}
+             */
+            shown_size: "normal" | "wide" | "splash";
+            /**
+             * Time Of Day
+             * @enum {string}
+             */
+            time_of_day: "day" | "sunset" | "night";
+            /** Key Moment */
+            key_moment: boolean;
+            /** Place Url */
+            place_url?: string | null;
+            /** Place Tone */
+            place_tone?: ("day" | "sunset" | "night") | null;
+            stage?: components["schemas"]["PanelStage"] | null;
             /**
              * Status
              * @enum {string}
@@ -1468,6 +1632,19 @@ export interface components {
              */
             updated_at: string;
         };
+        /**
+         * PanelStage
+         * @description What the panel draws and where, so the Studio and the Reader's sketches show exactly what
+         *     the art will (characters, props held in hands, a sleeping "Zzz").
+         */
+        PanelStage: {
+            /** Aspect */
+            aspect: number;
+            /** Layers */
+            layers: components["schemas"]["StageLayer"][];
+            /** Source */
+            source: string;
+        };
         /** PanelUpdate */
         PanelUpdate: {
             /** Beat */
@@ -1476,6 +1653,10 @@ export interface components {
             characters?: components["schemas"]["PanelCharacter"][] | null;
             /** Bubbles */
             bubbles?: components["schemas"]["Bubble"][] | null;
+            /** Props */
+            props?: components["schemas"]["PanelProp"][] | null;
+            /** Size */
+            size?: ("normal" | "wide" | "splash") | null;
         };
         /** Personality */
         Personality: {
@@ -1508,8 +1689,46 @@ export interface components {
             avatar_color: string;
             /** Max Cast */
             max_cast: number;
+            /**
+             * Painting Enabled
+             * @default true
+             */
+            painting_enabled: boolean;
             /** Drawing Consent At */
             drawing_consent_at: string | null;
+        };
+        /** PropInfo */
+        PropInfo: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "scarecrow" | "pole" | "red_turban" | "orange_turban" | "torch" | "notebook" | "tiffin" | "laddoos" | "paw_prints";
+            /** Name */
+            name: string;
+            /** States */
+            states: components["schemas"]["PropStateInfo"][];
+            /**
+             * Default State
+             * @enum {string}
+             */
+            default_state: "on_pole" | "lying_down" | "held" | "standing" | "worn" | "on_ground";
+            /** Worn By Props */
+            worn_by_props: ("scarecrow" | "pole" | "red_turban" | "orange_turban" | "torch" | "notebook" | "tiffin" | "laddoos" | "paw_prints")[];
+        };
+        /** PropStateInfo */
+        PropStateInfo: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "on_pole" | "lying_down" | "held" | "standing" | "worn" | "on_ground";
+            /** Label */
+            label: string;
+            /** Placement */
+            placement: string;
+            /** Image Url */
+            image_url: string;
         };
         /** SceneRead */
         SceneRead: {
@@ -1523,6 +1742,15 @@ export interface components {
             character_ids: string[];
             /** Summary */
             summary: string;
+            /**
+             * Time Of Day
+             * @enum {string}
+             */
+            time_of_day: "day" | "sunset" | "night";
+            /** Key Moment */
+            key_moment: string;
+            /** Panel Count */
+            panel_count: number | null;
         };
         /** SceneWrite */
         SceneWrite: {
@@ -1537,6 +1765,19 @@ export interface components {
              * @default
              */
             summary: string;
+            /**
+             * Time Of Day
+             * @default day
+             * @enum {string}
+             */
+            time_of_day: "day" | "sunset" | "night";
+            /**
+             * Key Moment
+             * @default
+             */
+            key_moment: string;
+            /** Panel Count */
+            panel_count?: number | null;
         };
         /** ScenesPlanned */
         ScenesPlanned: {
@@ -1569,6 +1810,56 @@ export interface components {
             before: string;
             /** After */
             after: string;
+        };
+        /**
+         * StageLayer
+         * @description One thing the panel draws, where services/stage.py placed it, in draw order (back to
+         *     front): a character (its square cell), a prop (its drawing's box) or a "Zzz".
+         */
+        StageLayer: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "character" | "prop" | "effect";
+            /** Id */
+            id: string;
+            /** Box */
+            box: [
+                number,
+                number,
+                number,
+                number
+            ];
+            /**
+             * Flip
+             * @default false
+             */
+            flip: boolean;
+            /**
+             * Rotate
+             * @default 0
+             */
+            rotate: number;
+            /**
+             * Origin
+             * @default [
+             *       0.5,
+             *       1
+             *     ]
+             */
+            origin: [
+                number,
+                number
+            ];
+            /** Pose */
+            pose?: ("front" | "three_quarter_left" | "side_left" | "back" | "three_quarter_right" | "side_right" | "walk" | "run" | "point" | "sit" | "jump" | "wave" | "hands_on_hips" | "thinking" | "scared_pose" | "celebrate" | "asleep") | null;
+            /** Expression */
+            expression?: ("happy" | "sad" | "angry" | "surprised" | "scared" | "laughing" | "sleepy") | null;
+            /** State */
+            state?: ("on_pole" | "lying_down" | "held" | "standing" | "worn" | "on_ground") | null;
+            /** Image Url */
+            image_url?: string | null;
         };
         /**
          * Suggestion
@@ -2061,6 +2352,73 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    paint_portrait_api_characters__character_id__portrait_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                character_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobStarted"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2876,6 +3234,122 @@ export interface operations {
             };
         };
     };
+    repaint_background_api_backgrounds__background_id__repaint_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                background_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobStarted"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    paint_times_api_backgrounds__background_id__times_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                background_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobStarted"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
     lock_background_api_backgrounds__background_id__lock_post: {
         parameters: {
             query?: never;
@@ -3664,6 +4138,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Spark"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    list_props_api_props_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropInfo"][];
                 };
             };
             /** @description Not Found */

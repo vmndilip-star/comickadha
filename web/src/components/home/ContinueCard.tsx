@@ -32,7 +32,7 @@ export function ContinueCard({ className }: { className?: string }) {
     return (
       <Card as="article" shadow="card" className={cn('flex flex-col gap-4 p-6', className)}>
         <h2 className="m-0 font-display text-[30px] tracking-[1px]">Your next comic starts here</h2>
-        <p className="m-0 font-semibold">No drafts yet. Tell Comickatha your idea and it will draw the panels.</p>
+        <p className="m-0 font-semibold">No drafts yet. Tell Comickadha your idea and it will draw the panels.</p>
         <Button variant="accent" className="self-start" onClick={() => void startComic()}>
           Start a new comic
         </Button>

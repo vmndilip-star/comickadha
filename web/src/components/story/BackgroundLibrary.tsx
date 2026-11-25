@@ -6,10 +6,14 @@ import { PlaceDialog } from './PlaceDialog'
 
 interface BackgroundLibraryProps {
   usedIds: string[]
+  /** A tile was tapped: the scene being edited takes it, or it starts a new scene. */
   onPick: (placeId: string) => void
+  /** A place was just described: it starts a new scene if there's room, and never replaces a
+   * scene's place (Phase 8). */
+  onCreated: (placeId: string) => void
 }
 
-export function BackgroundLibrary({ usedIds, onPick }: BackgroundLibraryProps) {
+export function BackgroundLibrary({ usedIds, onPick, onCreated }: BackgroundLibraryProps) {
   const places = usePlacesStore((s) => s.places)
   const [creating, setCreating] = useState(false)
 
@@ -25,7 +29,7 @@ export function BackgroundLibrary({ usedIds, onPick }: BackgroundLibraryProps) {
           + Describe a new place
         </EmptySlot>
       </div>
-      <PlaceDialog open={creating} onClose={() => setCreating(false)} onCreated={onPick} />
+      <PlaceDialog open={creating} onClose={() => setCreating(false)} onCreated={onCreated} />
     </div>
   )
 }

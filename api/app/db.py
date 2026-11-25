@@ -10,7 +10,10 @@ import app.models  # noqa: F401  (registers tables)
 
 def make_engine(url: str) -> Engine:
     is_sqlite = url.startswith("sqlite")
-    engine = create_engine(url, connect_args={"check_same_thread": False} if is_sqlite else {})
+    # SQLite: wait up to 30 s for another request's write (drawing a panel can take a moment)
+    # instead of failing with "database is locked" after 5.
+    args = {"check_same_thread": False, "timeout": 30} if is_sqlite else {}
+    engine = create_engine(url, connect_args=args)
     if is_sqlite:
 
         @event.listens_for(engine, "connect")
@@ -25,6 +28,19 @@ def make_engine(url: str) -> Engine:
 def init_db(engine: Engine) -> None:
     SQLModel.metadata.create_all(engine)
     add_missing_columns(engine)
+    pin_place_versions(engine)
+
+
+def pin_place_versions(engine: Engine) -> None:
+    """Panels from before place versions (Phase 8) pin the version their place has now: locked
+    places couldn't be repainted until then, so it is the picture they were drawn with."""
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE panel SET place_version = (SELECT version FROM background "
+                "WHERE background.id = panel.background_id) WHERE place_version IS NULL"
+            )
+        )
 
 
 def missing_columns(engine: Engine) -> list[str]:

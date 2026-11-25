@@ -24,12 +24,13 @@ from app.schemas.comic import (
     SceneRead,
     SceneWrite,
 )
-from app.schemas.common import MAX_SCENES, ComicStatus, FieldNote
+from app.schemas.common import MAX_PANELS, MAX_SCENES, MIN_PANELS, ComicStatus, FieldNote
 from app.schemas.job import JobStarted
-from app.services import comic_maker, looks, pdf_export, recheck, safety
+from app.services import comic_maker, image_gen, looks, pages, pdf_export, recheck, safety
 from app.services.bubbles import layout
 from app.services.jobs import FAILED_MESSAGE, fail_rendering_panels
 from app.services.recheck import STORY_LABELS
+from app.services.staging import panel_stage
 from app.services.storage import Storage
 
 router = APIRouter(prefix="/api", tags=["comics"], responses=ERROR_RESPONSES)
@@ -43,14 +44,49 @@ def get_comic(session: Session, user: User, comic_id: str) -> Comic:
 
 
 def scene_read(scene: Scene) -> SceneRead:
-    return SceneRead.model_validate(scene.model_dump())
+    return SceneRead.model_validate(
+        {
+            **scene.model_dump(),
+            "time_of_day": scene.time_of_day or "day",
+            "key_moment": scene.key_moment or "",
+        }
+    )
 
 
-def panel_read(panel: Panel, storage: Storage) -> PanelRead:
+def place_picture_url(panel: Panel, storage: Storage) -> tuple[str | None, str | None]:
+    """(the place thumbnail a panel's previews show, the time of day to tint it to, if any)."""
+    version = panel.place_version
+    if not version:
+        return None, None
+    time = panel.time_of_day
+    if time in image_gen.TIMES:
+        painted = image_gen.time_key(panel.background_id, version, time, thumb=True)
+        if storage.exists(painted):
+            return storage.url(painted), None
+    day = f"{image_gen.place_prefix(panel.background_id, version)}/thumb.png"
+    if not storage.exists(day):
+        return None, None
+    return storage.url(day), time if time in image_gen.TIMES else None
+
+
+def panel_read(
+    panel: Panel, storage: Storage, specs: dict[str, dict[str, Any]] | None = None
+) -> PanelRead:
+    """The panel as the API shows it. With the characters' pinned looks (`specs`), it carries its
+    stage too: what it draws and where, for the web app's previews."""
     version = f"?v={panel.art_version}" if panel.art_version else ""
+    place_url, place_tone = place_picture_url(panel, storage)
     return PanelRead.model_validate(
         {
             **panel.model_dump(),
+            "place_url": place_url,
+            "place_tone": place_tone,
+            "props": panel.props or [],
+            "size": panel.size or "normal",
+            "shown_size": panel.shown_size or "normal",
+            "time_of_day": panel.time_of_day or "day",
+            "key_moment": bool(panel.key_moment),
+            "stage": panel_stage(panel, specs, storage) if specs is not None else None,
             "art_url": storage.url(panel.art_key) + version if panel.art_key else None,
             "thumb_url": storage.url(panel.thumb_key) + version if panel.thumb_key else None,
             "final_url": f"/api/panels/{panel.id}/final.png" if panel.art_key else None,
@@ -58,6 +94,18 @@ def panel_read(panel: Panel, storage: Storage) -> PanelRead:
             "text_check": panel.text_check or "checked",
         }
     )
+
+
+def page_reads(shown: list[str | None]) -> list[dict[str, Any]]:
+    """The comic's pages by slots, numbered as the PDF prints them (the cover is page 1)."""
+    return [
+        {"number": n, "rows": page.rows, "splash": page.splash, "the_end": page.the_end}
+        for n, page in enumerate(pages.comic_pages(shown), start=2)
+    ]
+
+
+def read_with_stage(session: Session, panel: Panel, storage: Storage) -> PanelRead:
+    return panel_read(panel, storage, looks.specs_for(session, panel.characters))
 
 
 def safety_notes(comic: Comic) -> list[FieldNote]:
@@ -130,6 +178,17 @@ def comic_reads(session: Session, comics: list[Comic], storage: Storage) -> list
         for bg in session.exec(select(Background).where(col(Background.id).in_(all_bgs)))
     }
 
+    def specs_of(panel: Panel) -> dict[str, dict[str, Any]]:
+        """The pinned look of everyone in the panel (the current one for unlocked characters)."""
+        out: dict[str, dict[str, Any]] = {}
+        for pc in panel.characters:
+            version = str(int(pc.get("sheet_version", 0)))
+            spec = pinned.get(pc["id"], {}).get(version)
+            if spec is None and pc["id"] in chars:
+                spec = chars[pc["id"]].spec.model_dump(mode="json")
+            out[pc["id"]] = spec or {}
+        return out
+
     return [
         ComicRead.model_validate(
             {
@@ -140,7 +199,8 @@ def comic_reads(session: Session, comics: list[Comic], storage: Storage) -> list
                     else None
                 ),
                 "scenes": [scene_read(s) for s in scenes[c.id]],
-                "panels": [panel_read(p, storage) for p in panels[c.id]],
+                "panels": [panel_read(p, storage, specs_of(p)) for p in panels[c.id]],
+                "pages": page_reads([p.shown_size for p in panels[c.id]]),
                 "characters": [chars[i] for i in used_chars[c.id] if i in chars],
                 "backgrounds": [bgs[i] for i in used_bgs[c.id] if i in bgs],
                 "safety_notes": safety_notes(c),
@@ -306,18 +366,23 @@ def replace_scenes(
         scene = before or Scene(
             id=w.id or new_id(), comic_id=comic.id, idx=idx, background_id=w.background_id
         )
-        # Any change by the kid (new, moved, re-placed, re-cast or re-written) marks the scene
-        # as edited, so re-planning asks before replacing it.
-        new_state = (idx, w.background_id, list(w.character_ids), w.summary)
-        if (
-            before is None
-            or (before.idx, before.background_id, before.character_ids, before.summary) != new_state
-        ):
+        # Any change by the kid (new, moved, re-placed, re-cast, re-written, a new time of day,
+        # key moment or panel count) marks the scene as edited, so re-planning asks first.
+        new_state = (idx, w.background_id, list(w.character_ids), w.summary, w.time_of_day,
+                     w.key_moment, w.panel_count)  # fmt: skip
+        old_state = None if before is None else (
+            before.idx, before.background_id, before.character_ids, before.summary,
+            before.time_of_day or "day", before.key_moment or "", before.panel_count,
+        )  # fmt: skip
+        if old_state != new_state:
             scene.edited_at = now
         scene.idx = idx
         scene.background_id = w.background_id
         scene.character_ids = list(w.character_ids)
         scene.summary = w.summary
+        scene.time_of_day = None if w.time_of_day == "day" else w.time_of_day
+        scene.key_moment = w.key_moment.strip() or None
+        scene.panel_count = w.panel_count
         session.add(scene)
         kept.append(scene)
 
@@ -331,6 +396,17 @@ def replace_scenes(
         for scene_id in removed:
             session.delete(existing[scene_id])
 
+    counts = [s.panel_count for s in kept]
+    if kept and all(counts):
+        # Every scene has its own panel count: the comic is that long (Phase 8).
+        total = sum(n for n in counts if n)
+        if not MIN_PANELS <= total <= MAX_PANELS:
+            raise invalid(
+                f"Those scenes add up to {total} panels. A comic has {MIN_PANELS} to "
+                f"{MAX_PANELS} panels: change a scene's number of panels.",
+                "scenes",
+            )
+        comic.panel_count = total
     result = [scene_read(s) for s in kept]  # read before commit expires the objects
     comic.status = "draft"
     comic.updated_at = utcnow()
@@ -359,7 +435,7 @@ def update_panel(
     if panel is None:
         raise not_found("panel")
     comic = get_comic(session, user, panel.comic_id)
-    before = (panel.beat, panel.characters, panel.bubbles)
+    before = (panel.beat, panel.characters, panel.bubbles, panel.props or [], panel.size)
     was_check, was_status = panel.text_check, panel.status
 
     characters = panel.characters
@@ -373,6 +449,8 @@ def update_panel(
         characters = [c.model_dump(mode="json") for c in body.characters]
     new_bubbles = panel.bubbles
     text_check = was_check
+    _check_sleepers(session, body.bubbles, panel.bubbles, characters)  # before any word check
+    _check_lengths(body.bubbles)
     if body.bubbles is not None:
         speakers = {"narrator", *comic.cast_ids, *(c["id"] for c in characters)}
         if any(b.speaker not in speakers for b in body.bubbles):
@@ -389,20 +467,34 @@ def update_panel(
                 raise ApiError(422, "unsafe", verdict.message({}), verdict.field_name)
             text_check = "pending" if verdict.pending else "checked"
         new_bubbles = [b.model_dump(mode="json") for b in body.bubbles]
-
-    redraw = panel.art_key is not None and characters != before[1]
-    redraw = redraw or (was_status == "blocked" and new_bubbles != before[2])
+    props = before[3]
+    if body.props is not None:
+        props = [p.model_dump(mode="json", exclude_none=True) for p in body.props]
+    _check_holders(props, characters)
+    size = body.size if body.size is not None else panel.size
+    was_shown = panel.shown_size or "normal"
     panel.characters = characters
+    panel.props = props
+    panel.size = None if size == "normal" else size
+    if (panel.size or "normal") != (before[4] or "normal"):
+        # A new size can change how its neighbours are shown too: they're laid out (and drawn)
+        # again at their new sizes; this one is drawn below.
+        comic_maker.reshape(session, storage, comic.id, user.id, llm, hold=panel.id)
+    drawn = (characters, props, panel.shown_size or "normal")
+    redraw = panel.art_key is not None and drawn != (before[1], before[3], was_shown)
+    redraw = redraw or (was_status == "blocked" and new_bubbles != before[2])
     panel.text_check = text_check
     if was_check == "blocked" and text_check == "checked" and was_status == "ready":
         panel.error = None
     if body.beat is not None:
         panel.beat = body.beat
-    panel.bubbles = layout(new_bubbles, characters, looks.specs_for(session, characters))
+    panel.bubbles = layout(
+        new_bubbles, characters, looks.specs_for(session, characters), panel.shown_size
+    )
     if redraw:
         comic_maker.draw_panel(session, storage, panel, user.id, llm)
 
-    if (panel.beat, panel.characters, panel.bubbles) != before:
+    if (panel.beat, panel.characters, panel.bubbles, panel.props, panel.size) != before:
         panel.edited_at = utcnow()
         comic.status = "draft"
     panel.updated_at = comic.updated_at = utcnow()
@@ -412,7 +504,51 @@ def update_panel(
     if redraw and panel.idx == 0:
         comic_maker.make_cover(session, storage, comic)
     session.refresh(panel)
-    return panel_read(panel, storage)
+    return read_with_stage(session, panel, storage)
+
+
+MAX_WORDS = 12
+
+
+def _check_lengths(sent: list[Any] | None) -> None:
+    """12 words a bubble, a hard stop (Phase 8), named under the bubble that's too long."""
+    for b in sent or []:
+        count = len(b.text.split())
+        if count > MAX_WORDS:
+            raise invalid(
+                f"That bubble has {count} words. {MAX_WORDS} is the most: make it shorter, or "
+                "split it into two bubbles!",
+                f"bubbles.{b.id}.text",
+            )
+
+
+def _check_sleepers(
+    session: Session,
+    sent: list[Any] | None,
+    kept: list[dict[str, Any]],
+    characters: list[dict[str, Any]],
+) -> None:
+    """A sleeping character never speaks (Phase 8): no bubble may be theirs."""
+    asleep = {c["id"] for c in characters if c.get("pose") == "asleep"}
+    bubbles = [b.model_dump() for b in sent] if sent is not None else kept
+    for b in bubbles:
+        if b.get("speaker") in asleep:
+            who = session.get(Character, b["speaker"])
+            name = who.name if who else "They"
+            raise invalid(
+                f"{name} is asleep, so {name} can't talk. Wake them up with another pose, or let "
+                "the narrator say it.",
+                f"bubbles.{b.get('id')}.text",
+            )
+
+
+def _check_holders(props: list[dict[str, Any]], characters: list[dict[str, Any]]) -> None:
+    """Held and worn props need their holder in the panel (a turban may sit on the scarecrow)."""
+    here = {c["id"] for c in characters} | {p["id"] for p in props}
+    for prop in props:
+        holder = prop.get("held_by")
+        if holder and holder not in here:
+            raise invalid("Someone holding a thing has to be in the panel too.", "props")
 
 
 @router.post("/panels/{panel_id}/render")
@@ -431,7 +567,7 @@ def render_panel(
     if panel.idx == 0:
         comic_maker.make_cover(session, storage, comic)
     session.refresh(panel)
-    return panel_read(panel, storage)
+    return read_with_stage(session, panel, storage)
 
 
 @router.get(
@@ -530,6 +666,8 @@ def generate_comic(
         raise ApiError(409, "needs_plan", "Plan your panels in the Story Studio first!", "panels")
     _require_looks(session, panels)
     _check_title_words(session, user, comic, llm)
+    # Every panel at its page size (the job draws them all next, so nothing is drawn here).
+    comic_maker.reshape(session, storage, comic.id, user.id, llm, draw=False)
 
     job = jobs.create("comic", comic.id)
     comic.last_job_id = job.id
@@ -540,7 +678,8 @@ def generate_comic(
     settings = request.app.state.settings
 
     def read(panel: Panel) -> dict[str, Any]:
-        return panel_read(panel, storage).model_dump(mode="json")
+        with Session(engine) as fresh:
+            return read_with_stage(fresh, panel, storage).model_dump(mode="json")
 
     jobs.start(
         job.id,
@@ -612,7 +751,7 @@ def comic_pdf(
     }
     order = dict.fromkeys(cid for cid in [*comic.cast_ids, *specs] if cid in specs)
     cast = [pdf_export.CastMember(names.get(cid, ""), specs[cid]) for cid in order]
-    pdf = pdf_export.build_pdf(comic.title, cast, finals)
+    pdf = pdf_export.build_pdf(comic.title, cast, finals, [p.shown_size for p in panels])
     return Response(
         pdf,
         media_type="application/pdf",

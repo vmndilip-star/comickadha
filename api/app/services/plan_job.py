@@ -23,15 +23,17 @@ from typing import Any
 from sqlalchemy import Engine
 from sqlmodel import Session, col, select
 
-from app.models import Comic, Panel, Scene
+from app.models import Background, Comic, Panel, Scene
 from app.models.base import new_id, utcnow
 from app.providers.llm import LLMProvider
 from app.schemas.studio import PanelPlan
-from app.services import looks, story_planner
+from app.services import comic_maker, looks, story_planner
 from app.services.ai_guard import Guard, label
 from app.services.ai_limits import PLAN_PARTS_AT_ONCE
 from app.services.bubbles import layout
 from app.services.jobs import JobContext, JobFailed
+from app.services.prop_rules import add_named_props
+from app.services.storage import Storage
 from app.services.story_planner import Outcome, ScenePart, StoryContext
 
 PanelJson = Callable[[Panel], dict[str, Any]]
@@ -60,9 +62,10 @@ async def run_plan_job(
     llm: LLMProvider | None,
     read: PanelJson,
     reveal_seconds: float = 0.0,
+    storage: Storage | None = None,
 ) -> dict[str, Any]:
     try:
-        return await _run(ctx, job, engine, llm, read, reveal_seconds)
+        return await _run(ctx, job, engine, llm, read, reveal_seconds, storage)
     except Exception as error:  # the job's error event says what to do, in kid words
         raise JobFailed(PLAN_BROKE) from error
 
@@ -74,6 +77,7 @@ async def _run(
     llm: LLMProvider | None,
     read: PanelJson,
     reveal_seconds: float,
+    storage: Storage | None = None,
 ) -> dict[str, Any]:
     parts = story_planner.plan_parts(job.story)
     plans: list[PanelPlan | None] = [None] * len(parts)
@@ -135,7 +139,12 @@ async def _run(
         for i, plan in story_planner.repair_dialogue(plans, parts, job.story, job.keep).items():
             plans[i] = plan
             await save(i)
-    await ctx.run(_finish, engine, job.comic_id)
+    # Nobody the kid put in a scene is left out of it, and splash pages stay rare (Phase 8).
+    for fix in (story_planner.ensure_scene_casts, story_planner.limit_splashes):
+        for i, plan in fix(plans, parts, job.story, job.keep).items():
+            plans[i] = plan
+            await save(i)
+    await ctx.run(_finish, engine, job, llm, storage)
     source = "meta" if "meta" in sources else "mock"
     return {
         "kept": len(job.keep),
@@ -168,9 +177,15 @@ def save_part(
         comic = session.get(Comic, job.comic_id)
         if comic is None or comic.deleted_at is not None:
             return []
-        places = {
-            s.id: s.background_id
-            for s in session.exec(select(Scene).where(Scene.comic_id == job.comic_id))
+        scenes = {
+            s.id: s for s in session.exec(select(Scene).where(Scene.comic_id == job.comic_id))
+        }
+        places = {sid: s.background_id for sid, s in scenes.items()}
+        versions = {
+            b.id: b.version
+            for b in session.exec(
+                select(Background).where(col(Background.id).in_(set(places.values())))
+            )
         }
         stmt = select(Panel).where(
             Panel.comic_id == job.comic_id, col(Panel.idx).in_(list(part.indexes))
@@ -200,18 +215,27 @@ def save_part(
                 {"id": new_id(), "speaker": b.speaker, "type": b.type, "text": b.text}
                 for b in planned.bubbles
             ]
+            # Every prop the words name is drawn (the last word after the planner's checks).
+            here = [c.id for c in planned.characters]
+            props = add_named_props(planned.bubbles, [p.saved() for p in planned.props], here)
             # Every panel's place is its scene's place: the model never chooses it. (A scene the
             # kid deleted while this was planning leaves its panels without a scene.)
             scene_id = planned.scene_id if planned.scene_id in places else None
+            background_id = places.get(planned.scene_id, part.scene.background_id)
             panel = Panel(
                 id=new_id(),
                 comic_id=job.comic_id,
                 scene_id=scene_id,
                 idx=idx,
-                background_id=places.get(planned.scene_id, part.scene.background_id),
+                background_id=background_id,
+                place_version=versions.get(background_id),
                 beat=planned.beat,
                 characters=characters,
                 bubbles=layout(bubbles, characters, looks.specs_for(session, characters)),
+                props=props,
+                time_of_day=scenes[scene_id].time_of_day if scene_id else None,
+                key_moment=planned.key_moment or None,
+                size=None if planned.size == "normal" else planned.size,
                 status="planned",
                 text_check=job.text_check,
             )
@@ -225,11 +249,13 @@ def save_part(
         return [read(p) for p in saved]
 
 
-def _finish(engine: Engine, comic_id: str) -> None:
+def _finish(engine: Engine, job: PlanJob, llm: LLMProvider | None, storage: Storage | None) -> None:
     with Session(engine) as session:
-        comic = session.get(Comic, comic_id)
+        comic = session.get(Comic, job.comic_id)
         if comic is None:
             return
+        if storage is not None:  # every panel's page size (a lone panel in its row is wide...)
+            comic_maker.reshape(session, storage, comic.id, job.user_id, llm)
         comic.studio_step = 3
         comic.updated_at = utcnow()
         session.add(comic)

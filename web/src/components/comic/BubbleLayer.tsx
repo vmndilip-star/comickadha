@@ -12,9 +12,9 @@ import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { cn } from '@/lib/cn'
 import {
   FONT_STEPS,
-  PANEL_H,
-  PANEL_W,
+  NORMAL_FRAME,
   cloudBumps,
+  cq,
   fallbackBoxes,
   fontSize,
   isNarrator,
@@ -26,6 +26,7 @@ import {
   tailWedge,
   thinkTrail,
   type Box,
+  type Frame,
 } from '@/lib/bubbles'
 import type { Bubble } from '@/types'
 
@@ -37,6 +38,8 @@ interface BubbleLayerProps {
   onSelect?: (bubbleId: string) => void
   /** A drag or resize ended: the bubble's new box (0–1). */
   onBox?: (bubbleId: string, box: Box) => void
+  /** The panel's shape in units (wide and splash panels are bigger than normal ones). */
+  frame?: Frame
 }
 
 interface Drag {
@@ -73,7 +76,7 @@ const TEXT: Record<Bubble['type'], string> = {
  * the panel (container units) and steps down to fit, then the bubble grows. Tails point at the
  * speaker's head (the API aims them; a moved bubble keeps its tip).
  */
-export function BubbleLayer({ bubbles, editable = false, selectedId, onSelect, onBox }: BubbleLayerProps) {
+export function BubbleLayer({ bubbles, editable = false, selectedId, onSelect, onBox, frame = NORMAL_FRAME }: BubbleLayerProps) {
   const layer = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<Drag | null>(null)
   const [heights, setHeights] = useState<Record<string, number>>({})
@@ -96,7 +99,7 @@ export function BubbleLayer({ bubbles, editable = false, selectedId, onSelect, o
   const read = (e: DragMoveEvent): Drag => {
     const [kind, id] = String(e.active.id).split(':') as [Drag['kind'], string]
     const rect = layer.current?.getBoundingClientRect()
-    return { id, kind, dx: e.delta.x, dy: e.delta.y, w: rect?.width || PANEL_W, h: rect?.height || PANEL_H }
+    return { id, kind, dx: e.delta.x, dy: e.delta.y, w: rect?.width || frame.w, h: rect?.height || frame.h }
   }
   const onMove = (e: DragMoveEvent) => setDrag(read(e))
   const onEnd = (e: DragMoveEvent) => {
@@ -117,22 +120,23 @@ export function BubbleLayer({ bubbles, editable = false, selectedId, onSelect, o
           editable={editable}
           selected={editable && b.id === selectedId}
           onSelect={onSelect}
+          frame={frame}
           onHeight={(h) => setHeights((all) => (all[b.id] === h ? all : { ...all, [b.id]: h }))}
         />
       ))}
       {/* Tails on top of the bodies, so their white fill hides the outline where they join. */}
-      <svg viewBox={`0 0 ${PANEL_W} ${PANEL_H}`} className="absolute inset-0 size-full" aria-hidden>
+      <svg viewBox={`0 0 ${frame.w} ${frame.h}`} className="absolute inset-0 size-full" aria-hidden>
         {bubbles.map((b) => {
           if (isNarrator(b) || !b.tail) return null
           const [x, y, w, h] = boxOf(b)
           const box: Box = [x, y, w, Math.max(h, heights[b.id] ?? 0)]
           const tip = b.tail as [number, number]
           if (b.type === 'think') {
-            return thinkTrail(box, tip).map((c, i) => (
+            return thinkTrail(box, tip, frame).map((c, i) => (
               <circle key={`${b.id}-${i}`} {...c} fill="white" stroke="#1A1A1A" strokeWidth={3} />
             ))
           }
-          const { left, tip: end, right } = tailWedge(box, tip)
+          const { left, tip: end, right } = tailWedge(box, tip, frame)
           const points = `${left.join(',')} ${end.join(',')} ${right.join(',')}`
           return (
             <g key={b.id}>
@@ -170,9 +174,10 @@ interface BubbleBodyProps {
   selected: boolean
   onSelect?: (bubbleId: string) => void
   onHeight: (fraction: number) => void
+  frame: Frame
 }
 
-function BubbleBody({ bubble, box, editable, selected, onSelect, onHeight }: BubbleBodyProps) {
+function BubbleBody({ bubble, box, editable, selected, onSelect, onHeight, frame }: BubbleBodyProps) {
   const body = useRef<HTMLDivElement | null>(null)
   const text = useRef<HTMLSpanElement>(null)
   const {
@@ -199,7 +204,7 @@ function BubbleBody({ bubble, box, editable, selected, onSelect, onHeight }: Bub
     el.style.minHeight = `${h * 100}%`
     const room = h * parent.clientHeight * (shout ? SHOUT_TEXT.height : 1)
     for (const step of FONT_STEPS) {
-      el.style.fontSize = fontSize(step)
+      el.style.fontSize = fontSize(step, frame)
       const needed = shout ? words.offsetHeight : words.offsetHeight + (el.offsetHeight - el.clientHeight) + 2 * padding(el)
       if (needed <= room) break
     }
@@ -207,11 +212,15 @@ function BubbleBody({ bubble, box, editable, selected, onSelect, onHeight }: Bub
     if (parent.clientHeight) onHeight(el.offsetHeight / parent.clientHeight)
   })
 
+  // Padding, corners and outline in units, so a wide or splash panel letters like a normal one.
   const style: CSSProperties = {
     left: `${x * 100}%`,
     top: `${y * 100}%`,
     width: `${w * 100}%`,
     minHeight: `${h * 100}%`,
+    padding: cq(12, frame),
+    ...(kind === 'talk' ? { borderRadius: cq(28, frame) } : {}),
+    ...(kind === 'talk' || kind === 'narrator' ? { borderWidth: `clamp(2px, ${cq(3, frame)}, 3px)` } : {}),
   }
   const setRef = (el: HTMLDivElement | null) => {
     body.current = el
@@ -226,9 +235,9 @@ function BubbleBody({ bubble, box, editable, selected, onSelect, onHeight }: Bub
       aria-label={editable ? `Bubble: ${bubble.text}` : undefined}
       onClick={editable ? () => onSelect?.(bubble.id) : undefined}
       className={cn(
-        'absolute flex items-center justify-center p-[1.5cqw] text-center leading-[1.18] text-ink',
-        kind === 'talk' && 'rounded-[3.5cqw] border-[length:clamp(2px,0.375cqw,3px)] border-ink bg-white',
-        kind === 'narrator' && 'border-[length:clamp(2px,0.375cqw,3px)] border-ink bg-sun-tint',
+        'absolute flex items-center justify-center text-center leading-[1.18] text-ink',
+        kind === 'talk' && 'border-ink bg-white',
+        kind === 'narrator' && 'border-ink bg-sun-tint',
         editable && 'pointer-events-auto cursor-grab touch-none select-none active:cursor-grabbing',
         selected && 'outline-3 outline-offset-2 outline-pow-blue outline-dashed',
       )}

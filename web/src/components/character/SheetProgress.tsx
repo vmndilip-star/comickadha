@@ -2,7 +2,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar'
 import { cn } from '@/lib/cn'
 import { EXPRESSION_LABEL, POSE_LABEL } from '@/lib/labels'
 import { useJob } from '@/store/jobs'
-import { EXPRESSIONS, POSES, type Character } from '@/types'
+import { SHEET_EXPRESSIONS, SHEET_POSES, type Character } from '@/types'
 
 function stageMessage(stage: string | null, name: string): string {
   switch (stage) {
@@ -57,7 +57,7 @@ export function SheetProgress({ character }: { character: Character }) {
           )}
         </div>
         <ol aria-label="Poses" className="m-0 grid min-w-[220px] flex-1 list-none grid-cols-4 gap-1.5 p-0">
-          {POSES.map((pose) => {
+          {SHEET_POSES.map((pose) => {
             const url = cells[`body/${pose}`]
             return (
               <li
@@ -75,7 +75,7 @@ export function SheetProgress({ character }: { character: Character }) {
       </div>
 
       <ol aria-label="Faces" className="m-0 grid list-none grid-cols-6 gap-1.5 p-0">
-        {EXPRESSIONS.map((expression) => {
+        {SHEET_EXPRESSIONS.map((expression) => {
           const url = cells[`face/${expression}`]
           return (
             <li

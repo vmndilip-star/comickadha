@@ -21,7 +21,7 @@ from app.services.safety import REAL_PERSON, Verdict
 
 MAX_DESCRIPTION = 300
 TOO_LONG = "That's a lot of words! Keep your description under 300 letters."
-RULE_BENDING = "Let's stick to the Comickatha rules and keep building together!"
+RULE_BENDING = "Let's stick to the Comickadha rules and keep building together!"
 BODY_NOTE = "Every character is awesome just as they are!"
 LABELS = {"description": "description", "name": "name"}
 

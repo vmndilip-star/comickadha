@@ -795,6 +795,14 @@ def animal_head(species: str) -> dict[str, dict[str, str]]:
 
 
 def eye_states(shape: str) -> dict[str, str]:
+    """Each eye shape's states; "shut" (relaxed lids, curving down) is the same for every shape:
+    the sleepy face (Phase 8)."""
+    states = _eye_states(shape)
+    states["shut"] = path("M-4.2 -0.8 Q0 2.9 4.2 -0.8", "none", "{{face_ink}}", 2.2)
+    return states
+
+
+def _eye_states(shape: str) -> dict[str, str]:
     ink = "{{face_ink}}"
     closed = path("M-4.2 1.4 Q0 -3.4 4.2 1.4", "none", ink, 2.2)
     hl = circle(1.2, -1.3, 1.1, WHITE, None)
@@ -887,6 +895,7 @@ MOUTHS_FRONT = {
     ),
     "open": path("M-6.5 -1.6 Q0 9.5 6.5 -1.6 Z", WHITE, "{{face_ink}}", 1.8)
     + path("M-3 4 Q0 2 3 4 Q0 6.4 -3 4 Z", "#FF8A80", None),
+    "snore": ellipse(0, 1, 2, 2.6, "{{face_ink}}", None),
 }
 
 EXPRESSIONS = {
@@ -903,6 +912,12 @@ EXPRESSIONS = {
         "eyes": "closed",
         "mouth": "open",
         "brows": {"l": {"angle": -6, "dy": -2}, "r": {"angle": 6, "dy": -2}},
+    },
+    # Asleep (Phase 8): lids shut, a little snoring mouth, brows relaxed and low.
+    "sleepy": {
+        "eyes": "shut",
+        "mouth": "snore",
+        "brows": {"l": {"angle": -4, "dy": 1}, "r": {"angle": 4, "dy": 1}},
     },
 }
 
@@ -1864,6 +1879,25 @@ POSES = {
         root=(0, -4),
         expression="laughing",
         extras=[("root", CONFETTI, "back")],
+    ),
+    # Phase 8: dozing on a stool, head tipped to one side, arms hanging loose. Panels add the "Zzz".
+    "asleep": pose(
+        "three_quarter",
+        {
+            "torso": 7,
+            "head": 24,
+            "shoulder_l": 4,
+            "elbow_l": -10,
+            "shoulder_r": -2,
+            "elbow_r": -12,
+            "hip_l": -80,
+            "knee_l": 75,
+            "hip_r": -86,
+            "knee_r": 82,
+        },
+        root=(0, 16),
+        expression="sleepy",
+        extras=[("root", STOOL, "back")],
     ),
 }
 FACE_VISIBLE = [p for p, data in POSES.items() if data["view"] in ("front", "three_quarter")]

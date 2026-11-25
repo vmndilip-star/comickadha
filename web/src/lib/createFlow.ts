@@ -76,6 +76,13 @@ export function castFull(count: number): boolean {
   return count >= MAX_CAST
 }
 
+/** The line under the Lab's cast list: how many so far, or that the cast is full. */
+export function castCountNote(count: number): string {
+  return castFull(count)
+    ? `Your cast is full: ${MAX_CAST} characters! Delete one to make room for someone new.`
+    : `You have ${count} of ${MAX_CAST} characters.`
+}
+
 /** People: a little or big kid gets the kid body, a grown-up or grandparent the grown-up body. */
 export function bodyTypeFor(kind: Kind, age: Age | null): BodyType {
   if (kind !== 'person') return kind

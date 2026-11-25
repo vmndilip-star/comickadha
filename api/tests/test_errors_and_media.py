@@ -33,7 +33,7 @@ def test_profile(client: TestClient) -> None:
     me = client.get("/api/me").json()
 
     assert me["display_name"] == "Aarav"
-    assert me["max_cast"] == 3
+    assert me["max_cast"] == 40
 
 
 def test_place_images_are_served(client: TestClient) -> None:
@@ -48,8 +48,8 @@ def test_place_images_are_served(client: TestClient) -> None:
 
 def test_media_cannot_escape_storage(client: TestClient) -> None:
     for path in (
-        "/media/../comickatha.db",
-        "/media/%2e%2e/comickatha.db",
+        "/media/../comickadha.db",
+        "/media/%2e%2e/comickadha.db",
         "/media/.hidden",
         "/media/x//y",
     ):

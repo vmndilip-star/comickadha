@@ -29,7 +29,7 @@ export async function fetchPdf(id: string): Promise<Blob> {
   try {
     res = await fetch(`/api/comics/${id}/pdf`)
   } catch {
-    throw new ApiError(0, 'network', "We can't reach Comickatha right now. Check your internet and try again.")
+    throw new ApiError(0, 'network', "We can't reach Comickadha right now. Check your internet and try again.")
   }
   if (!res.ok) {
     const data = (await res.json().catch(() => null)) as ErrorBody | null

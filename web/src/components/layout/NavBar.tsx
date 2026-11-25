@@ -68,7 +68,7 @@ export function NavBar() {
           <span className="inline-flex size-11 items-center justify-center rounded-button border-3 border-ink bg-sun font-display text-[26px] shadow-sm">
             CK
           </span>
-          <span className="font-display text-[32px] tracking-[1.5px] text-ink">COMICKATHA</span>
+          <span className="font-display text-[32px] tracking-[1.5px] text-ink">COMICKADHA</span>
         </Link>
 
         <nav aria-label="Main tabs" className="flex flex-auto flex-wrap gap-2">

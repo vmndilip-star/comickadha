@@ -21,7 +21,7 @@ from sqlmodel import Session, col, select
 from app.models import Background, Comic, Panel
 from app.models.base import utcnow
 from app.providers.llm import LLMProvider
-from app.services import bubbles, compositor, looks, recheck, safety
+from app.services import bubbles, compositor, image_gen, looks, pages, recheck, safety
 from app.services.jobs import JobContext
 from app.services.storage import Storage
 
@@ -67,21 +67,27 @@ def draw_panel(
         return
     background = session.get(Background, panel.background_id)
     place_png = None
-    if background and background.image_key and storage.exists(background.image_key):
-        place_png = storage.read(background.image_key)
+    if background is not None:
+        if panel.place_version is None:  # pinned the first time it is drawn
+            panel.place_version = background.version
+        place_png = image_gen.place_picture(
+            storage, background, panel.place_version, panel.time_of_day
+        )
     picture = safety.check_image(session, user_id, f"panel:{panel.id}:place", place_png)
     if not picture.allowed:
         panel.status, panel.error = "blocked", picture.message({})
         return
     try:
         specs = looks.specs_for(session, panel.characters)
-        panel.bubbles = bubbles.layout(panel.bubbles, panel.characters, specs)
+        panel.bubbles = bubbles.layout(panel.bubbles, panel.characters, specs, panel.shown_size)
         art, thumb = compositor.render_art(
             panel.characters,
             specs,
             place_png,
             background.tint if background else DEFAULT_TINT,
             panel.bubbles,
+            panel.props or [],
+            panel.shown_size,
         )
         prefix = panel_prefix(panel)
         panel.art_key = storage.save(f"{prefix}/art.png", art)
@@ -95,6 +101,43 @@ def draw_panel(
     panel.updated_at = utcnow()
 
 
+def reshape(
+    session: Session,
+    storage: Storage,
+    comic_id: str,
+    user_id: str,
+    llm: LLMProvider | None,
+    *,
+    hold: str | None = None,
+    draw: bool = True,
+) -> list[Panel]:
+    """Every panel's shown size from the sizes chosen for the comic's panels (services/pages.py:
+    a normal panel alone in its row is shown wide...). A panel whose shown size changes gets its
+    bubbles laid out again and, if it was drawn, is drawn again at its new size (unless not
+    `draw`: Make my comic! draws every panel next anyway). `hold`: a panel the caller lays out and
+    draws itself (it only gets its new shown size). Not committed. Returns the panels that
+    changed."""
+    stmt = select(Panel).where(Panel.comic_id == comic_id).order_by(col(Panel.idx))
+    rows = list(session.exec(stmt))
+    changed: list[Panel] = []
+    for panel, shown in zip(
+        rows, pages.shown_sizes([p.size or "normal" for p in rows]), strict=True
+    ):
+        before = panel.shown_size
+        if before == shown:
+            continue
+        panel.shown_size = shown
+        session.add(panel)
+        if panel.id == hold or (before or "normal") == shown:
+            continue  # only stored for the first time: drawn at this size already
+        specs = looks.specs_for(session, panel.characters)
+        panel.bubbles = bubbles.layout(panel.bubbles, panel.characters, specs, shown)
+        if panel.art_key and draw:
+            draw_panel(session, storage, panel, user_id, llm)
+        changed.append(panel)
+    return changed
+
+
 def ensure_final(session: Session, storage: Storage, panel: Panel) -> bytes:
     """final.png (art + bubbles), baked again only when the art or the bubbles changed."""
     if not panel.art_key:
@@ -102,7 +145,7 @@ def ensure_final(session: Session, storage: Storage, panel: Panel) -> bytes:
     wanted = compositor.final_hash(panel.art_key, panel.art_version, panel.bubbles)
     if panel.final_key and panel.final_hash == wanted and storage.exists(panel.final_key):
         return storage.read(panel.final_key)
-    png = compositor.bake_final(storage.read(panel.art_key), panel.bubbles)
+    png = compositor.bake_final(storage.read(panel.art_key), panel.bubbles, panel.shown_size)
     panel.final_key = storage.save(f"{panel_prefix(panel)}/final.png", png)
     panel.final_hash = wanted
     session.add(panel)

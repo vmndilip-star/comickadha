@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { CreateCharacterButton } from '@/components/character/CreateCharacterButton'
 import { ComicCard } from '@/components/comic/ComicCard'
 import { CastCard } from '@/components/home/CastCard'
@@ -17,6 +18,9 @@ import { useComicsStore } from '@/store/comics'
 import { useDataStatus } from '@/store/load'
 import { usePlacesStore } from '@/store/places'
 import { MAX_CAST } from '@/types'
+
+/** Cast cards shown on Home; the rest are a tap away in the Character Lab (decision 130). */
+const HOME_CAST = 6
 
 export function HomePage() {
   const cast = useCastStore((s) => s.characters)
@@ -45,9 +49,17 @@ export function HomePage() {
           link={{ to: '/characters', label: 'Open Character Lab →' }}
         />
         <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6">
-          {cast.map((c) => (
+          {cast.slice(0, HOME_CAST).map((c) => (
             <CastCard key={c.id} character={c} />
           ))}
+          {cast.length > HOME_CAST && (
+            <Link
+              to="/characters"
+              className="flex min-h-[132px] items-center justify-center rounded-card border-3 border-dashed border-ink bg-surface p-4 text-center font-extrabold text-ink no-underline"
+            >
+              +{cast.length - HOME_CAST} more in the Character Lab →
+            </Link>
+          )}
           {cast.length < MAX_CAST && <CreateCharacterButton className="min-h-[132px] rounded-card" />}
         </div>
         <StarterCastLink starters={starters} />

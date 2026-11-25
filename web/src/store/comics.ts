@@ -78,7 +78,15 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     const seen = edits.current(key)
     const saved = await api.replaceScenes(
       id,
-      comic.scenes.map(({ id: sceneId, background_id, character_ids, summary }) => ({ id: sceneId, background_id, character_ids, summary })),
+      comic.scenes.map(({ id: sceneId, background_id, character_ids, summary, time_of_day, key_moment, panel_count }) => ({
+        id: sceneId,
+        background_id,
+        character_ids,
+        summary,
+        time_of_day,
+        key_moment,
+        panel_count,
+      })),
     )
     if (edits.isLatest(key, seen)) change(id, () => ({ scenes: saved }))
   }
@@ -90,7 +98,13 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     const seen = edits.current(key)
     let saved: Panel
     try {
-      saved = await api.updatePanel(panelId, { beat: panel.beat, characters: panel.characters, bubbles: panel.bubbles })
+      saved = await api.updatePanel(panelId, {
+        beat: panel.beat,
+        characters: panel.characters,
+        bubbles: panel.bubbles,
+        props: panel.props,
+        size: panel.size,
+      })
     } catch (error) {
       // A safety block on one bubble shows under that bubble; the kid's words stay on screen.
       if (showOnField(error)) return
@@ -99,7 +113,17 @@ export const useComicsStore = create<ComicsState>()((set, get) => {
     const fieldErrors = useFieldErrors.getState()
     for (const b of saved.bubbles) fieldErrors.clear(`bubbles.${b.id}.text`)
     fieldErrors.clear('characters')
+    fieldErrors.clear('props')
     if (edits.isLatest(key, seen)) change(comicId, (c) => ({ panels: c.panels.map((p) => (p.id === panelId ? saved : p)) }))
+    // A new size can change how its neighbours are shown (and drawn): the page is laid out again.
+    if (saved.shown_size !== panel.shown_size || saved.size !== panel.size) {
+      try {
+        const fresh = await api.getComic(comicId)
+        set((s) => ({ comics: s.comics.map((c) => (c.id === comicId ? fresh : c)) }))
+      } catch {
+        // The next load shows it.
+      }
+    }
   }
 
   return {

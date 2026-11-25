@@ -11,7 +11,8 @@ from typing import Any
 from app.avatar import rig
 from app.avatar import spec as avatar_spec
 from app.avatar.render import render_face, render_pose
-from app.schemas.common import EXPRESSIONS, POSES
+from app.schemas.common import SHEET_EXPRESSIONS as EXPRESSIONS
+from app.schemas.common import SHEET_POSES as POSES
 from app.schemas.manifest import Box, HeadBox
 from app.services import imaging
 from app.services.character_sheet import CELL, FRONT, Emit, SheetCells, SheetSpec

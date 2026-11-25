@@ -173,8 +173,13 @@ def test_the_words_are_classified_before_anything_goes_to_muse(client: TestClien
     checked = [user_text(c) for c in meta.calls_for("safety_verdicts")]
     assert checked and "Treehouse" in checked[0] and "rope ladder" in checked[0]
     assert wait_for_job(client, res.json()["job_id"])["status"] == "done"
-    assert len(images.calls) == 1
-    assert image_verdicts(client, place_id) == [("allow", [])]
+    # The day picture, then sunset and night painted from it (Phase 8), each one checked.
+    assert [c["kind"] for c in images.calls] == ["generate", "edit", "edit"]
+    day = images.calls[1]["references"][0]
+    assert day and images.calls[2]["references"] == [day]
+    assert "Time of day: sunset" in images.calls[1]["prompt"]
+    assert "Time of day: night" in images.calls[2]["prompt"]
+    assert image_verdicts(client, place_id) == [("allow", [])] * 3
     place = client.get(f"/api/backgrounds/{place_id}").json()
     assert place["status"] == "locked"
     assert imaging.load(client.get(place["image_url"]).content).size == (1024, 768)
@@ -227,13 +232,20 @@ def test_a_picture_with_writing_is_painted_again_without_any(client: TestClient)
     job = wait_for_job(client, lock(client, place_id).json()["job_id"])
 
     assert job["status"] == "done"
-    assert len(images.calls) == 2
+    assert len(images.calls) == 4  # the day picture twice, then sunset and night
     assert render("background_no_text") not in images.calls[0]["prompt"]
     assert images.calls[1]["prompt"].endswith(render("background_no_text"))
-    assert image_verdicts(client, place_id) == [("block", ["text"]), ("allow", [])]
-    # Only the picture that passed was saved.
+    assert image_verdicts(client, place_id) == [("block", ["text"]), *[("allow", [])] * 3]
+    # Only the pictures that passed were saved.
     saved = {p.name for p in saved_files(client, place_id)}
-    assert saved == {"reference.png", "thumb.png"}
+    assert saved == {
+        "reference.png",
+        "thumb.png",
+        "sunset.png",
+        "sunset_thumb.png",
+        "night.png",
+        "night_thumb.png",
+    }
 
 
 def test_two_blocked_pictures_fail_the_job_and_save_nothing(client: TestClient) -> None:
