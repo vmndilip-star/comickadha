@@ -1,4 +1,4 @@
-import type { BubbleType, Expression, Mood, Pose, Role, Trait } from '@/types'
+import type { BubbleType, Expression, Mood, PanelSize, Pose, Position, Role, TimeOfDay, Trait } from '@/types'
 
 export const EXPRESSION_LABEL: Record<Expression, string> = {
   happy: 'Happy',
@@ -7,6 +7,7 @@ export const EXPRESSION_LABEL: Record<Expression, string> = {
   surprised: 'Surprised',
   scared: 'Scared',
   laughing: 'Laughing',
+  sleepy: 'Sleepy',
 }
 
 export const POSE_LABEL: Record<Pose, string> = {
@@ -26,7 +27,20 @@ export const POSE_LABEL: Record<Pose, string> = {
   thinking: 'Thinking',
   scared_pose: 'Scared',
   celebrate: 'Celebrate',
+  asleep: 'Asleep',
 }
+
+export const POSITION_LABEL: Record<Position, string> = {
+  far_left: 'Far left',
+  left: 'Left',
+  center: 'Middle',
+  right: 'Right',
+  far_right: 'Far right',
+}
+
+export const SIZE_LABEL: Record<PanelSize, string> = { normal: 'Normal', wide: 'Wide', splash: 'Splash page' }
+
+export const TIME_LABEL: Record<TimeOfDay, string> = { day: 'Day', sunset: 'Sunset', night: 'Night' }
 
 export const ROLE_LABEL: Record<Role, string> = {
   hero: 'Hero',
@@ -62,6 +76,42 @@ export const MOOD_LABEL: Record<Mood, string> = {
   funny: 'Funny',
   adventure: 'Adventure',
   spooky: 'Spooky-ish',
+  magical: 'Magical',
+  fairy_tale: 'Fairy Tale',
+  folk_tale: 'Folk Tale',
+  underwater: 'Underwater',
+  dinosaur: 'Dinosaur',
+  jungle_safari: 'Jungle Safari',
+  pirate: 'Pirate',
+  space: 'Space',
+  robots_future: 'Robots and Future',
+  time_travel: 'Time Travel',
+  sporty: 'Sporty',
+  school_days: 'School Days',
+  festival: 'Festival',
+  nature_hero: 'Nature Hero',
+}
+
+/** A line under the mood picker saying what the chosen mood is about. */
+export const MOOD_HINT: Record<Mood, string> = {
+  mystery: 'Clues, secrets and a puzzle to solve',
+  funny: 'Silly mix-ups, jokes and things going wonderfully wrong',
+  adventure: 'A daring quest, discoveries and big challenges',
+  spooky: 'A little bit spooky, never too scary: creaky doors and brave friends',
+  magical: 'Wizards, fairies, spells and enchanted places',
+  fairy_tale: 'Castles, talking animals and "once upon a time"',
+  folk_tale: 'Clever animals and wise lessons, like the Panchatantra',
+  underwater: 'Mermaids, sea creatures and sunken treasure',
+  dinosaur: 'A prehistoric world with friendly dinos',
+  jungle_safari: 'Wild animals and exploring the forest',
+  pirate: 'Treasure maps, ships and hidden islands',
+  space: 'Rockets, planets and friendly aliens',
+  robots_future: 'Gadgets, flying cars and robot buddies',
+  time_travel: 'Jumping into the past or the future',
+  sporty: 'The big match, teamwork and the underdog winning',
+  school_days: 'Classroom fun, lunch breaks and school trips',
+  festival: 'Celebrations, birthdays, holidays and fireworks',
+  nature_hero: 'Saving the forest and helping animals',
 }
 
 export const BUBBLE_LABEL: Record<BubbleType, string> = {

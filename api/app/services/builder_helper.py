@@ -40,7 +40,7 @@ __all__ = ["META_LABEL", "OFFLINE_LABEL", "RESTING", "UNSAFE", "Helper", "build_
 log = logging.getLogger(__name__)
 
 NOT_A_DRAWING = "That looks like a photo. Please upload a drawing, not a photo of a person!"
-UNSAFE_DRAWING = "Let's keep Comickatha friendly for everyone! Please try a different drawing."
+UNSAFE_DRAWING = "Let's keep Comickadha friendly for everyone! Please try a different drawing."
 NEEDS_CONSENT = "Drawings are sent to Meta AI, so a grown-up needs to say OK first."
 TRAITS = set(helper_offline.TRAITS)
 # How a kid would call each field the Lab helper checks before asking Meta.

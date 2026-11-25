@@ -11,14 +11,16 @@ import {
   panelsByScene,
   planProgressText,
   sceneShares,
+  settlePanelCount,
   shownInStudio,
   speakerPatch,
+  typedPanelCount,
   waitingLines,
   withPose,
   wordCount,
 } from './studio'
 
-const scene = (id: string, idx: number): Scene => ({ id, idx, background_id: 'b', character_ids: [], summary: id })
+const scene = (id: string, idx: number): Scene => ({ id, idx, background_id: 'b', character_ids: [], summary: id, time_of_day: 'day', key_moment: '', panel_count: null })
 const pc = (id: string, position: PanelCharacter['position']): PanelCharacter => ({
   id,
   position,
@@ -164,5 +166,95 @@ describe('long comics', () => {
     expect(planProgressText('planning', 2, 7)).toBe('Planning scene 3 of 7…')
     expect(planProgressText('planning', 7, 7)).toBe('Planning scene 7 of 7…')
     expect(planProgressText('polishing', 7, 7)).toBe('Polishing the words…')
+  })
+})
+
+describe('the asleep pose (Phase 8)', () => {
+  const panel = {
+    characters: [pc('hari', 'left'), pc('leo', 'right')],
+    bubbles: [
+      { id: 'b1', speaker: 'hari', type: 'talk' as const, text: 'Stay awake!', fixed: false },
+      { id: 'b2', speaker: 'leo', type: 'talk' as const, text: 'Shh!', fixed: false },
+    ],
+  }
+
+  it('puts a character to sleep with the sleepy face, and hands their words to the narrator', () => {
+    const { panel: next, switched } = withPose(panel, 'hari', 'asleep')
+    expect(switched).toBe(true)
+    expect(next.characters[0]).toMatchObject({ pose: 'asleep', expression: 'sleepy' })
+    expect(next.bubbles[0]).toMatchObject({ speaker: 'narrator', type: 'narrator', text: 'Stay awake!' })
+    expect(next.bubbles[1]).toEqual(panel.bubbles[1]) // Leo is awake and keeps his line
+  })
+
+  it('never lets a sleeper speak', () => {
+    const asleep = withPose(panel, 'hari', 'asleep').panel
+    expect(blockedTypes(asleep, 'hari')).toEqual(['talk', 'think', 'shout'])
+    expect(blockedTypes(asleep, 'leo')).toEqual([])
+    expect(speakerPatch(asleep, asleep.bubbles[1]!, 'hari')).toEqual({}) // can't be picked
+    expect(speakerPatch(asleep, asleep.bubbles[1]!, 'leo')).toEqual({ speaker: 'leo' })
+  })
+})
+
+describe('panels per scene and who is in a panel (Phase 8)', () => {
+  it('shares panels out around the numbers a kid picked', async () => {
+    const { sceneShares, sharesFit } = await import('./studio')
+    expect(sceneShares(10, 3)).toEqual([4, 3, 3])
+    expect(sceneShares(10, 3, [6, null, null])).toEqual([6, 2, 2])
+    expect(sceneShares(10, 3, [5, 3, 2])).toEqual([5, 3, 2])
+    expect(sharesFit(10, [{ panel_count: 6 }, { panel_count: null }, { panel_count: null }])).toBe(true)
+    expect(sharesFit(6, [{ panel_count: 6 }, { panel_count: null }])).toBe(false) // nothing left for scene 2
+    expect(sharesFit(9, [{ panel_count: 5 }, { panel_count: 4 }])).toBe(true)
+  })
+
+  it('puts anyone from the cast in a panel, and takes them out cleanly', async () => {
+    const { addToPanel, removeFromPanel } = await import('./studio')
+    const panel = {
+      characters: [pc('a', 'center'), pc('b', 'left'), pc('c', 'right')],
+      bubbles: [{ id: 'b1', speaker: 'c', type: 'talk' as const, text: 'Hi!', fixed: false }],
+      props: [{ id: 'torch' as const, state: 'held' as const, held_by: 'c' }],
+    }
+    const four = addToPanel(addToPanel(panel, { id: 'd', sheet_version: 2 }), { id: 'e', sheet_version: 1 })
+    expect(four.characters.map((c) => [c.id, c.position])).toEqual([
+      ['a', 'center'], ['b', 'left'], ['c', 'right'], ['d', 'far_left'], ['e', 'far_right'],
+    ])
+    expect(four.characters[3]!.sheet_version).toBe(2)
+    const out = removeFromPanel(four, 'c')
+    expect(out.characters.map((c) => c.id)).toEqual(['a', 'b', 'd', 'e'])
+    expect(out.bubbles[0]).toMatchObject({ speaker: 'narrator', type: 'narrator' })
+    expect(out.props[0]).toMatchObject({ id: 'torch', state: 'on_ground' })
+  })
+})
+
+describe('the 12-word limit and the caption (Phase 8)', () => {
+  it('stops at 12 words, keeping them as typed', async () => {
+    const { limitWords } = await import('./studio')
+    expect(limitWords('one two three')).toEqual({ text: 'one two three', cut: false })
+    const long = 'a b c d e f g h i j k l m n'
+    expect(limitWords(long)).toEqual({ text: 'a b c d e f g h i j k l', cut: true })
+    expect(limitWords('a b c d e f g h i j k l ')).toEqual({ text: 'a b c d e f g h i j k l ', cut: false }) // a space is fine
+  })
+
+  it('adds, edits and removes the narrator box', async () => {
+    const { setCaption, captionOf } = await import('./studio')
+    const panel = { characters: [pc('a', 'center')], bubbles: [{ id: 'b1', speaker: 'a', type: 'talk' as const, text: 'Hi', fixed: false }] }
+    const added = setCaption(panel, 'Later, at the river...', () => 'n1')
+    expect(added.bubbles[0]).toEqual({ id: 'n1', speaker: 'narrator', type: 'narrator', text: 'Later, at the river...', fixed: false })
+    expect(captionOf(setCaption(added, 'Meanwhile...').bubbles)?.text).toBe('Meanwhile...')
+    expect(setCaption(added, '').bubbles.map((b) => b.id)).toEqual(['b1'])
+  })
+})
+
+describe('typing a panel count', () => {
+  it('takes a whole number from 4 to 200 as soon as it is typed', () => {
+    expect(['1', '15', '150'].map(typedPanelCount)).toEqual([null, 15, 150])
+    expect(['', ' ', '3', '201', '12.5', 'abc'].map(typedPanelCount)).toEqual([null, null, null, null, null, null])
+  })
+
+  it('settles on the nearest allowed number when the box is left', () => {
+    expect(settlePanelCount('2', 20)).toBe(4)
+    expect(settlePanelCount('500', 20)).toBe(200)
+    expect(settlePanelCount('12.6', 20)).toBe(13)
+    expect(settlePanelCount('', 20)).toBe(20)
+    expect(settlePanelCount('abc', 20)).toBe(20)
   })
 })

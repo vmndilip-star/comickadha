@@ -1,6 +1,6 @@
-# Comickatha
+# Comickadha
 
-Comickatha lets kids under 16 make their own comics. They design up to three characters and a few places, lock them so they look the same everywhere, write a short story, and Comickatha turns it into comic panels they can edit and export as a PDF.
+Comickadha lets kids under 16 make their own comics. They design up to three characters and a few places, lock them so they look the same everywhere, write a short story, and Comickadha turns it into comic panels they can edit and export as a PDF.
 
 **Status:** Phase 5 of 6. Kids create characters in a guided, step-by-step flow (or build them Bitmoji-style in the Character Lab, or start straight away with 12 ready-made starter characters), then write a story in the Story Studio: the planner turns it into scenes and a panel plan (4 to 30 panels, filling in scene by scene) with their real characters in every pose. "Make my comic!" draws every panel live (place, characters facing each other, speech bubbles pointing at the speaker), and the Reader lets them drag bubbles, change words, faces, poses and places to stand, finish the comic and download a PDF. A Story Buddy asks questions to help them think, and story text is safety-checked (personal details stay secret). Everything runs offline by default, so no API keys are needed. With Meta's model API switched on, the helpers, Story Buddy, planner and safety checks use Muse Spark, and places are painted by Muse Image, with every picture checked before a kid sees it.
 

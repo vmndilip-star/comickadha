@@ -64,7 +64,7 @@ def get_current_user(session: SessionDep) -> User:
     user = session.exec(stmt).first()
     if user is None:
         raise ApiError(
-            503, "no_profile", "Comickatha isn't set up yet. Ask a grown-up to run the seed script."
+            503, "no_profile", "Comickadha isn't set up yet. Ask a grown-up to run the seed script."
         )
     return user
 

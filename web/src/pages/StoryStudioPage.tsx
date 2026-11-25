@@ -18,7 +18,7 @@ import { EmptySlot } from '@/components/ui/EmptySlot'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { SaveStatus } from '@/components/ui/SaveStatus'
 import { allDrawn, byRecent, castFor, pickedCast, placesFor } from '@/lib/comic'
-import { MAX_SCENES, moveScene, panelsByScene, readyToPlan, waitingLines } from '@/lib/studio'
+import { MAX_SCENES, moveScene, panelsByScene, readyToPlan, sceneShares, sharesFit, waitingLines } from '@/lib/studio'
 import { useCastStore } from '@/store/cast'
 import { useComic, useComicsStore, useStartComic } from '@/store/comics'
 import { useFieldErrors } from '@/store/fieldErrors'
@@ -26,6 +26,7 @@ import { useDataStatus } from '@/store/load'
 import { useMakingStore } from '@/store/making'
 import { usePlacesStore } from '@/store/places'
 import { useStudioStore, type PlanKind } from '@/store/studio'
+import { toast } from '@/store/toast'
 import type { Comic, Scene, StudioStep } from '@/types'
 
 const SUBTITLE = 'Three steps: tell the story, pick the places, then make the panels.'
@@ -184,6 +185,9 @@ function Studio({ comic }: { comic: Comic }) {
       background_id: backgroundId,
       character_ids: ready.lockedCast.slice(0, 3).map((c) => c.id),
       summary: '',
+      time_of_day: 'day',
+      key_moment: '',
+      panel_count: null,
     }
     setScenes(comic.id, [...comic.scenes, scene])
     setEditingScene(scene.id)
@@ -193,6 +197,18 @@ function Studio({ comic }: { comic: Comic }) {
     if (editing) updateScene({ ...editing, background_id: placeId })
     else if (comic.scenes.length < MAX_SCENES) addScene(placeId)
   }
+
+  // A place just described never replaces a scene's place (Phase 8): it starts a new scene when
+  // there's room, and otherwise waits in the library.
+  const placeCreated = (placeId: string) => {
+    if (comic.scenes.length < MAX_SCENES) {
+      addScene(placeId)
+      return
+    }
+    toast.success(`Your new place is in the library! Your story has ${MAX_SCENES} scenes, the most: edit a scene to use it.`)
+  }
+  const shares = sceneShares(comic.panel_count, comic.scenes.length, comic.scenes.map((s) => s.panel_count))
+  const fits = sharesFit(comic.panel_count, comic.scenes)
 
   return (
     <>
@@ -253,7 +269,7 @@ function Studio({ comic }: { comic: Comic }) {
               {note?.kind === 'scenes' && (
                 <PlanNoteBox note={note} busy={planning !== null} onTryAgain={() => void runPlan('scenes', true)} />
               )}
-              <BackgroundLibrary usedIds={comic.scenes.map((s) => s.background_id)} onPick={pickPlace} />
+              <BackgroundLibrary usedIds={comic.scenes.map((s) => s.background_id)} onPick={pickPlace} onCreated={placeCreated} />
               <div className="flex flex-col gap-3">
                 <h2 className="m-0 font-display text-[30px] tracking-[1px]">Scenes</h2>
                 {comic.scenes.length === 0 && (
@@ -272,6 +288,7 @@ function Studio({ comic }: { comic: Comic }) {
                     allPlaces={allPlaces}
                     allCast={allCast}
                     editing={editingScene === scene.id}
+                    share={shares[i]}
                     onEdit={() => setEditingScene(editingScene === scene.id ? null : scene.id)}
                     onChange={updateScene}
                     onMove={(stepBy) => setScenes(comic.id, moveScene(comic.scenes, i, stepBy))}
@@ -285,6 +302,11 @@ function Studio({ comic }: { comic: Comic }) {
                 >
                   + Add scene {comic.scenes.length >= MAX_SCENES && `(${MAX_SCENES} is the most)`}
                 </EmptySlot>
+                {!fits && (
+                  <FieldMessage
+                    message={`Your scenes' panels don't add up to ${comic.panel_count}. Change a scene's number of panels, or pick “Share them out”.`}
+                  />
+                )}
               </div>
             </div>
           )}
@@ -322,6 +344,7 @@ function Studio({ comic }: { comic: Comic }) {
                           looks={comic.looks}
                           place={allPlaces.find((p) => p.id === panel.background_id)}
                           cast={allCast}
+                          comicCast={pickedCast(comic, allCast)}
                           editing={editingPanel === panel.id}
                           onEdit={() => setEditingPanel(editingPanel === panel.id ? null : panel.id)}
                           onChange={(fn) => updatePanel(comic.id, panel.id, fn)}
@@ -388,7 +411,7 @@ function Studio({ comic }: { comic: Comic }) {
             onUseSpelling={(synopsis) => update(comic.id, { synopsis })}
             onUseTitle={(title) => {
               const scene = editing ?? comic.scenes[0]
-              if (scene) updateScene({ ...scene, summary: `${title}: ${scene.summary}`.slice(0, 200) })
+              if (scene) updateScene({ ...scene, summary: `${title}: ${scene.summary}`.slice(0, 300) })
             }}
           />
           <SafetyNote />

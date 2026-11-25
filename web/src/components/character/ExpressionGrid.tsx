@@ -1,6 +1,6 @@
 import { cn } from '@/lib/cn'
 import { EXPRESSION_LABEL } from '@/lib/labels'
-import { EXPRESSIONS, type Character, type Expression } from '@/types'
+import { SHEET_EXPRESSIONS, type Character, type Expression } from '@/types'
 import { CharacterAvatar } from './CharacterAvatar'
 
 interface ExpressionGridProps {
@@ -15,7 +15,7 @@ export function ExpressionGrid({ character, selected, onSelect }: ExpressionGrid
     <div className="flex flex-col gap-2.5">
       <h2 className="m-0 font-display text-h3">Expressions</h2>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(96px,1fr))] gap-2.5">
-        {EXPRESSIONS.map((e) => (
+        {SHEET_EXPRESSIONS.map((e) => (
           <button
             key={e}
             type="button"

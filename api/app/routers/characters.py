@@ -266,7 +266,7 @@ def unlock_character(character_id: str, session: SessionDep, user: UserDep) -> C
 @router.post("/{character_id}/copy", status_code=201)
 def copy_character(character_id: str, session: SessionDep, user: UserDep) -> CharacterRead:
     """Make it mine: copies a starter character into the kid's own cast as an editable draft.
-    The copy counts toward their 3 characters (cast_full still applies)."""
+    The copy counts toward their own characters (cast_full still applies)."""
     source = get_character(session, user, character_id)
     if not source.starter:
         raise invalid("Only starter characters can be copied. This one is already yours!")

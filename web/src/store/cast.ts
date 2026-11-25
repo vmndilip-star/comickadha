@@ -32,8 +32,9 @@ interface CastState {
   insert: (character: Character) => void
   /** Updates the character on screen now and autosaves it after a 600ms pause. */
   update: (id: string, patch: CharacterPatch) => void
-  /** Locking starts the sheet-drawing job; unlocking goes back to editing. */
-  setLocked: (id: string, locked: boolean) => Promise<void>
+  /** Locking starts the sheet-drawing job; unlocking goes back to editing. False if it failed
+   * (the kid has been told). */
+  setLocked: (id: string, locked: boolean) => Promise<boolean>
   /** Nudges where the face goes on one pose (autosaved). */
   /** Reconnects to sheets still being drawn (after a refresh or coming back to the page). */
   resumeJobs: () => void
@@ -129,7 +130,7 @@ export const useCastStore = create<CastState>()((set, get) => {
       try {
         if (!locked) {
           replace(await api.unlockCharacter(id))
-          return
+          return true
         }
         // Save any typing first, so the sheet is drawn from what the kid sees.
         await useSaveStore.getState().flush(characterSaveKey(id))
@@ -140,8 +141,10 @@ export const useCastStore = create<CastState>()((set, get) => {
           ),
         }))
         watchSheet(id, started.job_id)
+        return true
       } catch (error) {
         toast.error(error)
+        return false
       }
     },
 

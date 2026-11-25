@@ -23,6 +23,7 @@ REQUIRED: dict[str, set[str] | None] = {
     "buddy_name_scene": set(),
     "image_safety": set(),
     "background_no_text": set(),
+    "background_time": {"time", "light"},
 }
 
 _cache: dict[str, str] = {}

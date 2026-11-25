@@ -9,6 +9,8 @@ import { Pill } from '@/components/ui/Pill'
 import { TextArea } from '@/components/ui/TextArea'
 import { TextField } from '@/components/ui/TextField'
 import { TRAIT_LABEL } from '@/lib/labels'
+import { canRedesign, needsNewVersion } from '@/lib/sheet'
+import { useCastStore } from '@/store/cast'
 import { useLabStore } from '@/store/lab'
 import { toast } from '@/store/toast'
 import type { Character, HelperInfo, Ideas, Suggestion } from '@/types'
@@ -34,7 +36,13 @@ export function BuddyHelper({ character, builder, onName }: BuddyHelperProps) {
   const [ideas, setIdeas] = useState<Ideas | null>(null)
   const [pendingDrawing, setPendingDrawing] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const setLocked = useCastStore((s) => s.setLocked)
   const disabled = builder.disabled || busy !== null
+  // A locked character of the kid's own can still get a new look from Meta: it is unlocked as a
+  // new version once a look comes back. Name ideas still need it unlocked.
+  const redesign = canRedesign(character)
+  const lookLocked = builder.disabled && !redesign
+  const lookDisabled = lookLocked || busy !== null
 
   useEffect(() => {
     builderApi.getHelperInfo().then(setInfo, () => setInfo(null))
@@ -51,22 +59,26 @@ export function BuddyHelper({ character, builder, onName }: BuddyHelperProps) {
     }
   }
 
-  const applySuggestion = (s: Suggestion) => {
+  const applySuggestion = async (s: Suggestion) => {
+    // Asked first, unlocked after: a description Meta can't use never unlocks anything.
+    const newVersion = needsNewVersion(character, s.spec)
+    if (newVersion && !(await setLocked(character.id, false))) return
     apply(character.id, s.spec)
     const unmatched = s.unmatched.length && !s.reply.includes(s.unmatched[0]!) ? ` (Can't draw yet: ${s.unmatched.join(', ')}.)` : ''
-    say(`${s.reply}${unmatched}`, 'helper', s.label)
+    const relock = newVersion ? ` Lock ${character.name} again to use the new look in comics.` : ''
+    say(`${s.reply}${unmatched}${relock}`, 'helper', s.label)
     setNames(s.name_ideas)
     setIdeas(null)
   }
 
   const describe = () =>
     run('describe', async () => {
-      applySuggestion(await builderApi.describe({ text: text.trim(), spec: builder.spec }))
+      await applySuggestion(await builderApi.describe({ text: text.trim(), spec: builder.spec }))
     })
 
   const surprise = () =>
     run('surprise', async () => {
-      applySuggestion(await builderApi.surprise({ spec: builder.spec }))
+      await applySuggestion(await builderApi.surprise({ spec: builder.spec }))
     })
 
   const askIdeas = () =>
@@ -79,7 +91,7 @@ export function BuddyHelper({ character, builder, onName }: BuddyHelperProps) {
 
   const sendDrawing = (image: string) =>
     run('drawing', async () => {
-      applySuggestion(await builderApi.fromDrawing({ image, spec: builder.spec }))
+      await applySuggestion(await builderApi.fromDrawing({ image, spec: builder.spec }))
     })
 
   const pickDrawing = async (file: File | undefined) => {
@@ -104,26 +116,32 @@ export function BuddyHelper({ character, builder, onName }: BuddyHelperProps) {
         {info && <span className="text-[12px] font-extrabold text-muted">{info.label}</span>}
       </div>
 
+      {redesign && (
+        <p className="m-0 text-label font-bold text-muted">
+          {character.name} is locked. Describe a new look and Meta will redesign {character.name} as a new version. Finished comics
+          keep the old look.
+        </p>
+      )}
       <TextArea
         label="Describe your character"
         rows={2}
         maxLength={300}
         value={text}
-        disabled={builder.disabled}
+        disabled={lookLocked}
         placeholder="A brave girl with curly red hair and a cape"
         onChange={(e) => setText(e.target.value)}
       />
       <div className="flex flex-wrap gap-2">
-        <Button variant="primary" size="sm" disabled={disabled || !text.trim()} onClick={() => void describe()}>
+        <Button variant="primary" size="sm" disabled={lookDisabled || !text.trim()} onClick={() => void describe()}>
           {busy === 'describe' ? 'Thinking…' : 'Make it!'}
         </Button>
-        <Button variant="accent" size="sm" disabled={disabled} onClick={() => void surprise()}>
+        <Button variant="accent" size="sm" disabled={lookDisabled} onClick={() => void surprise()}>
           {busy === 'surprise' ? 'Shuffling…' : 'Surprise me!'}
         </Button>
         <Button size="sm" disabled={disabled} onClick={() => void askIdeas()}>
           {busy === 'ideas' ? 'Thinking…' : 'Name ideas'}
         </Button>
-        <Button size="sm" disabled={disabled} onClick={() => fileRef.current?.click()}>
+        <Button size="sm" disabled={lookDisabled} onClick={() => fileRef.current?.click()}>
           {busy === 'drawing' ? 'Looking…' : 'From my drawing'}
         </Button>
         <input

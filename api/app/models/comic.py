@@ -37,9 +37,14 @@ class Scene(SQLModel, table=True):
     idx: int
     background_id: str = Field(foreign_key="background.id")
     character_ids: list[str] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
-    summary: str = Field(default="", max_length=200)
+    summary: str = Field(default="", max_length=300)
     # When the kid last changed it (None: as the planner made it). Re-planning asks first.
     edited_at: datetime | None = None
+    # Phase 8. When it happens ("day" when None), the moment that must become a panel, and the
+    # panels the kid gave it (None: an even share of the comic's panels).
+    time_of_day: str | None = Field(default=None, max_length=8)
+    key_moment: str | None = Field(default=None, max_length=160)
+    panel_count: int | None = None
 
 
 class Panel(SQLModel, table=True):
@@ -74,3 +79,14 @@ class Panel(SQLModel, table=True):
     # When the kid last changed it (None: as the planner made it). Re-planning keeps edited panels.
     edited_at: datetime | None = None
     updated_at: datetime = Field(default_factory=utcnow)
+    # Phase 8. [{id, state, position | held_by}]: story objects drawn as their own layer.
+    props: list[dict[str, Any]] | None = Field(default=None, sa_column=Column(JSON))
+    # The version of the place it draws (pinned like a character's sheet_version, so repainting a
+    # place never changes an old comic). None only before the first startup that added it.
+    place_version: int | None = None
+    size: str | None = Field(default=None, max_length=8)  # normal (None), wide or splash
+    # The size it is shown and drawn at on its page (services/pages.py: a normal panel alone in
+    # its row is shown wide...). Its bubbles are laid out and its art drawn at this size.
+    shown_size: str | None = Field(default=None, max_length=8)
+    time_of_day: str | None = Field(default=None, max_length=8)  # day (None), sunset or night
+    key_moment: bool | None = None  # the panel that shows its scene's key moment

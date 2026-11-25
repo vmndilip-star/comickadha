@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from app.schemas.common import HexColor, LockStatus, PlaceName, UtcDatetime
+from app.schemas.common import HexColor, LockStatus, PlaceName, TimeOfDay, UtcDatetime
 
 
 class BackgroundCreate(BaseModel):
@@ -30,5 +30,8 @@ class BackgroundRead(BaseModel):
     last_job_id: str | None
     # Deleted places still resolve by id for comics that use them.
     deleted: bool = False
+    # The times of day this version has real pictures for (Phase 8): "day", and "sunset" and
+    # "night" once painted (until then panels tint the day picture).
+    times: list[TimeOfDay] = ["day"]
     created_at: UtcDatetime
     updated_at: UtcDatetime

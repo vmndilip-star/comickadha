@@ -124,7 +124,7 @@ def test_bubble_tails_point_at_the_speakers_head() -> None:
 
 
 def test_long_text_shrinks_then_grows_the_bubble() -> None:
-    width, height = 0.42 * stage.PANEL_W, bubbles.MIN_H * stage.PANEL_H
+    width, height = bubbles.SPEECH_W, bubbles.MIN_H  # units
     short = lettering.fit("Hi!", "talk", width, height)
     medium = lettering.fit(
         "We have to find the mango before the festival starts!", "talk", width, height
@@ -145,7 +145,7 @@ def test_narrator_boxes_stay_on_top() -> None:
         {"a": KID},
     )
     talk, narrator = laid  # the kid's order is kept
-    assert narrator["box"][1] == bubbles.MARGIN and narrator["tail"] is None
+    assert narrator["box"][1] == bubbles.MARGIN_Y / stage.PANEL_H and narrator["tail"] is None
     assert talk["box"][1] >= narrator["box"][1] + narrator["box"][3]
 
 
@@ -209,7 +209,8 @@ def test_a_shout_too_long_for_its_box_makes_the_burst_taller() -> None:
     short = lettering.fit(text, "shout", 336, 40)
 
     assert short.height > 40
-    assert bubbles.fitted_height(text, "shout", 0.42) > bubbles.MIN_H  # the layout grows it too
+    grown = bubbles.fitted_height(text, "shout", 0.42)
+    assert grown > bubbles.MIN_H / stage.PANEL_H  # the layout grows it too
 
 
 def test_final_png_letters_a_long_shout() -> None:
@@ -244,4 +245,5 @@ def test_a_shout_burst_stays_inside_the_panel() -> None:
     x, _y, w, _h = laid[0]["box"]
 
     spikes = w * (lettering.BURST_TIPS[0] - 1) / 2
-    assert x - spikes >= bubbles.MARGIN - 1e-9 and x + w + spikes <= 1 - bubbles.MARGIN + 1e-9
+    margin = bubbles.MARGIN_X / stage.PANEL_W
+    assert x - spikes >= margin - 1e-9 and x + w + spikes <= 1 - margin + 1e-9

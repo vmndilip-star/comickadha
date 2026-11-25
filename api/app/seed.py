@@ -597,7 +597,7 @@ def main() -> None:
     storage = LocalStorage(settings.media_dir)
     with Session(engine) as session:
         seed(session, storage, MockImageProvider(), reset=True)
-    print("Reset Comickatha: 1 kid, 3 characters, 3 places, 3 comics, 12 starter characters.")
+    print("Reset Comickadha: 1 kid, 3 characters, 3 places, 3 comics, 12 starter characters.")
 
 
 if __name__ == "__main__":

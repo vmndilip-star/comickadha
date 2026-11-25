@@ -6,13 +6,12 @@ import re
 import threading
 import time
 from dataclasses import replace
-from typing import Any, get_args
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.providers.meta import MetaLLMProvider
-from app.schemas.common import PanelCount
 from app.schemas.studio import PanelPlan, PlannedBubble, PlannedCharacter, PlannedPanel
 from app.services import safety
 from app.services.ai_limits import CLASSIFIER_BATCH, PANELS_PER_CALL, PLAN_PARTS_AT_ONCE
@@ -34,6 +33,7 @@ from app.services.story_planner import (
     plan_parts,
     repair_dialogue,
     scene_shares,
+    scenes_for,
     split_into,
 )
 from tests.conftest import IDS, plan_panels, sse_events, wait_for_job
@@ -41,7 +41,8 @@ from tests.fakes import TEXT_MODEL, VISION_MODEL, FakeMeta, panel_parts, server_
 from tests.fakes import user_text as text_of
 from tests.test_make_comic import page_count
 
-COUNTS: list[int] = list(get_args(PanelCount))
+# The quick picks the Studio offers (any count from 4 to 30 works: Phase 8), and two odd ones.
+COUNTS: list[int] = [4, 6, 8, 10, 16, 20, 25, 30, 13, 29]
 STORY = (
     "Mira and Raju find a map in Grandma's kitchen. They follow it to the school garden and dig "
     "under the mango tree. A cheeky squirrel steals the map! They chase it, find the treasure and "
@@ -53,14 +54,14 @@ STORY = (
 
 
 def test_the_panel_counts_and_scene_counts() -> None:
-    assert COUNTS == [4, 6, 8, 10, 16, 20, 25, 30]
+    assert COUNTS[:8] == [4, 6, 8, 10, 16, 20, 25, 30]
     assert SCENES_FOR == {4: 2, 6: 3, 8: 4, 10: 3, 16: 4, 20: 5, 25: 7, 30: 8}
-    assert all(count / SCENES_FOR[count] <= 4 for count in COUNTS)  # about a scene per 4 panels
+    assert all(count / scenes_for(count) <= 5 for count in COUNTS)  # about a scene per 4 panels
 
 
 @pytest.mark.parametrize("count", COUNTS)
 def test_scene_shares_add_up_and_parts_cover_every_panel(count: int) -> None:
-    shares = scene_shares(count, SCENES_FOR[count])
+    shares = scene_shares(count, scenes_for(count))
     assert sum(shares) == count and min(shares) >= 1 and max(shares) - min(shares) <= 1
 
     parts = plan_parts(ctx(count))
@@ -112,7 +113,7 @@ def ctx(
     count: int, scene_count: int | None = None, cast: list[CastMember] | None = None
 ) -> StoryContext:
     cast = cast or [MIRA, RAJU, ZARA]
-    n = scene_count or SCENES_FOR[count]
+    n = scene_count or scenes_for(count)
     sentences = re.split(r"(?<=[.!?])\s+", STORY)
     scenes = [
         SceneInfo(
@@ -232,7 +233,7 @@ def long_comic(client: TestClient, count: int, cast: tuple[str, ...] = ("mira", 
     body = {"cast_ids": [IDS[c] for c in cast], "panel_count": count, "mood": "adventure"}
     assert client.patch(f"/api/comics/{comic_id}", json=body).status_code == 200
     scenes = client.post(f"/api/studio/{comic_id}/plan-scenes", json={})
-    assert scenes.status_code == 200 and len(scenes.json()["scenes"]) == SCENES_FOR[count]
+    assert scenes.status_code == 200 and len(scenes.json()["scenes"]) == scenes_for(count)
     return comic_id
 
 
@@ -267,7 +268,7 @@ def test_every_panel_count_plans_exactly_that_many_panels_with_meta(
     assert res.status_code == 200, res.json()
     assert (res.json()["source"], res.json()["fallback"]) == ("meta", False)
     assert len(res.json()["panels"]) == count
-    assert len(fake.calls_for("panel_plan")) == SCENES_FOR[count]  # one call a scene
+    assert len(fake.calls_for("panel_plan")) == scenes_for(count)  # one call a scene
     assert all(p["beat"].startswith("Beat ") for p in res.json()["panels"])
     parts = [d for _i, kind, d in res.events if kind == "scene_planned"]
     assert {d["source"] for d in parts} == {"meta"}  # each part says who made it
@@ -323,7 +324,8 @@ def test_a_refresh_during_planning_reconnects_and_keeps_planned_scenes(client: T
     assert wait_for_job(client, job_id)["status"] == "done"
     events = sse_events(client, job_id)  # a reconnect replays everything
     planned = [d["scene_id"] for _i, kind, d in events if kind == "scene_planned"]
-    assert sorted(planned) == sorted(s["id"] for s in scenes) and events[-1][1] == "done"
+    # Every scene is planned (and saved again if the comic-wide pass adds someone left out).
+    assert set(planned) == {s["id"] for s in scenes} and events[-1][1] == "done"
     later = sse_events(client, job_id, last_event_id=events[-3][0])
     assert [kind for _i, kind, _d in later] == [kind for _i, kind, _d in events[-2:]]
     final = client.get(f"/api/comics/{comic_id}").json()

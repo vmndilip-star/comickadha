@@ -85,6 +85,27 @@ def assemble(
     return sheet
 
 
+# A place at another time of day (Phase 8), made on this machine from the day picture: what the
+# mock painter shows, and what a panel draws until a real sunset or night picture is painted.
+TINTS = {
+    "sunset": ((255, 168, 92), (255, 214, 170), 0.92),  # sky colour, ground colour, brightness
+    "night": ((54, 66, 140), (70, 82, 150), 0.62),
+}
+
+
+def time_tint(image: Image.Image, time_of_day: str) -> Image.Image:
+    """The picture in sunset or night light: multiplied by a sky-to-ground colour, then dimmed."""
+    if time_of_day not in TINTS:
+        return image
+    sky, ground, light = TINTS[time_of_day]
+    rgb = image.convert("RGB")
+    width, height = rgb.size
+    top = Image.new("RGB", (1, 2), sky)
+    top.putpixel((0, 1), ground)
+    wash = top.resize((width, height), Image.Resampling.BILINEAR)
+    return ImageChops.multiply(rgb, wash).point(lambda v: round(v * light))
+
+
 def thumbnail(image: Image.Image, max_side: int) -> Image.Image:
     thumb = image.copy()
     thumb.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)

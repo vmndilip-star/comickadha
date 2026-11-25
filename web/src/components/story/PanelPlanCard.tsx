@@ -1,12 +1,36 @@
 import { useState } from 'react'
 import { Avatar } from '@/components/character/Avatar'
+import { CaptionField } from '@/components/comic/CaptionField'
+import { CastToggles } from '@/components/comic/CastToggles'
+import { PlaceBackdrop } from '@/components/comic/PlaceBackdrop'
+import { PropsEditor } from '@/components/comic/PropsEditor'
+import { SizePicker } from '@/components/comic/SizePicker'
+import { StageView } from '@/components/comic/StageView'
 import { FieldMessage } from '@/components/ui/FieldMessage'
 import { ThumbPicker } from '@/components/ui/ThumbPicker'
+import { aspectOf } from '@/lib/bubbles'
 import { cn } from '@/lib/cn'
 import { lookFor } from '@/lib/comic'
-import { BUBBLE_LABEL, EXPRESSION_LABEL, POSE_LABEL } from '@/lib/labels'
-import { blockedTypes, MAX_BUBBLE_WORDS, moveCharacter, speakerPatch, THINKING_HINT, thinkingNote, withPose, wordCount } from '@/lib/studio'
+import { BUBBLE_LABEL, EXPRESSION_LABEL, POSE_LABEL, POSITION_LABEL } from '@/lib/labels'
+import {
+  addToPanel,
+  ASLEEP_HINT,
+  asleepNote,
+  blockedTypes,
+  isAsleep,
+  limitWords,
+  MAX_BUBBLE_WORDS,
+  moveCharacter,
+  removeFromPanel,
+  setCaption,
+  speakerPatch,
+  THINKING_HINT,
+  thinkingNote,
+  withPose,
+  wordCount,
+} from '@/lib/studio'
 import { useFieldError } from '@/store/fieldErrors'
+import { usePropsStore } from '@/store/props'
 import {
   BUBBLE_TYPES,
   EXPRESSIONS,
@@ -29,20 +53,15 @@ interface PanelPlanCardProps {
   looks: Comic['looks']
   place: Background | undefined
   cast: Character[]
+  /** The comic's own cast: anyone in it can be put in the panel (Phase 8). */
+  comicCast?: Character[]
   editing: boolean
   onEdit: () => void
   onChange: (update: (panel: Panel) => Panel) => void
 }
 
-const STAND: Record<PanelCharacter['position'], string> = {
-  left: 'left-[4%]',
-  center: 'left-1/2 -translate-x-1/2',
-  right: 'right-[4%]',
-}
-const POSITION_LABEL: Record<PanelCharacter['position'], string> = { left: 'Left', center: 'Middle', right: 'Right' }
-
 /** One planned panel: the real characters (live <Avatar>) in their pose and face over the place. */
-export function PanelPlanCard({ number, panel, looks, place, cast, editing, onEdit, onChange }: PanelPlanCardProps) {
+export function PanelPlanCard({ number, panel, looks, place, cast, comicCast = [], editing, onEdit, onChange }: PanelPlanCardProps) {
   const thumb = place?.thumb_url ?? place?.image_url
   const nameOf = (id: string) => (id === NARRATOR ? 'Narrator' : (cast.find((c) => c.id === id)?.name ?? 'Someone'))
   const drawn = panel.status === 'ready'
@@ -50,42 +69,35 @@ export function PanelPlanCard({ number, panel, looks, place, cast, editing, onEd
   return (
     <article
       aria-label={`Panel ${number}`}
-      className={cn('flex flex-col overflow-hidden rounded-button border-3 border-ink bg-surface', editing && 'col-span-full')}
+      className={cn(
+        'flex flex-col overflow-hidden rounded-button border-3 border-ink bg-surface',
+        (editing || panel.shown_size !== 'normal') && 'col-span-full',
+      )}
     >
       <div
-        className="relative aspect-[4/3] w-full overflow-hidden border-b-3 border-ink"
-        style={{ backgroundColor: place?.tint }}
+        className="@container relative w-full overflow-hidden border-b-3 border-ink"
+        style={{ backgroundColor: place?.tint, aspectRatio: aspectOf(panel.shown_size) }}
       >
-        {thumb && <img src={thumb} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover" draggable={false} />}
-        {panel.characters.map((pc) => {
-          const character = cast.find((c) => c.id === pc.id)
-          if (!character) return null
-          return (
-            <span key={pc.id} className={cn('absolute bottom-0 w-[38%]', STAND[pc.position])}>
-              <Avatar
-                spec={lookFor(looks, pc, character)}
-                pose={pc.pose}
-                expression={pc.expression}
-                size="100%"
-                className="aspect-square"
-                label={`${character.name}, ${POSE_LABEL[pc.pose].toLowerCase()}, ${EXPRESSION_LABEL[pc.expression].toLowerCase()}`}
-              />
-            </span>
-          )
-        })}
+        <PlaceBackdrop url={panel.place_url ?? thumb} tone={panel.place_url ? panel.place_tone : null} />
+        <StageView panel={panel} looks={looks} cast={cast} labelled />
         {panel.bubbles.map((b) => (
           <BubbleBox key={b.id} bubble={b} />
         ))}
         <span className="absolute bottom-1.5 left-1.5 rounded-md bg-ink px-2 py-0.5 text-[13px] font-extrabold text-white">
           Panel {number}
         </span>
-        <span
-          className={cn(
-            'absolute right-1.5 bottom-1.5 rounded-pill border-2 border-ink px-2 py-0.5 text-[12px] font-extrabold',
-            drawn ? 'bg-mint' : 'bg-surface',
+        <span className="absolute right-1.5 bottom-1.5 flex gap-1">
+          {panel.key_moment && (
+            <span className="rounded-pill border-2 border-ink bg-sun px-2 py-0.5 text-[12px] font-extrabold">Key moment</span>
           )}
-        >
-          {drawn ? 'Drawn' : 'Planned'}
+          {panel.shown_size !== 'normal' && (
+            <span className="rounded-pill border-2 border-ink bg-sky-tint px-2 py-0.5 text-[12px] font-extrabold">
+              {panel.shown_size === 'splash' ? 'Splash page' : 'Wide'}
+            </span>
+          )}
+          <span className={cn('rounded-pill border-2 border-ink px-2 py-0.5 text-[12px] font-extrabold', drawn ? 'bg-mint' : 'bg-surface')}>
+            {drawn ? 'Drawn' : 'Planned'}
+          </span>
         </span>
       </div>
       <div className="flex flex-col gap-2 px-3 py-2.5">
@@ -103,7 +115,7 @@ export function PanelPlanCard({ number, panel, looks, place, cast, editing, onEd
         >
           {editing ? 'Done' : 'Edit panel'}
         </button>
-        {editing && <PanelEditor panel={panel} looks={looks} cast={cast} onChange={onChange} nameOf={nameOf} />}
+        {editing && <PanelEditor panel={panel} looks={looks} cast={cast} comicCast={comicCast} onChange={onChange} nameOf={nameOf} />}
       </div>
     </article>
   )
@@ -132,23 +144,43 @@ interface PanelEditorProps {
   panel: Panel
   looks: Comic['looks']
   cast: Character[]
+  comicCast: Character[]
   onChange: (update: (panel: Panel) => Panel) => void
   nameOf: (id: string) => string
 }
 
-function PanelEditor({ panel, looks, cast, onChange, nameOf }: PanelEditorProps) {
+function PanelEditor({ panel, looks, cast, comicCast, onChange, nameOf }: PanelEditorProps) {
   const [note, setNote] = useState<string | null>(null)
+  const library = usePropsStore((s) => s.props)
   const setBubble = (id: string, patch: Partial<Bubble>) =>
     onChange((p) => ({ ...p, bubbles: p.bubbles.map((b) => (b.id === id ? { ...b, ...patch } : b)) }))
   const setCharacter = (id: string, patch: Partial<PanelCharacter>) =>
     onChange((p) => ({ ...p, characters: p.characters.map((c) => (c.id === id ? { ...c, ...patch } : c)) }))
   const positionError = useFieldError('characters')
+  const propsError = useFieldError('props')
 
   return (
     <div className="flex flex-col gap-4 border-t-3 border-dashed border-ink pt-3">
-      {panel.bubbles.map((b, i) => (
-        <BubbleEditor key={b.id} index={i} bubble={b} panel={panel} nameOf={nameOf} onChange={(patch) => setBubble(b.id, patch)} />
-      ))}
+      <SizePicker size={panel.size} shown={panel.shown_size} onChange={(size) => onChange((p) => ({ ...p, size }))} />
+      {comicCast.length > 0 && (
+        <CastToggles
+          characters={panel.characters}
+          cast={comicCast}
+          onAdd={(character) => onChange((p) => addToPanel(p, character))}
+          onRemove={(id) => onChange((p) => removeFromPanel(p, id))}
+        />
+      )}
+      <CaptionField
+        inputId={`caption-${panel.id}`}
+        bubbles={panel.bubbles}
+        full={panel.bubbles.length >= 3}
+        onChange={(text) => onChange((p) => setCaption(p, text))}
+      />
+      {panel.bubbles.map((b, i) =>
+        b.type === 'narrator' ? null : (
+          <BubbleEditor key={b.id} index={i} bubble={b} panel={panel} nameOf={nameOf} onChange={(patch) => setBubble(b.id, patch)} />
+        ),
+      )}
       {panel.characters.map((pc) => {
         const character = cast.find((c) => c.id === pc.id)
         if (!character) return null
@@ -169,7 +201,8 @@ function PanelEditor({ panel, looks, cast, onChange, nameOf }: PanelEditorProps)
               selected={pc.pose}
               onSelect={(pose) => {
                 const next = pose as PanelCharacter['pose']
-                setNote(withPose(panel, pc.id, next).switched ? thinkingNote(character.name) : null)
+                const switched = withPose(panel, pc.id, next).switched
+                setNote(switched ? (next === 'asleep' ? asleepNote(character.name) : thinkingNote(character.name)) : null)
                 onChange((p) => withPose(p, pc.id, next).panel)
               }}
               render={(p) => <Avatar spec={look} pose={p} expression={pc.expression} size={48} />}
@@ -194,6 +227,14 @@ function PanelEditor({ panel, looks, cast, onChange, nameOf }: PanelEditorProps)
         )
       })}
       <FieldMessage message={positionError} />
+      <PropsEditor
+        props={panel.props}
+        characters={panel.characters}
+        library={library}
+        nameOf={nameOf}
+        onChange={(props) => onChange((p) => ({ ...p, props }))}
+      />
+      <FieldMessage message={propsError} />
       {note && (
         <p role="status" className="m-0 rounded-card border-3 border-ink bg-sky-tint p-2.5 text-label font-bold">
           {note}
@@ -217,6 +258,7 @@ function BubbleEditor({
   onChange: (patch: Partial<Bubble>) => void
 }) {
   const error = useFieldError(`bubbles.${bubble.id}.text`)
+  const [cut, setCut] = useState(false)
   const words = wordCount(bubble.text)
   const speakers = panel.characters.map((c) => c.id)
   const blocked = blockedTypes(panel, bubble.speaker)
@@ -236,7 +278,7 @@ function BubbleEditor({
             type="button"
             aria-pressed={bubble.type === type}
             disabled={blocked.includes(type)}
-            title={blocked.includes(type) ? THINKING_HINT : undefined}
+            title={blocked.includes(type) ? (isAsleep(panel, bubble.speaker) ? ASLEEP_HINT : THINKING_HINT) : undefined}
             onClick={() => setType(type)}
             className={cn(
               'min-h-10 rounded-pill border-3 border-ink px-3 text-[14px] font-extrabold disabled:opacity-40',
@@ -247,7 +289,7 @@ function BubbleEditor({
           </button>
         ))}
       </div>
-      {blocked.length > 0 && <p className="m-0 text-label font-bold text-muted">{THINKING_HINT}</p>}
+      {blocked.length > 0 && <p className="m-0 text-label font-bold text-muted">{isAsleep(panel, bubble.speaker) ? ASLEEP_HINT : THINKING_HINT}</p>}
       {bubble.type !== 'narrator' && speakers.length > 1 && (
         <div role="group" aria-label={`Who says bubble ${index + 1}`} className="flex flex-wrap gap-1.5">
           {speakers.map((id) => (
@@ -255,8 +297,10 @@ function BubbleEditor({
               key={id}
               type="button"
               aria-pressed={bubble.speaker === id}
+              disabled={isAsleep(panel, id)}
+              title={isAsleep(panel, id) ? ASLEEP_HINT : undefined}
               onClick={() => onChange(speakerPatch(panel, bubble, id))}
-              className={cn('min-h-10 rounded-pill border-2 border-ink px-3 text-[14px] font-bold', bubble.speaker === id ? 'bg-mint' : 'bg-surface')}
+              className={cn('min-h-10 rounded-pill border-2 border-ink px-3 text-[14px] font-bold disabled:opacity-40', bubble.speaker === id ? 'bg-mint' : 'bg-surface')}
             >
               {nameOf(id)}
             </button>
@@ -270,14 +314,15 @@ function BubbleEditor({
         id={inputId}
         value={bubble.text}
         maxLength={120}
-        aria-invalid={error || words > MAX_BUBBLE_WORDS ? true : undefined}
-        onChange={(e) => onChange({ text: e.target.value })}
+        aria-invalid={error ? true : undefined}
+        onChange={(e) => {
+          const limited = limitWords(e.target.value)
+          setCut(limited.cut)
+          onChange({ text: limited.text })
+        }}
         className="min-h-12 rounded-button border-3 border-ink bg-surface px-3 font-semibold"
       />
-      {words > MAX_BUBBLE_WORDS && !error && (
-        <p className="m-0 text-label font-bold text-muted">Short bubbles are easier to read: try {MAX_BUBBLE_WORDS} words or fewer.</p>
-      )}
-      <FieldMessage message={error} />
+      <FieldMessage message={error ?? (cut ? `${MAX_BUBBLE_WORDS} words is the most for one bubble.` : undefined)} />
     </div>
   )
 }

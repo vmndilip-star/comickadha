@@ -7,7 +7,8 @@ from PIL import Image, ImageChops
 
 from app.avatar import rig
 from app.avatar.render import render_face, render_pose
-from app.schemas.common import EXPRESSIONS, POSES
+from app.schemas.common import SHEET_EXPRESSIONS as EXPRESSIONS
+from app.schemas.common import SHEET_POSES as POSES
 from app.schemas.manifest import CharacterManifest
 from app.services import imaging
 from app.services.builder_sheet import STYLE, as_fractions

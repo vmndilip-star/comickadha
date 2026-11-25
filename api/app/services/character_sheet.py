@@ -16,7 +16,8 @@ from sqlmodel import Session
 
 from app.models import Character
 from app.models.base import utcnow
-from app.schemas.common import EXPRESSIONS, POSES
+from app.schemas.common import SHEET_EXPRESSIONS as EXPRESSIONS
+from app.schemas.common import SHEET_POSES as POSES
 from app.schemas.manifest import BodySheet, Box, CharacterManifest, FaceSheet, HeadBox
 from app.services import imaging, looks
 from app.services.jobs import JobContext, JobFailed

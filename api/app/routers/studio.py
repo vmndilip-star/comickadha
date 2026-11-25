@@ -52,6 +52,19 @@ PLAN_FAILED = (
 )
 
 
+def scene_info(s: Scene) -> SceneInfo:
+    """A saved scene as the planner sees it: exactly as the kid set it (Phase 8)."""
+    return SceneInfo(
+        s.id,
+        s.background_id,
+        tuple(s.character_ids),
+        s.summary,
+        time_of_day=s.time_of_day or "day",
+        key_moment=s.key_moment or "",
+        panel_count=s.panel_count,
+    )
+
+
 def _cast(session: Session, comic: Comic) -> tuple[list[CastMember], list[str]]:
     """(locked cast members, names of cast members left out because they aren't locked)."""
     if not comic.cast_ids:
@@ -220,6 +233,8 @@ def _save_scenes(
             background_id=s.background_id,
             character_ids=list(s.character_ids),
             summary=s.summary,
+            time_of_day=None if s.time_of_day == "day" else s.time_of_day,
+            key_moment=s.key_moment.strip() or None,
         )
         for i, s in enumerate(plan.scenes)
     ]
@@ -275,6 +290,19 @@ def plan_panels(
             "panels, or take out a scene.",
             "scenes",
         )
+    chosen = sum(s.panel_count or 0 for s in scenes)
+    others = sum(1 for s in scenes if not s.panel_count)
+    if chosen + others > comic.panel_count or (not others and chosen != comic.panel_count):
+        raise invalid(
+            f"Your scenes ask for {chosen} panels, but the comic has {comic.panel_count}"
+            + (
+                f" and {others} more scene{'s' if others != 1 else ''} need at least 1 each"
+                if others
+                else ""
+            )
+            + ". Change the number of panels, or a scene's.",
+            "scenes",
+        )
     cast_ids = {c.id for c in cast}
     place_ids = {p.id for p in places}
     for i, s in enumerate(scenes, start=1):
@@ -302,7 +330,7 @@ def plan_panels(
         comic.panel_count,
         cast,
         places,
-        [SceneInfo(s.id, s.background_id, tuple(s.character_ids), s.summary) for s in scenes],
+        [scene_info(s) for s in scenes],
     )
     checked = _check_story(session, user, comic, story_planner.planner_fields(ctx), llm)
     ctx.places = _usable_places(places, checked)
@@ -355,7 +383,15 @@ def plan_panels(
 
     job = jobs.create("panel_plan", comic.id)
     reveal = request.app.state.settings.plan_reveal_seconds
-    work = partial(run_plan_job, job=plan, engine=engine, llm=llm, read=read, reveal_seconds=reveal)
+    work = partial(
+        run_plan_job,
+        job=plan,
+        engine=engine,
+        llm=llm,
+        read=read,
+        reveal_seconds=reveal,
+        storage=storage,
+    )
     jobs.start(job.id, work)
     return JobStarted(job_id=job.id, kind="panel_plan", target_id=comic.id)
 

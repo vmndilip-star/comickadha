@@ -95,7 +95,7 @@ function CharacterLab({ character, characters }: { character: Character; charact
         subtitle={`Design up to ${MAX_CAST} characters. Lock them so they look the same in every panel.`}
       >
         <span className="rounded-pill border-3 border-ink bg-surface px-3.5 py-2 font-extrabold">
-          {lockedCount} of {MAX_CAST} locked
+          {lockedCount} of {characters.length} locked
         </span>
       </PageHeader>
 

@@ -18,6 +18,7 @@ from typing import Any
 
 from sqlmodel import Session
 
+from app.moods import mood_info, mood_line
 from app.prompts import render
 from app.providers.llm import LLMProvider
 from app.schemas.studio import BuddyAction, BuddyReply, Spark, SpellingChange
@@ -78,13 +79,6 @@ SPELLINGS: dict[str, str] = {
     "mistery": "mystery", "adventur": "adventure", "spooki": "spooky", "planit": "planet",
 }  # fmt: skip
 
-TITLE_WORDS = {
-    "mystery": ["Missing", "Secret", "Mysterious"],
-    "funny": ["Silly", "Wobbly", "Giggly"],
-    "adventure": ["Great", "Daring", "Amazing"],
-    "spooky": ["Spooky", "Midnight", "Shivery"],
-}
-
 
 @dataclass(frozen=True)
 class BuddyContext:
@@ -116,24 +110,7 @@ def offline_idea(text: str, ctx: BuddyContext) -> Raw:
     name = ctx.cast_names[0] if ctx.cast_names else "your hero"
     other = ctx.cast_names[1] if len(ctx.cast_names) > 1 else "a new friend"
     place = ctx.place_names[0] if ctx.place_names else "the first place"
-    by_mood = {
-        "mystery": [
-            f"What clue could {name} find first?",
-            f"Who might be hiding a secret at {place}?",
-        ],
-        "funny": [
-            f"What silly thing could go wrong for {name}?",
-            "What could make the ending funny?",
-        ],
-        "adventure": [
-            f"What big challenge does {name} face?",
-            f"What could {name} discover at {place}?",
-        ],
-        "spooky": [
-            f"What spooky sound could {name} hear?",
-            f"Who could help {name} feel brave?",
-        ],
-    }
+    by_mood = [q.format(name=name, place=place) for q in mood_info(ctx.mood).questions]
     general = [
         f"What does {name} want most of all?",
         f"How could {name} and {other} work together?",
@@ -142,7 +119,7 @@ def offline_idea(text: str, ctx: BuddyContext) -> Raw:
         "How does your story end: a laugh, a hug or a new mystery?",
     ]
     seed = zlib.crc32(f"{text}|{ctx.title}".encode())
-    questions = _pick(by_mood.get(ctx.mood, []), seed, 1) + _pick(general, seed, 1)
+    questions = _pick(by_mood, seed, 1) + _pick(general, seed, 1)
     return {"questions": questions, "reply": "Here are some questions to think about:"}
 
 
@@ -176,7 +153,7 @@ def offline_spelling(text: str) -> Raw:
 
 
 def offline_name_scene(text: str, ctx: BuddyContext) -> Raw:
-    words = TITLE_WORDS.get(ctx.mood, TITLE_WORDS["adventure"])
+    words = mood_info(ctx.mood).title_words
     place = next((p for p in ctx.place_names if p.lower() in text.lower()), None)
     noun = (place or (ctx.place_names[0] if ctx.place_names else "Day")).split()[-1].title()
     name = next((n for n in ctx.cast_names if n.lower() in text.lower()), None) or (
@@ -257,7 +234,7 @@ def _prompt(text: str, ctx: BuddyContext) -> str:
     return "\n".join(
         [
             f"Title: {ctx.title or '(no title yet)'}",
-            f"Mood: {ctx.mood}",
+            f"Mood: {mood_line(ctx.mood)}",
             f"Characters: {', '.join(ctx.cast_names) or 'none yet'}",
             f"Places: {', '.join(ctx.place_names) or 'none yet'}",
             f"The child's text: {text!r}",

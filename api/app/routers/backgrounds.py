@@ -51,6 +51,7 @@ def to_read(bg: Background, storage: Storage) -> BackgroundRead:
             "image_url": storage.url(bg.image_key) if bg.image_key else None,
             "thumb_url": storage.url(bg.thumb_key) if bg.thumb_key else None,
             "deleted": bg.deleted_at is not None,
+            "times": image_gen.painted_times(storage, bg) if bg.image_key else ["day"],
         }
     )
 
@@ -130,6 +131,91 @@ def _busy(bg: Background) -> ApiError:
     )
 
 
+@router.post("/{background_id}/repaint", status_code=202, responses={503: {"model": ErrorBody}})
+def repaint_background(
+    background_id: str,
+    session: SessionDep,
+    user: UserDep,
+    engine: EngineDep,
+    jobs: JobsDep,
+    provider: ProviderDep,
+    storage: StorageDep,
+    llm: LLMDep,
+) -> JobStarted:
+    """Paints a locked place again as a new version (Phase 8). Panels pin the version they were
+    planned with, so old comics keep their picture; new plans use the new one. The place stays
+    usable meanwhile only for drawing what is already planned; if painting fails it stays
+    locked with the picture it had."""
+    bg = get_background(session, user, background_id)
+    if bg.status == "generating" and bg.last_job_id:
+        return JobStarted(job_id=bg.last_job_id, kind="background_image", target_id=bg.id)
+    if bg.status != "locked":
+        raise ApiError(409, "invalid", f"{bg.name} isn't painted yet. Tap Paint it again!")
+    return _paint(session, user, engine, jobs, provider, storage, llm, bg, was_locked=True)
+
+
+@router.post("/{background_id}/times", status_code=202, responses={503: {"model": ErrorBody}})
+def paint_times(
+    background_id: str,
+    session: SessionDep,
+    user: UserDep,
+    engine: EngineDep,
+    jobs: JobsDep,
+    provider: ProviderDep,
+    storage: StorageDep,
+    llm: LLMDep,
+) -> JobStarted:
+    """Paints the sunset and night pictures a locked place's version is missing (Phase 8: places
+    painted before have only a day picture). The same words check as painting; the version stays,
+    so comics keep their pictures and simply get the new light."""
+    bg = get_background(session, user, background_id)
+    if bg.status == "generating" and bg.last_job_id:
+        return JobStarted(job_id=bg.last_job_id, kind="background_image", target_id=bg.id)
+    if bg.status != "locked" or not bg.image_key:
+        raise ApiError(409, "invalid", f"{bg.name} isn't painted yet. Tap Paint it again!")
+    _words_ok(session, user, bg, provider, llm)
+    job = jobs.create("background_image", bg.id)
+    spec = image_gen.PlaceSpec.of(bg, version=bg.version)
+    bg.status = "generating"
+    bg.last_job_id = job.id
+    _save(session, bg, storage)
+    jobs.start(
+        job.id,
+        partial(
+            image_gen.run_times_job,
+            spec=spec,
+            engine=engine,
+            provider=provider,
+            storage=storage,
+            llm=llm,
+            user_id=user.id,
+        ),
+        on_error=lambda _message: image_gen.mark_failed(engine, spec.id, was_locked=True),
+    )
+    return JobStarted(job_id=job.id, kind="background_image", target_id=bg.id)
+
+
+def _words_ok(
+    session: Session, user: User, bg: Background, provider: ProviderDep, llm: LLMDep
+) -> None:
+    """The place's words pass the checks before a real image model sees them (decision 85)."""
+    real_model = image_gen.needs_image_check(provider)
+    if real_model and llm is None:  # startup refuses this; fail closed anyway
+        raise ApiError(503, "not_checked", CHECKER_RESTING.format(name=bg.name))
+    try:
+        verdict = safety.check_and_log(
+            session,
+            user.id,
+            f"background:{bg.id}",
+            {"name": bg.name, "description": bg.description},
+            llm if real_model else None,
+        )
+    except SafetyUnavailable as error:
+        raise ApiError(503, "not_checked", CHECKER_RESTING.format(name=bg.name)) from error
+    if not verdict.allowed:
+        raise ApiError(422, "unsafe", verdict.message(SAFETY_LABELS))
+
+
 @router.post("/{background_id}/lock", status_code=202, responses={503: {"model": ErrorBody}})
 def lock_background(
     background_id: str,
@@ -152,23 +238,23 @@ def lock_background(
         return JobStarted(job_id=bg.last_job_id, kind="background_image", target_id=bg.id)
     if bg.status == "locked":
         raise ApiError(409, "already_locked", f"{bg.name} is already locked!")
+    return _paint(session, user, engine, jobs, provider, storage, llm, bg, was_locked=False)
 
-    real_model = image_gen.needs_image_check(provider)
-    if real_model and llm is None:  # startup refuses this; fail closed anyway
-        raise ApiError(503, "not_checked", CHECKER_RESTING.format(name=bg.name))
-    try:
-        verdict = safety.check_and_log(
-            session,
-            user.id,
-            f"background:{bg.id}",
-            {"name": bg.name, "description": bg.description},
-            llm if real_model else None,
-        )
-    except SafetyUnavailable as error:
-        raise ApiError(503, "not_checked", CHECKER_RESTING.format(name=bg.name)) from error
-    if not verdict.allowed:
-        raise ApiError(422, "unsafe", verdict.message(SAFETY_LABELS))
 
+def _paint(
+    session: Session,
+    user: User,
+    engine: EngineDep,
+    jobs: JobsDep,
+    provider: ProviderDep,
+    storage: Storage,
+    llm: LLMDep,
+    bg: Background,
+    *,
+    was_locked: bool,
+) -> JobStarted:
+    """The words check, then the painting job for the place's next version."""
+    _words_ok(session, user, bg, provider, llm)
     job = jobs.create("background_image", bg.id)
     spec = image_gen.PlaceSpec.of(bg, version=bg.version + 1)
     bg.status = "generating"
@@ -185,6 +271,6 @@ def lock_background(
             llm=llm,
             user_id=user.id,
         ),
-        on_error=lambda _message: image_gen.mark_failed(engine, spec.id),
+        on_error=lambda _message: image_gen.mark_failed(engine, spec.id, was_locked=was_locked),
     )
     return JobStarted(job_id=job.id, kind="background_image", target_id=bg.id)

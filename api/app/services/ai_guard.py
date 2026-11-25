@@ -31,7 +31,7 @@ Raw = dict[str, Any]
 META_LABEL = "Made with Meta AI"
 OFFLINE_LABEL = "Made by the offline helper"
 RESTING = "Our helper is resting. Here's an offline idea!"
-UNSAFE = "Let's keep Comickatha friendly for everyone! Please try different words."
+UNSAFE = "Let's keep Comickadha friendly for everyone! Please try different words."
 
 
 class InvalidReply(ValueError):
@@ -81,7 +81,7 @@ class Guard:
         if not verdict.allowed:
             where = labels.get(verdict.field_name or "") if labels else None
             message = verdict.kid_message or (
-                f"Let's keep Comickatha friendly for everyone! Please change {where} and try again."
+                f"Let's keep Comickadha friendly for everyone! Please change {where} and try again."
                 if where
                 else UNSAFE
             )

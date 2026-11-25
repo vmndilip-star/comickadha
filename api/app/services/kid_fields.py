@@ -25,7 +25,7 @@ from app.providers.llm import LLMProvider
 from app.services import safety
 from app.services.safety import SafetyUnavailable, Verdict
 
-FRIENDLY = "Let's keep Comickatha friendly for everyone!"
+FRIENDLY = "Let's keep Comickadha friendly for everyone!"
 # Fields the Studio shows the message under, so it needn't say where the words are.
 SHOWN_ON_FIELD = ("title", "synopsis", "buddy", "scenes.")
 ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth"]

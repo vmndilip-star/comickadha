@@ -214,7 +214,9 @@ def fail_interrupted_jobs(engine: Engine) -> int:
                 else session.get(Background, job.target_id)
             )
             if target is not None and target.status == "generating":
-                target.status = "failed"
+                # A place that already had a picture (a new version, or its times of day) keeps it.
+                kept = isinstance(target, Background) and bool(target.image_key)
+                target.status = "locked" if kept else "failed"
                 session.add(target)
         session.commit()
         return len(stuck)

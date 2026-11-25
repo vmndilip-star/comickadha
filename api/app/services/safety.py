@@ -75,7 +75,7 @@ class Verdict:
             return self.kid_message
         what = labels.get(self.field_name or "", "words")
         return (
-            f"Let's keep Comickatha friendly for everyone! Please change the {what} and try again."
+            f"Let's keep Comickadha friendly for everyone! Please change the {what} and try again."
         )
 
 

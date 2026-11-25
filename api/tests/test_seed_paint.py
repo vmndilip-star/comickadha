@@ -49,10 +49,10 @@ def test_it_repaints_the_three_demo_places_through_the_checks(settings: Settings
     report = paint_places(muse_settings(settings), llm=meta(fake), provider=muse(images))
 
     assert len(report) == 3 and all("painted (version 2)" in line for line in report)
-    assert len(images.calls) == 3
+    assert len(images.calls) == 9  # each place at day, sunset and night (Phase 8)
     checked = " ".join(user_text(c) for c in fake.calls_for("safety_verdicts"))
     assert "Grandma's kitchen" in checked and "School garden" in checked  # words first
-    assert len(fake.calls_for("image_safety")) == 3  # every picture checked
+    assert len(fake.calls_for("image_safety")) == 9  # every picture checked
     with Session(make_engine(settings.resolved_database_url)) as session:
         for place_id in (KITCHEN, GARDEN, SPACE):
             bg = session.get(Background, place_id)
@@ -71,7 +71,9 @@ def test_a_blocked_picture_is_painted_again_and_unsafe_words_send_nothing(
 
     assert any("Outer space" in line and "nothing sent" in line for line in report)
     assert sum("painted" in line for line in report) == 2
-    assert len(images.calls) == 3  # one retry after the blocked picture, none for Outer space
+    # One retry after the blocked picture, then each painted place's sunset and night; nothing
+    # for Outer space.
+    assert len(images.calls) == 7
     with Session(make_engine(settings.resolved_database_url)) as session:
         space = session.get(Background, SPACE)
         assert space is not None and space.version == 1  # unchanged
@@ -80,7 +82,7 @@ def test_a_blocked_picture_is_painted_again_and_unsafe_words_send_nothing(
             .where(ModerationLog.kind == "image")
             .order_by(col(ModerationLog.created_at))
         )
-        assert [v.verdict for v in verdicts] == ["block", "allow", "allow"]
+        assert [v.verdict for v in verdicts] == ["block", *["allow"] * 6]
 
 
 def test_the_report_says_when_the_checker_is_down(settings: Settings, tmp_path: Path) -> None:

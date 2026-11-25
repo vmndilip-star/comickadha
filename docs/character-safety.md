@@ -1,6 +1,6 @@
 # Character safety policy
 
-Comickatha is for children aged about 7–12 (and up to 15). Characters are built from a fixed,
+Comickadha is for children aged about 7–12 (and up to 15). Characters are built from a fixed,
 reviewed parts library; AI only suggests choices from that library. This policy says what a kid
 can ask for, what the helpers may answer, and what happens when something isn't right. The code
 that enforces it is listed at the end.
@@ -73,7 +73,7 @@ In this order, stopping at the first block:
    friend") and a short list of famous names; with Meta on, the AI classifier's `real_person`
    category too. Message: *"Let's make up a brand-new character instead!"*
 5. **Rule-bending:** "ignore the rules", "pretend", "without clothes" and similar. Message:
-   *"Let's stick to the Comickatha rules and keep building together!"*
+   *"Let's stick to the Comickadha rules and keep building together!"*
 6. **Body comments:** words about weight or body shape ("fat", "skinny"...) are taken out before
    the description goes anywhere. The character is made without them, with the note
    *"Every character is awesome just as they are!"*

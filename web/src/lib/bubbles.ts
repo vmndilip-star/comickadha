@@ -10,6 +10,30 @@ export type Point = [number, number]
 
 export const PANEL_W = 800
 export const PANEL_H = 600
+/** A panel's shape in units (Phase 8): a normal panel is 800 x 600; wide and splash panels are as
+ * wide as a page row (1640), and a splash as tall as a page (1880). Lettering is the same size in
+ * all of them. */
+export interface Frame {
+  w: number
+  h: number
+}
+export const FRAMES: Record<'normal' | 'wide' | 'splash', Frame> = {
+  normal: { w: PANEL_W, h: PANEL_H },
+  wide: { w: 1640, h: PANEL_H },
+  splash: { w: 1640, h: 1880 },
+}
+export const NORMAL_FRAME = FRAMES.normal
+
+/** The CSS aspect ratio of a panel of this size. */
+export function aspectOf(size: keyof typeof FRAMES | null | undefined): string {
+  const f = FRAMES[size ?? 'normal']
+  return `${f.w} / ${f.h}`
+}
+
+/** A length in units as CSS container-width units, for a panel `frame` wide. */
+export function cq(units: number, frame: Frame = NORMAL_FRAME): string {
+  return `${round4((units / frame.w) * 100)}cqw`
+}
 /** Font sizes (px at 800 wide), largest first, as the API's lettering uses; 18 is the smallest. */
 export const FONT_STEPS = [26, 23, 20, 18] as const
 const MARGIN = 0.03
@@ -52,10 +76,10 @@ export interface Wedge {
  * the speaker is below, else top) to the tip. Its base sits just inside the edge so its white fill
  * hides the bubble's outline where they join; its base never leaves the middle 60% of the bubble.
  */
-export function tailWedge(box: Box, tip: Point): Wedge {
-  const [x, y, w, h] = [box[0] * PANEL_W, box[1] * PANEL_H, box[2] * PANEL_W, box[3] * PANEL_H]
-  const tx = tip[0] * PANEL_W
-  const ty = tip[1] * PANEL_H
+export function tailWedge(box: Box, tip: Point, frame: Frame = NORMAL_FRAME): Wedge {
+  const [x, y, w, h] = [box[0] * frame.w, box[1] * frame.h, box[2] * frame.w, box[3] * frame.h]
+  const tx = tip[0] * frame.w
+  const ty = tip[1] * frame.h
   const below = ty > y + h / 2
   const inset = STROKE * 2.7
   const baseY = below ? y + h - inset : y + inset
@@ -65,11 +89,11 @@ export function tailWedge(box: Box, tip: Point): Wedge {
 }
 
 /** A think bubble's trail: three shrinking circles from the cloud toward the thinker's head. */
-export function thinkTrail(box: Box, tip: Point): { cx: number; cy: number; r: number }[] {
-  const sx = (box[0] + box[2] / 2) * PANEL_W
-  const sy = (box[1] + box[3]) * PANEL_H
-  const tx = tip[0] * PANEL_W
-  const ty = tip[1] * PANEL_H
+export function thinkTrail(box: Box, tip: Point, frame: Frame = NORMAL_FRAME): { cx: number; cy: number; r: number }[] {
+  const sx = (box[0] + box[2] / 2) * frame.w
+  const sy = (box[1] + box[3]) * frame.h
+  const tx = tip[0] * frame.w
+  const ty = tip[1] * frame.h
   return [0.35, 0.6, 0.82].map((t, i) => ({ cx: sx + (tx - sx) * t, cy: sy + (ty - sy) * t, r: 11 - i * 3 }))
 }
 
@@ -123,7 +147,8 @@ export function cloudBumps(count = 12): { cx: number; cy: number; r: number }[] 
   })
 }
 
-/** CSS font size for a step, in container-width units, so lettering scales with the panel. */
-export function fontSize(px: number): string {
-  return `${round4((px / PANEL_W) * 100)}cqw`
+/** CSS font size for a step, in container-width units, so lettering scales with the panel (the
+ * same size in a wide or splash panel as in a normal one). */
+export function fontSize(px: number, frame: Frame = NORMAL_FRAME): string {
+  return cq(px, frame)
 }

@@ -1,6 +1,6 @@
 import { cn } from '@/lib/cn'
 import { POSE_LABEL } from '@/lib/labels'
-import { POSES, type CharacterManifest, type Pose } from '@/types'
+import { SHEET_POSES, type CharacterManifest, type Pose } from '@/types'
 
 interface PoseGridProps {
   manifest: CharacterManifest
@@ -13,7 +13,7 @@ export function PoseGrid({ manifest, selected, onSelect }: PoseGridProps) {
     <div className="flex flex-col gap-2.5">
       <h2 className="m-0 font-display text-h3">Poses</h2>
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-        {POSES.map((pose) => (
+        {SHEET_POSES.map((pose) => (
           <button
             key={pose}
             type="button"

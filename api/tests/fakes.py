@@ -97,7 +97,13 @@ SAFE_PICTURE = {
     "is_scary": False,
 }
 # The safety checks say "safe" unless a test says otherwise.
-DEFAULTS: dict[str, Reply] = {"safety_verdicts": all_safe, "image_safety": SAFE_PICTURE}
+DEFAULTS: dict[str, Reply] = {
+    "safety_verdicts": all_safe,
+    "image_safety": SAFE_PICTURE,
+    # Asking for single panels again (Phase 8) is "down" unless a test answers it: the planner
+    # then repairs the panel by hand.
+    "panel_fix": server_error(),
+}
 
 
 def picture(**flags: bool) -> dict[str, bool]:

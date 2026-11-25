@@ -1,5 +1,5 @@
 # Local dev stack: web on http://localhost:5173, API on http://localhost:8010.
-name: comickatha
+name: comickadha
 
 services:
   api:

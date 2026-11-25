@@ -1,8 +1,8 @@
 import { Avatar } from '@/components/character/Avatar'
 import type { Box } from '@/lib/bubbles'
+import { cn } from '@/lib/cn'
 import { lookFor } from '@/lib/comic'
-import { PANELS_PER_PAGE, pagesOf } from '@/lib/studio'
-import type { Background, Character, Comic } from '@/types'
+import type { Background, Character, Comic, Panel as PanelData } from '@/types'
 import { Panel } from './Panel'
 
 interface ComicPageProps {
@@ -22,18 +22,46 @@ interface ComicPageProps {
 }
 
 /**
- * The comic: title and the cast drawn from their pinned looks (the PDF's cover), then the panels,
- * 2 a row. Longer comics show as pages of 6 numbered like the PDF (Phase 7 part C).
+ * The comic: title and the cast drawn from their pinned looks (the PDF's cover), then the pages as
+ * the API lays them out by slots (Phase 8): rows of two normal panels, a wide panel across a row, a
+ * splash panel filling a page, and "The End" where a last page would be short. Numbered like the
+ * PDF. On phones every panel takes the full width.
  */
 export function ComicPage(props: ComicPageProps) {
   const { comic, places, cast, editing } = props
-  const pages = pagesOf(comic.panels)
+  const pages = comic.pages
   // One page of panels needs no numbers; more get "Page 2 of 4" (the PDF's cover is page 1).
   const paged = pages.length > 1
   const used = new Map(comic.panels.flatMap((p) => p.characters).map((pc) => [pc.id, pc]))
   const cast_row = [...new Set([...comic.cast_ids, ...used.keys()])]
     .map((id) => ({ character: cast.find((c) => c.id === id), pc: used.get(id) }))
     .filter((x): x is { character: Character; pc: typeof x.pc } => Boolean(x.character))
+
+  const panelAt = (index: number, wide: boolean) => {
+    const panel: PanelData | undefined = comic.panels[index]
+    if (!panel) return null
+    return (
+      <div key={panel.id} className={cn(wide && 'sm:col-span-2')}>
+        <Panel
+          number={index + 1}
+          panel={panel}
+          looks={comic.looks}
+          place={places.find((p) => p.id === panel.background_id)}
+          cast={cast}
+          editing={editing}
+          selected={editing && panel.id === props.selectedPanelId}
+          onSelect={props.onSelectPanel && (() => props.onSelectPanel?.(panel.id))}
+          inking={props.inkingId === panel.id}
+          redrawing={props.redrawing[panel.id]}
+          trying={props.trying[panel.id]}
+          onTryAgain={() => props.onTryAgain(panel.id)}
+          selectedBubbleId={props.selectedBubbleId}
+          onSelectBubble={props.onSelectBubble}
+          onBubbleBox={props.onBubbleBox && ((bubbleId, box) => props.onBubbleBox?.(panel.id, bubbleId, box))}
+        />
+      </div>
+    )
+  }
 
   return (
     <section
@@ -66,26 +94,12 @@ export function ComicPage(props: ComicPageProps) {
           className={paged && pageIndex > 0 ? 'flex flex-col gap-3 border-t-3 border-dashed border-ink pt-4' : 'flex flex-col gap-3'}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            {page.panels.map((panel, i) => (
-              <Panel
-                key={panel.id}
-                number={pageIndex * PANELS_PER_PAGE + i + 1}
-                panel={panel}
-                looks={comic.looks}
-                place={places.find((p) => p.id === panel.background_id)}
-                cast={cast}
-                editing={editing}
-                selected={editing && panel.id === props.selectedPanelId}
-                onSelect={props.onSelectPanel && (() => props.onSelectPanel?.(panel.id))}
-                inking={props.inkingId === panel.id}
-                redrawing={props.redrawing[panel.id]}
-                trying={props.trying[panel.id]}
-                onTryAgain={() => props.onTryAgain(panel.id)}
-                selectedBubbleId={props.selectedBubbleId}
-                onSelectBubble={props.onSelectBubble}
-                onBubbleBox={props.onBubbleBox && ((bubbleId, box) => props.onBubbleBox?.(panel.id, bubbleId, box))}
-              />
-            ))}
+            {page.splash !== null && page.splash !== undefined
+              ? panelAt(page.splash, true)
+              : page.rows.flatMap((row) =>
+                  row.length === 1 ? [panelAt(row[0]!, comic.panels[row[0]!]?.shown_size !== 'normal')] : row.map((i) => panelAt(i, false)),
+                )}
+            {page.the_end && <TheEnd rows={3 - page.rows.length} />}
           </div>
           {paged && (
             <p className="m-0 text-center text-label font-extrabold text-muted">
@@ -95,5 +109,20 @@ export function ComicPage(props: ComicPageProps) {
         </section>
       ))}
     </section>
+  )
+}
+
+/** The tile that finishes a short last page, as tall as the rows it fills. */
+export function TheEnd({ rows }: { rows: number }) {
+  const spare = Math.max(1, rows)
+  return (
+    <div
+      role="img"
+      aria-label="The End"
+      className="@container flex items-center justify-center rounded-[4px] border-4 border-ink bg-sun sm:col-span-2"
+      style={{ aspectRatio: `1640 / ${600 * spare + 46 * (spare - 1)}` }}
+    >
+      <span className="font-display text-[clamp(28px,9cqw,96px)] leading-none tracking-[2px]">The End!</span>
+    </div>
   )
 }

@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 
 from PIL import Image, ImageDraw, ImageFont
 
+from app.services import imaging
+
 INK = (26, 26, 26)
 WHITE = (255, 255, 255)
 
@@ -43,6 +45,7 @@ def shade(color: RGB, factor: float) -> RGB:
 class Request:
     palette: dict[str, str] = field(default_factory=dict)
     place: str | None = None
+    time: str | None = None  # "sunset" or "night": the same place at that time of day
 
 
 def _line(prompt: str, label: str) -> str | None:
@@ -55,7 +58,8 @@ def parse(prompt: str) -> Request:
     palette = dict(
         kv.split("=", 1) for kv in (p.strip() for p in palette_line.split(";")) if "=" in kv
     )
-    return Request(palette=palette, place=_line(prompt, "Place"))
+    time = (_line(prompt, "Time of day") or "").split(" ")[0].strip(".,:").lower() or None
+    return Request(palette=palette, place=_line(prompt, "Place"), time=time)
 
 
 # ---- drawing ------------------------------------------------------------------------------------
@@ -102,7 +106,8 @@ class MockImageProvider:
             time.sleep(self.delay_seconds)  # pretend to be a slow image API, so progress is visible
         req = parse(prompt)
         if req.place:
-            return _png(self._place(req, size, random.Random(seed)))
+            image = self._place(req, size, random.Random(seed))
+            return _png(imaging.time_tint(image, req.time) if req.time else image)
         return _png(self._card(prompt, size))
 
     def _place(self, req: Request, size: tuple[int, int], rng: random.Random) -> Image.Image:

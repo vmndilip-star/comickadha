@@ -23,6 +23,7 @@ const STATUS_LABEL: Partial<Record<Background['status'], string>> = {
 export function PlaceTile({ place, onSelect, selected = false }: PlaceTileProps) {
   const job = useJob(place.status === 'generating' ? place.last_job_id : null)
   const repaint = usePlacesStore((s) => s.repaint)
+  const paintTimes = usePlacesStore((s) => s.paintTimes)
   const remove = usePlacesStore((s) => s.remove)
   const [busy, setBusy] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -42,9 +43,9 @@ export function PlaceTile({ place, onSelect, selected = false }: PlaceTileProps)
           </span>
         )}
       </div>
-      <div className="flex justify-between gap-2 px-3 py-2.5 text-left font-extrabold">
-        {place.name}
-        {STATUS_LABEL[place.status] && <span className="text-[13px]">{STATUS_LABEL[place.status]}</span>}
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 px-3 py-2.5 text-left font-extrabold">
+        <span className="min-w-0 [overflow-wrap:anywhere]">{place.name}</span>
+        {STATUS_LABEL[place.status] && <span className="shrink-0 text-[13px]">{STATUS_LABEL[place.status]}</span>}
       </div>
     </>
   )
@@ -65,10 +66,15 @@ export function PlaceTile({ place, onSelect, selected = false }: PlaceTileProps)
       <PlaceActions
         name={place.name}
         status={place.status}
+        times={place.times}
         busy={busy}
         onRepaint={() => {
           setBusy(true)
           void repaint(place.id).finally(() => setBusy(false))
+        }}
+        onPaintTimes={() => {
+          setBusy(true)
+          void paintTimes(place.id).finally(() => setBusy(false))
         }}
         onDelete={() => setConfirming(true)}
       />
