@@ -33,6 +33,9 @@ class Character(SQLModel, table=True):
     # True for the ready-made starter characters (app/starters.py), which kids can't change.
     # None or False: a kid's own character (older databases get the column empty).
     starter: bool | None = None
+    # The kid's choice for the painted portrait (decision 132): False shows the builder drawing
+    # instead ("Use my drawing"). None or True: the painting, when there is one.
+    show_portrait: bool | None = None
     deleted_at: datetime | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

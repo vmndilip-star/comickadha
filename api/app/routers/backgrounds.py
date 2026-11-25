@@ -3,14 +3,24 @@ from functools import partial
 from fastapi import APIRouter
 from sqlmodel import Session, col, select
 
-from app.deps import EngineDep, JobsDep, LLMDep, ProviderDep, SessionDep, StorageDep, UserDep
+from app.config import Settings
+from app.deps import (
+    EngineDep,
+    JobsDep,
+    LLMDep,
+    ProviderDep,
+    SessionDep,
+    SettingsDep,
+    StorageDep,
+    UserDep,
+)
 from app.errors import ERROR_RESPONSES, ApiError, not_found
 from app.models import Background, User
 from app.models.base import utcnow
 from app.schemas.background import BackgroundCreate, BackgroundRead, BackgroundUpdate
 from app.schemas.common import ErrorBody
 from app.schemas.job import JobStarted
-from app.services import image_gen, safety
+from app.services import image_gen, painting, safety
 from app.services.safety import SafetyUnavailable
 from app.services.storage import Storage
 
@@ -141,6 +151,7 @@ def repaint_background(
     provider: ProviderDep,
     storage: StorageDep,
     llm: LLMDep,
+    settings: SettingsDep,
 ) -> JobStarted:
     """Paints a locked place again as a new version (Phase 8). Panels pin the version they were
     planned with, so old comics keep their picture; new plans use the new one. The place stays
@@ -149,6 +160,7 @@ def repaint_background(
     bg = get_background(session, user, background_id)
     if bg.status == "generating" and bg.last_job_id:
         return JobStarted(job_id=bg.last_job_id, kind="background_image", target_id=bg.id)
+    _painting_on(settings, provider, bg)
     if bg.status != "locked":
         raise ApiError(409, "invalid", f"{bg.name} isn't painted yet. Tap Paint it again!")
     return _paint(session, user, engine, jobs, provider, storage, llm, bg, was_locked=True)
@@ -164,6 +176,7 @@ def paint_times(
     provider: ProviderDep,
     storage: StorageDep,
     llm: LLMDep,
+    settings: SettingsDep,
 ) -> JobStarted:
     """Paints the sunset and night pictures a locked place's version is missing (Phase 8: places
     painted before have only a day picture). The same words check as painting; the version stays,
@@ -171,6 +184,7 @@ def paint_times(
     bg = get_background(session, user, background_id)
     if bg.status == "generating" and bg.last_job_id:
         return JobStarted(job_id=bg.last_job_id, kind="background_image", target_id=bg.id)
+    _painting_on(settings, provider, bg)
     if bg.status != "locked" or not bg.image_key:
         raise ApiError(409, "invalid", f"{bg.name} isn't painted yet. Tap Paint it again!")
     _words_ok(session, user, bg, provider, llm)
@@ -195,11 +209,21 @@ def paint_times(
     return JobStarted(job_id=job.id, kind="background_image", target_id=bg.id)
 
 
+PAINTING_OFF = "Painting is resting right now, so {name} can't be painted. Try again later!"
+
+
+def _painting_on(settings: Settings, provider: ProviderDep, bg: Background) -> None:
+    """PAINTING_ENABLED=false (decision 134): no image model calls, so a real model can't paint
+    places (the mock still can: it paints on this machine)."""
+    if not settings.painting_enabled and painting.needs_image_check(provider):
+        raise ApiError(409, "painting_off", PAINTING_OFF.format(name=bg.name))
+
+
 def _words_ok(
     session: Session, user: User, bg: Background, provider: ProviderDep, llm: LLMDep
 ) -> None:
     """The place's words pass the checks before a real image model sees them (decision 85)."""
-    real_model = image_gen.needs_image_check(provider)
+    real_model = painting.needs_image_check(provider)
     if real_model and llm is None:  # startup refuses this; fail closed anyway
         raise ApiError(503, "not_checked", CHECKER_RESTING.format(name=bg.name))
     try:
@@ -226,6 +250,7 @@ def lock_background(
     provider: ProviderDep,
     storage: StorageDep,
     llm: LLMDep,
+    settings: SettingsDep,
 ) -> JobStarted:
     """Checks the description is kid-safe, then paints the reference image as an SSE-tracked job.
 
@@ -236,6 +261,7 @@ def lock_background(
     bg = get_background(session, user, background_id)
     if bg.status == "generating" and bg.last_job_id:
         return JobStarted(job_id=bg.last_job_id, kind="background_image", target_id=bg.id)
+    _painting_on(settings, provider, bg)
     if bg.status == "locked":
         raise ApiError(409, "already_locked", f"{bg.name} is already locked!")
     return _paint(session, user, engine, jobs, provider, storage, llm, bg, was_locked=False)

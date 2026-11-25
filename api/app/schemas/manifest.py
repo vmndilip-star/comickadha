@@ -50,3 +50,6 @@ class CharacterManifest(BaseModel):
     body_sheet: BodySheet
     face_sheet: FaceSheet
     thumb_url: str | None = None
+    # The painted portrait of this version (decision 132), once Muse (or the mock) painted one.
+    portrait_url: str | None = None
+    portrait_thumb_url: str | None = None

@@ -17,17 +17,21 @@ from sqlmodel import Session
 from app.models import Background
 from app.models.base import utcnow
 from app.prompts import render
-from app.providers.image import ImageError, ImageProvider
+from app.providers.image import ImageProvider
 from app.providers.llm import LLMProvider
-from app.services import imaging, safety
+from app.services import imaging
 from app.services.jobs import JobContext, JobFailed
+from app.services.painting import (
+    Check,
+    CheckerResting,
+    image_check,
+    paint_checked,
+)
 from app.services.prop_rules import without_props
-from app.services.safety import Verdict
 from app.services.storage import Storage
 
 PLACE_SIZE = (1024, 768)  # 4:3, the same shape as a comic panel
 THUMB_SIDE = 320
-ATTEMPTS = 2
 # Phase 8: every place is painted at these times of day too, from the same description and the day
 # picture, so a scene at sunset or at night shows the same place in that light.
 TIMES = ("sunset", "night")
@@ -37,7 +41,6 @@ TIME_LIGHT = {
 }
 
 Emit = Callable[[str, dict[str, Any], float | None], None]
-Check = Callable[[bytes], Verdict]
 
 # Places have a "Paint it again" button (and Delete) on their tile.
 CANT_PAINT = "We couldn't paint {name}. Tap Paint it again!"
@@ -45,11 +48,6 @@ CHECKER_RESTING = (
     "Our picture checker is taking a break, so {name} isn't painted yet. "
     "Tap Paint it again in a minute!"
 )
-
-
-def needs_image_check(provider: ImageProvider) -> bool:
-    """Pictures from any real image model are checked; the mock's are drawn on this machine."""
-    return provider.name != "mock"
 
 
 @dataclass(frozen=True)
@@ -166,27 +164,20 @@ def _paint(
     progress: float,
 ) -> bytes | None:
     """One picture, painted and (with `check`) checked, with one more try; None if none passed."""
-    for attempt in range(ATTEMPTS):
-        try:
-            image = _valid_place(
-                provider.generate(prompt, PLACE_SIZE, seed + attempt * 7919, references)
-            )
-        except ImageError:
-            image = None
-        if image is None:
-            continue
-        candidate = imaging.to_png(image)
-        if check is None:
-            return candidate
-        emit("progress", {"stage": "checking"}, progress)
-        verdict = check(candidate)
-        if "unavailable" in verdict.categories:
-            raise JobFailed(CHECKER_RESTING.format(name=spec.name))
-        if verdict.allowed:
-            return candidate
-        if "text" in verdict.categories:
-            prompt = prompt + "\n\n" + render("background_no_text")
-    return None
+    try:
+        painted = paint_checked(
+            prompt,
+            PLACE_SIZE,
+            provider,
+            seed,
+            references,
+            fit=_valid_place,
+            check=check,
+            on_checking=lambda: emit("progress", {"stage": "checking"}, progress),
+        )
+    except CheckerResting as resting:
+        raise JobFailed(CHECKER_RESTING.format(name=spec.name)) from resting
+    return painted.png
 
 
 def paint_times(
@@ -275,18 +266,11 @@ def place_check(
 ) -> Check | None:
     """The image check for a real model's pictures (None for the mock's). Fails closed without an
     LLM (startup refuses that set-up anyway)."""
-    if not needs_image_check(provider):
-        return None
-    if llm is None:
-        raise JobFailed(CHECKER_RESTING.format(name=spec.name))
-    checker = llm
-
-    def check(png: bytes) -> Verdict:
-        with Session(engine) as session:
-            target = f"background:{spec.id}:v{spec.version}"
-            return safety.check_image(session, user_id, target, png, checker)
-
-    return check
+    target = f"background:{spec.id}:v{spec.version}"
+    try:
+        return image_check(engine, provider, llm, user_id, target)
+    except CheckerResting as resting:
+        raise JobFailed(CHECKER_RESTING.format(name=spec.name)) from resting
 
 
 def save_place(engine: Engine, spec: PlaceSpec, keys: dict[str, str]) -> None:

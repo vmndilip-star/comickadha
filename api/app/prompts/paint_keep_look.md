@@ -1,0 +1,1 @@
+Important: the last painting changed how a character looks. Keep every colour exactly as in the picture and the colour values: the same skin or fur tone, the same hair, the same head covering and the same clothes, and paint no extra characters.

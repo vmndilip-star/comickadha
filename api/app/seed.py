@@ -11,7 +11,7 @@ from datetime import timedelta
 from typing import Any
 
 from sqlalchemy import delete
-from sqlmodel import Session
+from sqlmodel import Session, col, select
 
 from app.avatar import spec as avatar_spec
 from app.config import Settings, get_settings
@@ -32,7 +32,7 @@ from app.providers import get_image_provider, get_llm_provider
 from app.providers.image import ImageProvider
 from app.providers.llm import LLMProvider
 from app.providers.mock import MockImageProvider
-from app.services import looks, safety
+from app.services import looks, painting, portraits, safety
 from app.services.backup import backup_storage
 from app.services.builder_sheet import BuilderSheets
 from app.services.character_sheet import SheetProvider, SheetSpec
@@ -585,8 +585,71 @@ def paint_places(
     return report
 
 
+def paint_portraits(
+    settings: Settings,
+    *,
+    mine: bool = False,
+    llm: LLMProvider | None = None,
+    provider: ImageProvider | None = None,
+) -> list[str]:
+    """seed --portraits [--mine]: paints the 12 starters' portraits (decision 132), and with
+    --mine the kid's locked characters that have none from this image model yet. Every picture
+    goes through the image check and the look check (a real model) like a kid's; these runs are
+    logged but never count toward the daily caps. Backs up the storage folder first. The app
+    itself never paints at startup."""
+    llm = llm or get_llm_provider(settings)
+    provider = provider or get_image_provider(settings)
+    if painting.needs_image_check(provider) and llm is None:
+        raise SystemExit("seed --portraits needs LLM_PROVIDER=meta to check the pictures.")
+    engine = make_engine(settings.resolved_database_url)
+    init_db(engine)
+    storage = LocalStorage(settings.media_dir)
+    backup_storage(settings.storage_dir, reason="before-portraits")
+    with Session(engine) as session:
+        stmt = select(Character).where(
+            col(Character.deleted_at).is_(None), Character.status == "locked"
+        )
+        chosen = [
+            c
+            for c in session.exec(stmt)
+            if c.starter
+            or (mine and not portraits.portrait_png(storage, c.id, c.sheet_version, provider.name))
+        ]
+        chosen.sort(key=lambda c: (not c.starter, c.created_at))
+        work = [(portraits.PortraitSpec.of(session, c), c.user_id) for c in chosen]
+    report: list[str] = []
+    for spec, user_id in work:
+        target = portraits.portrait_target(spec)
+        try:
+            check = painting.image_check(engine, provider, llm, user_id, target)
+            painted = portraits.paint_portrait(spec, provider, check, llm)
+        except painting.CheckerResting:
+            report.append(f"{spec.name}: the picture checker didn't answer, nothing saved")
+            continue
+        painting.log_paint(
+            engine,
+            user_id=user_id,
+            kind="portrait",
+            target=target,
+            provider=provider.name,
+            painted=painted,
+            seed_run=True,
+        )
+        notes = f" ({'; '.join(painted.findings)})" if painted.findings else ""
+        if painted.png is None:
+            report.append(f"{spec.name}: not painted ({painted.outcome}){notes}")
+            continue
+        portraits.save_portrait(engine, storage, spec, provider.name, painted.png)
+        report.append(f"{spec.name}: painted in {painted.attempts} try(s){notes}")
+    return report
+
+
 def main() -> None:
     settings = get_settings()
+    if "--portraits" in sys.argv[1:]:
+        for line in paint_portraits(settings, mine="--mine" in sys.argv[1:]):
+            print(line)
+        return
     if "--paint" in sys.argv[1:]:
         for line in paint_places(settings):
             print(line)

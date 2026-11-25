@@ -5,6 +5,7 @@ from the avatar's parts. Each cell is saved and announced as it arrives, so the 
 sheet filling in. Comics never use sheet images: panels draw every character from its pinned spec.
 """
 
+import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -22,6 +23,8 @@ from app.schemas.manifest import BodySheet, Box, CharacterManifest, FaceSheet, H
 from app.services import imaging, looks
 from app.services.jobs import JobContext, JobFailed
 from app.services.storage import Storage
+
+log = logging.getLogger(__name__)
 
 BODY_GRID = (4, 4)
 FACE_GRID = (2, 3)
@@ -175,9 +178,16 @@ class SheetCells:
 
 
 async def run_sheet_job(
-    ctx: JobContext, *, spec: SheetSpec, engine: Engine, sheets: SheetProvider, storage: Storage
+    ctx: JobContext,
+    *,
+    spec: SheetSpec,
+    engine: Engine,
+    sheets: SheetProvider,
+    storage: Storage,
+    after: Callable[[], str | None] | None = None,
 ) -> dict[str, Any]:
-    """Job work for POST /characters/{id}/lock."""
+    """Job work for POST /characters/{id}/lock. `after` runs once the lock is saved (it starts the
+    portrait job, decision 132, and returns its id); nothing it does can undo the lock."""
     manifest = await ctx.run(sheets.build, spec, storage, ctx.emit_threadsafe)
     with Session(engine) as session:
         character = session.get(Character, spec.id)
@@ -192,7 +202,13 @@ async def run_sheet_job(
         # Freeze the look this version was locked with: comics drawn with it never change.
         looks.freeze(session, spec.id, spec.version, spec.spec)
         session.commit()
-    return {"target_id": spec.id, "version": spec.version}
+    portrait_job_id = None
+    if after is not None:
+        try:
+            portrait_job_id = after()
+        except Exception:
+            log.exception("couldn't start the portrait for %s", spec.id)
+    return {"target_id": spec.id, "version": spec.version, "portrait_job_id": portrait_job_id}
 
 
 def mark_failed(engine: Engine, character_id: str) -> None:

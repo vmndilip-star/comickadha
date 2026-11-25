@@ -121,9 +121,33 @@ export interface paths {
          * Lock Character
          * @description Checks the words are kid-safe, then draws the character sheet as a job (follow it over SSE).
          *
-         *     The builder draws all 22 cells from the parts library in a couple of seconds.
+         *     The builder draws all 22 cells from the parts library in a couple of seconds. Once the lock is
+         *     saved, the portrait starts as its own job (decision 132; its id is in the done event) when
+         *     painting is on and today's caps allow: the lock never waits or fails for it.
          */
         post: operations["lock_character_api_characters__character_id__lock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/characters/{character_id}/portrait": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Paint Portrait
+         * @description Paints the character's portrait (decision 132) as a job: also "Paint again", and how a
+         *     character locked before portraits gets one. The prompt carries no kid-written words, so there
+         *     is no words check; the picture passes the image check and the look check before it is saved.
+         */
+        post: operations["paint_portrait_api_characters__character_id__portrait_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1003,6 +1027,10 @@ export interface components {
             face_sheet: components["schemas"]["FaceSheet"];
             /** Thumb Url */
             thumb_url?: string | null;
+            /** Portrait Url */
+            portrait_url?: string | null;
+            /** Portrait Thumb Url */
+            portrait_thumb_url?: string | null;
         };
         /** CharacterRead */
         CharacterRead: {
@@ -1048,6 +1076,13 @@ export interface components {
              */
             deleted: boolean;
             /**
+             * Show Portrait
+             * @default true
+             */
+            show_portrait: boolean;
+            /** Portrait Job Id */
+            portrait_job_id?: string | null;
+            /**
              * Created At
              * Format: date-time
              */
@@ -1062,6 +1097,8 @@ export interface components {
         CharacterUpdate: {
             /** Name */
             name?: string | null;
+            /** Show Portrait */
+            show_portrait?: boolean | null;
             spec?: components["schemas"]["AvatarSpec"] | null;
         };
         /** ComicCreate */
@@ -1437,7 +1474,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "character_sheet" | "background_image" | "comic" | "panel_plan";
+            kind: "character_sheet" | "background_image" | "comic" | "panel_plan" | "portrait";
             /** Target Id */
             target_id: string;
         };
@@ -1652,6 +1689,11 @@ export interface components {
             avatar_color: string;
             /** Max Cast */
             max_cast: number;
+            /**
+             * Painting Enabled
+             * @default true
+             */
+            painting_enabled: boolean;
             /** Drawing Consent At */
             drawing_consent_at: string | null;
         };
@@ -2310,6 +2352,73 @@ export interface operations {
             };
             /** @description Unprocessable Entity */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+        };
+    };
+    paint_portrait_api_characters__character_id__portrait_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                character_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobStarted"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorBody"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

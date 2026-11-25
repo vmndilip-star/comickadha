@@ -46,6 +46,10 @@ LIMITS: dict[str, Limit] = {
     # The safety checks (services/safety.py).
     "classifier": Limit(7500, 65.0),  # a 20-text batch reached 3,627 tokens; 31.5 s (Phase 8)
     "image_check": Limit(2000, 20.0),  # vision model; was 1500: seed --paint reached 999
+    # Decision 132: after the image check, one vision call compares the builder drawing with the
+    # painting (one side-by-side picture). Not measured yet (Phase A live check): set from the
+    # image check (999 tokens, 7.1 s) with room for a per-character answer.
+    "look_check": Limit(4000, 40.0),
     # Story Studio (services/story_buddy.py, services/story_planner.py).
     "buddy_idea": Limit(3200, 20.0),
     "buddy_spelling": Limit(3600, 25.0),
@@ -64,3 +68,15 @@ PLAN_PARTS_AT_ONCE = 3  # parts of one comic planned at the same time
 # The classifier checks at most this many texts per call (a 30-panel plan has about 60), so its
 # reply stays well inside its max_tokens. Every batch must answer, or the whole check fails closed.
 CLASSIFIER_BATCH = 20
+
+# Painted portraits and panels on Muse Image (decisions 131-134). A picture's own timeout is
+# META_IMAGE_TIMEOUT_SECONDS (60 s, about 3.5 times the slowest measured edit, 17.1 s).
+PAINT_ATTEMPTS = 2  # tries per picture (a blocked or look-failed picture gets one more)
+PAINT_REFERENCES = 3  # the most reference pictures one edit carries (tested in decision 82)
+REFERENCE_SIDE = 1024  # reference pictures are sent at most this many pixels on a side
+PAINT_CONCURRENCY = 3  # panels of one comic painted at the same time (Phase B)
+# Daily caps (decision 134), counted per Muse image call, retries included; .env can change
+# them (PORTRAIT_PAINTS_PER_KID, PANEL_PAINTS_PER_KID, PAINTS_PER_DAY). seed runs don't count.
+PORTRAIT_PAINTS_PER_KID = 10
+PANEL_PAINTS_PER_KID = 100
+PAINTS_PER_DAY = 1000

@@ -24,6 +24,10 @@ REQUIRED: dict[str, set[str] | None] = {
     "image_safety": set(),
     "background_no_text": set(),
     "background_time": {"time", "light"},
+    # Painted portraits and the look check (decisions 131, 132).
+    "portrait": {"look"},
+    "look_check": set(),
+    "paint_keep_look": set(),
 }
 
 _cache: dict[str, str] = {}

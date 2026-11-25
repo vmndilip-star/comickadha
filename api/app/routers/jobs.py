@@ -18,7 +18,7 @@ def _owned_job(session: Session, user: User, job: Job | None) -> Job:
     if job is None:
         raise not_found("drawing")
     target: Character | Background | Comic | None
-    if job.kind == "character_sheet":
+    if job.kind in ("character_sheet", "portrait"):
         target = session.get(Character, job.target_id)
     elif job.kind in ("comic", "panel_plan"):
         target = session.get(Comic, job.target_id)

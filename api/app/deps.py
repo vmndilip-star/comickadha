@@ -7,6 +7,7 @@ from fastapi import Depends, Request
 from sqlalchemy import Engine
 from sqlmodel import Session, col, select
 
+from app.config import Settings
 from app.errors import ApiError
 from app.models import User
 from app.providers.image import ImageProvider
@@ -48,6 +49,11 @@ def get_jobs(request: Request) -> JobRunner:
     return cast(JobRunner, request.app.state.jobs)
 
 
+def get_app_settings(request: Request) -> Settings:
+    """The settings the app was made with (tests make apps with their own)."""
+    return cast(Settings, request.app.state.settings)
+
+
 EngineDep = Annotated[Engine, Depends(get_engine)]
 SessionDep = Annotated[Session, Depends(get_session)]
 StorageDep = Annotated[Storage, Depends(get_storage)]
@@ -55,6 +61,7 @@ ProviderDep = Annotated[ImageProvider, Depends(get_provider)]
 SheetsDep = Annotated[SheetProvider, Depends(get_sheets)]
 LLMDep = Annotated[LLMProvider | None, Depends(get_llm)]
 JobsDep = Annotated[JobRunner, Depends(get_jobs)]
+SettingsDep = Annotated[Settings, Depends(get_app_settings)]
 
 
 def get_current_user(session: SessionDep) -> User:

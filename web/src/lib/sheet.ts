@@ -27,6 +27,20 @@ export function lookSpec(character: Pick<Character, 'spec' | 'status' | 'manifes
   return manifest?.renderer === 'builder' && manifest.spec ? manifest.spec : character.spec
 }
 
+/** The locked version's painted portrait (decision 132), whatever the kid chose to show. */
+export function paintedPortrait(character: Pick<Character, 'status' | 'manifest'>): { url: string; thumb: string } | null {
+  const manifest = lockedManifest(character)
+  if (!manifest?.portrait_url) return null
+  return { url: manifest.portrait_url, thumb: manifest.portrait_thumb_url ?? manifest.portrait_url }
+}
+
+/** The portrait to show on cards: the painting, unless the kid chose "Use my drawing". */
+export function portraitOf(
+  character: Pick<Character, 'status' | 'manifest' | 'show_portrait'>,
+): { url: string; thumb: string } | null {
+  return character.show_portrait === false ? null : paintedPortrait(character)
+}
+
 export function faceUrl(manifest: CharacterManifest, expression: Expression): string | undefined {
   return manifest.face_sheet.cell_urls[expression]
 }

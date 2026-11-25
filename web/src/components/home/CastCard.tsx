@@ -3,7 +3,7 @@ import { Avatar } from '@/components/character/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/cn'
 import { characterTagline } from '@/lib/format'
-import { lockedManifest } from '@/lib/sheet'
+import { lockedManifest, portraitOf } from '@/lib/sheet'
 import type { Character } from '@/types'
 
 function StatusBadge({ character }: { character: Character }) {
@@ -21,7 +21,8 @@ function StatusBadge({ character }: { character: Character }) {
 
 export function CastCard({ character }: { character: Character }) {
   const locked = character.status === 'locked'
-  const thumb = lockedManifest(character)?.thumb_url
+  // The painted portrait when there is one and the kid shows it (decision 132), else the sheet's.
+  const thumb = portraitOf(character)?.thumb ?? lockedManifest(character)?.thumb_url
   return (
     <Link
       to={`/characters/${character.id}`}

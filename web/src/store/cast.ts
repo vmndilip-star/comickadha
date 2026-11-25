@@ -20,7 +20,7 @@ const KIND_OF_BODY: Record<BodyType, CharacterKind> = {
 }
 
 interface CastState {
-  /** The kid's own characters (their 3 cast slots). */
+  /** The kid's own characters (up to MAX_CAST). */
   characters: Character[]
   /** The 12 ready-made starter characters: locked, the same for every kid, read-only. */
   starters: Character[]
@@ -35,9 +35,14 @@ interface CastState {
   /** Locking starts the sheet-drawing job; unlocking goes back to editing. False if it failed
    * (the kid has been told). */
   setLocked: (id: string, locked: boolean) => Promise<boolean>
-  /** Nudges where the face goes on one pose (autosaved). */
-  /** Reconnects to sheets still being drawn (after a refresh or coming back to the page). */
+  /** Reconnects to sheets and portraits still being made (after a refresh or coming back). */
   resumeJobs: () => void
+  /** Paints (or paints again) the locked character's portrait (decision 132). */
+  paintPortrait: (id: string) => Promise<void>
+  /** The painted portrait (true) or the builder drawing (false) on cards. */
+  setShowPortrait: (id: string, show: boolean) => Promise<void>
+  /** A calm note per character when its last portrait didn't paint (shown on the card). */
+  portraitNotes: Record<string, string>
   remove: (id: string) => Promise<boolean>
   /** Make it mine: copies a starter into the kid's own cast as a draft. Returns the new id. */
   makeItMine: (starterId: string) => Promise<string | null>
@@ -68,11 +73,37 @@ export const useCastStore = create<CastState>()((set, get) => {
     if (edits.isLatest(id, seen)) replace(saved)
   }
 
-  const watchSheet = (id: string, jobId: string) =>
+  const note = (id: string, message: string | null) =>
+    set((s) => {
+      const notes = { ...s.portraitNotes }
+      if (message) notes[id] = message
+      else delete notes[id]
+      return { portraitNotes: notes }
+    })
+
+  // A portrait that doesn't paint is no emergency: the character stays locked with its drawing.
+  const watchPortrait = (id: string, jobId: string) =>
     useJobsStore.getState().watch(jobId, (ok, message) => {
       void api
         .getCharacter(id)
         .then(replace)
+        .catch(() => undefined)
+      if (ok) {
+        note(id, null)
+        toast.success(`${find(id)?.name ?? 'Your character'}'s portrait is painted!`)
+      } else {
+        note(id, message ?? "We couldn't paint the portrait this time. Tap Paint portrait to try again!")
+      }
+    })
+
+  const watchSheet = (id: string, jobId: string) =>
+    useJobsStore.getState().watch(jobId, (ok, message) => {
+      void api
+        .getCharacter(id)
+        .then((fresh) => {
+          replace(fresh)
+          if (fresh.portrait_job_id) watchPortrait(id, fresh.portrait_job_id)
+        })
         .catch(() => undefined)
       const name = find(id)?.name ?? 'Your character'
       if (ok) toast.success(`${name} is locked! They'll look the same in every panel.`)
@@ -83,6 +114,7 @@ export const useCastStore = create<CastState>()((set, get) => {
     characters: [],
     starters: [],
     status: 'idle',
+    portraitNotes: {},
 
     load: async (force = false) => {
       const { status } = get()
@@ -151,6 +183,29 @@ export const useCastStore = create<CastState>()((set, get) => {
     resumeJobs: () => {
       for (const c of get().characters) {
         if (c.status === 'generating' && c.last_job_id) watchSheet(c.id, c.last_job_id)
+        if (c.portrait_job_id) watchPortrait(c.id, c.portrait_job_id)
+      }
+    },
+
+    paintPortrait: async (id) => {
+      try {
+        const started = await api.paintPortrait(id)
+        note(id, null)
+        set((s) => ({
+          characters: s.characters.map((c) => (c.id === id ? { ...c, portrait_job_id: started.job_id } : c)),
+        }))
+        watchPortrait(id, started.job_id)
+      } catch (error) {
+        // Painting switched off, today's cap, not locked: the API's kid-friendly message.
+        note(id, error instanceof ApiError ? error.message : "We couldn't paint the portrait this time.")
+      }
+    },
+
+    setShowPortrait: async (id, show) => {
+      try {
+        replace(await api.updateCharacter(id, { show_portrait: show }))
+      } catch (error) {
+        toast.error(error)
       }
     },
 

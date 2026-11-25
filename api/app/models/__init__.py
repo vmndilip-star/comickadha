@@ -5,6 +5,7 @@ from app.models.character import Character
 from app.models.character_version import CharacterVersion
 from app.models.comic import Comic, Panel, Scene
 from app.models.job import Job
+from app.models.paint import PaintLog
 from app.models.safety import ModerationLog
 from app.models.user import User
 
@@ -15,6 +16,7 @@ __all__ = [
     "Comic",
     "Job",
     "ModerationLog",
+    "PaintLog",
     "Panel",
     "Scene",
     "User",

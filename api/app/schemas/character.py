@@ -15,6 +15,9 @@ class CharacterCreate(BaseModel):
 
 class CharacterUpdate(BaseModel):
     name: Name | None = None
+    # The painted portrait or the builder drawing (decision 132). Allowed on a locked character:
+    # it changes what the cards show, never the look.
+    show_portrait: bool | None = None
     # The whole spec, checked against the parts catalog (unknown parts are a 422 unknown_part).
     spec: AvatarSpec | None = None
 
@@ -41,5 +44,9 @@ class CharacterRead(BaseModel):
     starter: bool = False
     # Deleted characters still resolve by id for comics that use them.
     deleted: bool = False
+    # The kid's choice: the painted portrait (when there is one) or the builder drawing.
+    show_portrait: bool = True
+    # A portrait being painted now: reconnect to its events after a refresh.
+    portrait_job_id: str | None = None
     created_at: UtcDatetime
     updated_at: UtcDatetime
